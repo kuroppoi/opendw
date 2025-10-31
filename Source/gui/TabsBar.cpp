@@ -1,6 +1,7 @@
 #include "TabsBar.h"
 
 #include "util/MathUtil.h"
+#include "AudioManager.h"
 
 USING_NS_AX;
 
@@ -178,6 +179,7 @@ bool TabsBar::onTouchBegan(Touch* touch, Event* event)
         if (isScreenPointInRect(touch->getLocation(), Camera::getVisitingCamera(), child->getWorldToNodeTransform(),
                                 rect, nullptr))
         {
+            AudioManager::getInstance()->playButtonSfx();
             selectTab(child->getTag());
             return true;
         }
