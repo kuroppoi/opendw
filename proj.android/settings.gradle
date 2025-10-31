@@ -1,0 +1,14 @@
+import java.nio.file.Paths
+
+def folder = new File("${settingsDir}/../axmol")
+if (folder.exists()) {
+    System.setProperty("AX_ROOT", folder.path)
+} else {
+    System.setProperty("AX_ROOT", "${System.env.AX_ROOT}")
+}
+
+include ':libaxmol'
+project(':libaxmol').projectDir = new File(Paths.get("${System.properties.AX_ROOT}/core/platform/android/libaxmol").toUri())
+include ':opendw'
+project(':opendw').projectDir = new File(settingsDir, 'app')
+rootProject.name = "opendw"

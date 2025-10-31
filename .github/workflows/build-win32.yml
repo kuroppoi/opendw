@@ -1,0 +1,38 @@
+name: Build Win32
+on:
+  workflow_dispatch:
+    inputs:
+      configuration:
+        type: choice
+        description: Build configuration
+        options:
+        - Debug
+        - Release
+        - RelWithDebInfo
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4.1.4
+    - name: Setup Axmol
+      shell: pwsh
+      run: |
+        git clone --depth 1 --branch v2.8.1 https://github.com/axmolengine/axmol.git $HOME/axmol
+        cd $HOME/axmol
+        ./setup.ps1
+    - name: Set env
+      shell: pwsh
+      run: |
+        echo "APP_NAME=${{github.event.repository.name}}" >> $env:GITHUB_ENV
+        echo "AXMOL_HOME=$HOME/axmol/tools/cmdline" >> $env:GITHUB_ENV
+        echo "CONFIGURATION=${{github.event.inputs.configuration}}" >> $env:GITHUB_ENV
+    - name: Build app
+      shell: pwsh
+      run: |
+        . ${{env.AXMOL_HOME}}/axmol.ps1 build -p win32 -xb '--config',"${{env.CONFIGURATION}}"
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: ${{env.APP_NAME}}
+        path: build/bin/${{env.APP_NAME}}/${{env.CONFIGURATION}}
+        retention-days: 7
