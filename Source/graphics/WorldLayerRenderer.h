@@ -101,8 +101,8 @@ public:
     size_t getRecycledSpriteCount() { return _recycledSprites.size(); }
 
     // Sprite tags
-    static constexpr auto ACTION_SPRITE_TAG   = 0x2C;
     static constexpr auto ANIMATED_SPRITE_TAG = 0x2F;
+    static constexpr auto ACTION_SPRITE_TAG   = 0x30;
 
 private:
     inline static size_t sTotalSpriteCount;  // 0x10032EB28
