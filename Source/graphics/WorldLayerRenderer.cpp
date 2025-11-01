@@ -122,19 +122,26 @@ void WorldLayerRenderer::placeSpecialItem(BaseBlock* block, Item* item)
     case SpecialPlacement::CLOCK:
     {
         // Place hand sprites and rotate them based on the current time in the zone
-        auto daytime           = _zone->getDayTime();
-        std::string suffixes[] = {"minute", "hour"};
-        float durations[]      = {50.0F, 600.0F};
-        float rotations[]      = {fmodf(daytime, 1.0F / 24.0F) * 24.0F * 360.0F, fmodf(daytime, 0.5F) * 2.0F * 360.0F};
-
-        for (auto i = 0; i < 2; i++)
+        struct ClockHand
         {
-            auto name   = std::format("{}-{}-hand", item->getName(), suffixes[i]);
+            std::string suffix;
+            float duration;
+            float rotation;
+            int z;
+        };
+
+        auto daytime      = _zone->getDayTime();
+        ClockHand hands[] = {ClockHand("minute", 50.0F, fmodf(daytime, 1.0F / 24.0F) * 24.0F * 360.0F, 9),
+                             ClockHand("hour", 600.0F, fmodf(daytime, 0.5F) * 2.0F * 360.0F, 10)};
+
+        for (auto& hand : hands)
+        {
+            auto name   = std::format("{}-{}-hand", item->getName(), hand.suffix);
             auto frame  = config->getCurrentBiomeFrame(name);
-            auto action = RepeatForever::create(RotateBy::create(durations[i], 360.0F));
-            auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 9 + i);
+            auto action = RepeatForever::create(RotateBy::create(hand.duration, 360.0F));
+            auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, hand.z);
             sprite->setAnchorPoint({0.5F, 0.1F});
-            sprite->setRotation(rotations[i]);
+            sprite->setRotation(hand.rotation);
             sprite->setPositionY(sprite->getPositionY() + sprite->getContentSize().height * -0.4F);
             sprite->runAction(action);
             sprite->setTag(ACTION_SPRITE_TAG);
