@@ -157,7 +157,7 @@ void BaseBlock::updateEnvironment(bool light, bool liquid, bool wholeness, bool 
                     _frontContinuity = 0;
                 }
             }
-#endif
+#endif  // SPECIAL_FRONT_CONTINUITY
         }
     }
 
@@ -223,7 +223,7 @@ void BaseBlock::setLayer(BlockLayer layer, uint16_t item, uint8_t mod)
                 updateLiquid(true);
             }
         }
-        // TODO: implement
+
         break;
     }
 }
@@ -557,7 +557,7 @@ void BaseBlock::recycleSprites(BlockLayer layer)
             it = _sprites.erase(it);
             continue;
         }
-        
+
         auto renderer = static_cast<WorldLayerRenderer*>(parent->getParent());
 
         if (layer == BlockLayer::NONE || renderer->getLayer() == layer)
