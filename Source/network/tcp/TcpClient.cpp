@@ -206,6 +206,7 @@ void TcpClient::onClose(event_ptr& event)
 {
     AXLOGI("[TcpClient] Channel closed!");
     _transport = nullptr;
+    _bytesRead = 0;
     GameManager::getInstance()->onDisconnected();
 }
 
