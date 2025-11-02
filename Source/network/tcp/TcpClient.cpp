@@ -105,12 +105,12 @@ void TcpClient::sendMessage(uint8_t ident, const std::vector<uint8_t>& data)
 
 void TcpClient::processPacket(uint8_t ident, uint8_t* payload, uint32_t length)
 {
-    //AXLOGD("[TcpClient] Received command: {}, len: {}", static_cast<int>(ident), length);
+    AXLOGD("[TcpClient] Received command: {}, len: {}", static_cast<int>(ident), length);
     auto command = GameCommand::createFromIdent(static_cast<GameCommand::Ident>(ident));
 
     if (!command)
     {
-        //AXLOGW("[TcpClient] Received unknown command: {}", static_cast<int>(ident));
+        AXLOGW("[TcpClient] Received unknown command: {}", static_cast<int>(ident));
         return;
     }
 
