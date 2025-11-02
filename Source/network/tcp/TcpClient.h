@@ -4,13 +4,15 @@
 #include "axmol.h"
 #include "yasio/yasio.hpp"
 
+#include "util/ArrayUtil.h"
+
 #define READ_BUFFER_SIZE    512 * 1024       // 512 KB
 #define INFLATE_BUFFER_SIZE 4 * 1024 * 1024  // 4 MB
 
 namespace opendw
 {
 
-struct Message;
+enum class MessageIdent : uint8_t;
 
 class TcpClient : public ax::Object
 {
@@ -22,7 +24,13 @@ public:
 
     void dispatch();
 
-    void sendMessage(const Message& message);
+    template <typename... T>
+    void sendMessage(MessageIdent ident, T... t)
+    {
+        sendMessage(ident, array_util::arrayOf(t...));
+    }
+
+    void sendMessage(MessageIdent ident, const ax::ValueVector& data);
     void sendMessage(uint8_t ident, const std::vector<uint8_t>& data);
 
     void processPacket(uint8_t ident, uint8_t* payload, uint32_t length);

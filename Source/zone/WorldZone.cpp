@@ -3,7 +3,8 @@
 #include "graphics/SceneRenderer.h"
 #include "graphics/WorldRenderer.h"
 #include "input/InputManager.h"
-#include "network/tcp/Message.h"
+#include "network/tcp/MessageIdent.h"
+#include "util/ArrayUtil.h"
 #include "util/MapUtil.h"
 #include "util/StringUtil.h"
 #include "zone/BaseBlock.h"
@@ -245,7 +246,7 @@ void WorldZone::update(float deltaTime)
         if (!chunksToSend.empty())
         {
             AXLOGI("[WorldZone] Requesting chunks for [{}]", string_util::join(chunksToSend));
-            _game->sendMessage(BlocksMessage(chunksToSend));
+            _game->sendMessage(MessageIdent::BLOCKS, array_util::arrayOf(array_util::convert(chunksToSend)));
             _lastBlocksRequestAt = utils::gettime();
         }
     }
@@ -260,7 +261,7 @@ void WorldZone::update(float deltaTime)
     if (!_cleanedChunks.empty() && utils::gettime() >= _lastBlocksIgnoreAt + BLOCKS_IGNORE_INTERVAL)
     {
         AXLOGI("[WorldZone] Ignoring chunks [{}]", string_util::join(_cleanedChunks));
-        _game->sendMessage(BlocksIgnoreMessage(_cleanedChunks));
+        _game->sendMessage(MessageIdent::BLOCKS_IGNORE, array_util::arrayOf(array_util::convert(_cleanedChunks)));
         _cleanedChunks.clear();
         _lastBlocksIgnoreAt = utils::gettime();
     }

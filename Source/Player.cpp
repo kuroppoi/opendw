@@ -1,6 +1,6 @@
 #include "Player.h"
 
-#include "network/tcp/Message.h"
+#include "network/tcp/MessageIdent.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
@@ -45,7 +45,7 @@ void Player::sendMoveMessage() {
     position.y *= -1.0F;
     auto velocity = Vec2::ZERO;
     auto target   = Vec2::ZERO;
-    _game->sendMessage(MoveMessage(position, velocity, 0i8, target, 33)); // funky time
+    _game->sendMessage(MessageIdent::MOVE, position.x, position.y, velocity.x, velocity.y, 0, target.x, target.y, 33);  // funky time
     _nextMoveMessageTime = time + MOVE_MESSAGE_INTERVAL;
 }
 

@@ -71,7 +71,7 @@ void GameGui::toggleGameMenu()
     }
 
     // 0x100064DA2: Create gradient
-    _gameMenu = LayerGradient::create({0x42, 0x42, 0x42, 0x82}, {0x00, 0x00, 0x00, 0x82});
+    _gameMenu = LayerGradient::create(color_util::hexToColor4("42424282"), color_util::hexToColor4("00000082"));
     addChild(_gameMenu, 21);
 
     // 0x100064E3E: Create leave button

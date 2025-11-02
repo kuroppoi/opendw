@@ -39,4 +39,20 @@ Color3B hexToColor(const std::string& hex)
     return Color3B(r, g, b);
 }
 
+Color4B hexToColor4(const std::string& hex)
+{
+    uint8_t offset = hex.size() == 9 && hex[0] == '#';
+
+    if (hex.size() - offset != 8)
+    {
+        return Color4B::WHITE;
+    }
+
+    auto r = static_cast<uint8_t>(std::stoi(hex.substr(offset, 2), nullptr, 16) & 0xFF);
+    auto g = static_cast<uint8_t>(std::stoi(hex.substr(offset + 2, 2), nullptr, 16) & 0xFF);
+    auto b = static_cast<uint8_t>(std::stoi(hex.substr(offset + 4, 2), nullptr, 16) & 0xFF);
+    auto a = static_cast<uint8_t>(std::stoi(hex.substr(offset + 6, 2), nullptr, 16) & 0xFF);
+    return Color4B(r, g, b, a);
+}
+
 }  // namespace opendw::color_util

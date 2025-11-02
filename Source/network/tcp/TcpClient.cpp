@@ -2,7 +2,9 @@
 
 #include "msgpack/MessagePack.h"
 #include "network/tcp/command/GameCommand.h"
-#include "network/tcp/Message.h"
+#include "network/tcp/MessageIdent.h"
+#include "util/ArrayUtil.h"
+#include "util/MapUtil.h"
 #include "util/StringUtil.h"
 #include "GameManager.h"
 
@@ -72,11 +74,11 @@ void TcpClient::dispatch()
     }
 }
 
-void TcpClient::sendMessage(const Message& message)
+void TcpClient::sendMessage(MessageIdent ident, const ValueVector& data)
 {
     msgpack::MessagePackPacker packer;
-    message.pack(packer);
-    sendMessage(static_cast<uint8_t>(message.ident), packer.getOutput());
+    packer.packArray(data);
+    sendMessage(static_cast<uint8_t>(ident), packer.getOutput());
 }
 
 void TcpClient::sendMessage(uint8_t ident, const std::vector<uint8_t>& data)
@@ -138,7 +140,7 @@ void TcpClient::processPacket(uint8_t ident, uint8_t* payload, uint32_t length)
     if (!command->validate())
     {
         auto& errors = command->getErrors();
-        auto name = static_cast<int>(ident);  // TODO: use class name for easier debugging
+        auto name    = static_cast<int>(ident);  // TODO: use class name for easier debugging
         AXLOGE("------------------\nCommand error in {}: {}\n------------------\n", name,
                string_util::join(errors, "\n"));
     }
@@ -197,9 +199,11 @@ void TcpClient::onPacket(event_ptr& event)
 void TcpClient::onOpen(event_ptr& event)
 {
     AXLOGI("[TcpClient] Channel opened!");
-    _transport = event->transport();
-    auto user = GameManager::getInstance()->getCurrentUser();
-    sendMessage(AuthenticateMessage(GAME_VERSION, user.username, user.token));
+    _transport   = event->transport();
+    auto game    = GameManager::getInstance();
+    auto user    = game->getCurrentUser();
+    auto details = map_util::mapOf("initial", game->getConfig() == nullptr);
+    sendMessage(MessageIdent::AUTHENTICATE, GAME_VERSION, user.username, user.token, details);
 }
 
 void TcpClient::onClose(event_ptr& event)

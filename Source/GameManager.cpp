@@ -3,7 +3,6 @@
 #include "input/DefaultInputManager.h"
 #include "network/http/HttpFetcher.h"
 #include "network/tcp/command/GameCommand.h"
-#include "network/tcp/Message.h"
 #include "network/tcp/TcpClient.h"
 #include "util/MapUtil.h"
 #include "zone/WorldZone.h"
@@ -322,7 +321,7 @@ void GameManager::enterGame(const std::string& message)
     _menu->setVisible(false);
 
     // TODO: use player count
-    auto alertData = map_util::map_value("t", message, "t2", "You are alone at the moment.");
+    Value alertData(map_util::mapOf("t", message, "t2", "You are alone at the moment."));
     _eventDispatcher->dispatchCustomEvent("bigAlert", &alertData);
 }
 
@@ -387,11 +386,6 @@ void GameManager::enqueueCommand(GameCommand* command)
     {
         _commandQueue.pushBack(command);
     }
-}
-
-void GameManager::sendMessage(const Message& message)
-{
-    _tcpClient->sendMessage(message);
 }
 
 void GameManager::loadNextAsset()

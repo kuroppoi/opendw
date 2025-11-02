@@ -6,6 +6,8 @@
 #include "axmol.h"
 #include "json.h"
 
+#include "network/tcp/TcpClient.h"
+
 #define APP_NAME        "opendw"
 #define APP_PLATFORM    "axmol"
 #define APP_VERSION     "0.1.0"
@@ -20,10 +22,8 @@ class GameConfig;
 class InputManager;
 class MainMenu;
 class Player;
-class TcpClient;
 class WorldZone;
-struct Message;
-
+enum class MessageIdent : uint8_t;
 enum class NotificationType : uint32_t
 {
     WELCOME = 333
@@ -106,8 +106,12 @@ public:
     /* FUNC: GameManager::queueCommand: @ 0x100039BD8 */
     void enqueueCommand(GameCommand* command);
 
-    /* FUNC: GameManager::sendMessage:data: @0x10003A4AD */
-    void sendMessage(const Message& message);
+    /* FUNC: GameManager::sendMessage:data: @ 0x10003A4AD */
+    template <typename... T>
+    void sendMessage(MessageIdent ident, T... t)
+    {
+        _tcpClient->sendMessage(ident, t...);
+    }
 
     /* FUNC: GameManager::loadGameSpriteSheets @ 0x10003AA3A */
     void loadNextAsset();
