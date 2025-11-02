@@ -5,6 +5,7 @@
 
 namespace opendw
 {
+
 /*
  * CLASS: MacManager : InputManager @ 0x100316DB0
  *

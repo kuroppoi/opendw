@@ -6,6 +6,7 @@
 namespace opendw
 {
 
+class GameGui;
 class GameManager;
 class Player;
 
@@ -19,7 +20,7 @@ public:
     virtual bool initWithGame(GameManager* game);
 
     /* FUNC: InputManager::enterGame @ 0x1000E94E0 */
-    virtual void enterGame() {};
+    virtual void enterGame();
 
     /* FUNC: InputManager::exitGame @ 0x1000E9608 */
     virtual void exitGame() {};
@@ -30,6 +31,7 @@ public:
 protected:
     GameManager* _game;  // InputManager::game @ 0x100313178
     Player* _player;     // InputManager::player @ 0x100313180
+    GameGui* _gameGui;   // InputManager::gameGui @ 0x100313188
 };
 
 }  // namespace opendw

@@ -63,6 +63,7 @@ private:
     std::string _style;             // Panel::style @ 0x100313088
     Chop _chop;                     // Panel::chop @ 0x100313098
     float _borderScale;             // Panel::borderScale @ 0x1003130C8
+    float _baseBorderScale;         // Panel::baseBorderScale @ 0x100313138
     ax::Sprite* _backgroundSprite;  // Panel::backgroundSprite @ 0x1003130D8
     ax::Sprite* _borderSprites[8];
     bool _layoutDirty;

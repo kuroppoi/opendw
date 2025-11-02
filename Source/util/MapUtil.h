@@ -6,6 +6,35 @@
 namespace opendw::map_util
 {
 
+template <typename... Values>
+ax::ValueMap map(Values... values)
+{
+    ax::ValueMap result;
+    std::string key;
+    size_t i = 0;
+
+    ([&] {
+        if (i % 2 == 0)
+        {
+            key = values;
+        }
+        else
+        {
+            result[key] = values;
+        }
+
+        i++;
+    }(), ...);
+
+    return result;
+}
+
+template <typename... Values>
+ax::Value map_value(Values... values)
+{
+    return ax::Value(map(values...));
+}
+
 ax::ValueMap::const_iterator find(const ax::ValueMap& map, const std::string& key);
 
 const ax::Value& getValue(const ax::ValueMap& map, const std::string& path, const ax::Value& def = ax::Value::Null);

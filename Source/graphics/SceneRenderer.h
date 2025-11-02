@@ -6,6 +6,7 @@
 namespace opendw
 {
 
+class GameGui;
 class WorldRenderer;
 class WorldZone;
 
@@ -42,6 +43,7 @@ public:
 
 private:
     WorldRenderer* _worldRenderer;  // SceneRenderer::worldRenderer @ 0x100311D98
+    GameGui* _gameGui;              // SceneRenderer::gameGui @ 0x100311DA0
     ax::Node* _spinner;             // SceneRenderer::spinner @ 0x100311DE0
 };
 

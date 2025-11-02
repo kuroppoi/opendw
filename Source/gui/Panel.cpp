@@ -46,7 +46,7 @@ void Panel::updateLayout()
 {
     auto& cornerSize     = _borderSprites[static_cast<uint8_t>(Border::TOP_RIGHT)]->getContentSize();
     auto& backgroundSize = _backgroundSprite->getContentSize();
-    auto borderScale     = _borderScale * cornerSize.width;
+    auto borderScale     = _borderScale * cornerSize.width * _baseBorderScale;
 
     // Update background
     _backgroundSprite->setScaleX((_contentSize.width - borderScale * 2.0F) / backgroundSize.width);
@@ -129,7 +129,8 @@ void Panel::setStyle(const std::string& style)
 
     _backgroundSprite = createBorderSprite("background");
     _backgroundSprite->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
-    _layoutDirty = true;
+    _baseBorderScale = style.ends_with("brass") ? 0.65F : 1.0F;  // 0x1000E7FB2
+    _layoutDirty     = true;
 }
 
 void Panel::setChop(Chop chop)

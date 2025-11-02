@@ -1,6 +1,7 @@
 #include "GameManager.h"
 
 #include "util/ColorUtil.h"
+#include "util/MapUtil.h"
 #include "AssetManager.h"
 #include "CommonDefs.h"
 #include "MainMenu.h"
@@ -322,17 +323,23 @@ void GameManager::kickPlayer(const std::string& message, bool shouldReconnect)
 
 void GameManager::enterGame(const std::string& message)
 {
-    // TODO: show message
     AXLOGI("[GameManager] Entering game");
     _zone->enter();
     _inputManager->enterGame();
     _zone->setVisible(true);
     _menu->setVisible(false);
+
+    // TODO: use player count
+    auto alertData = map_util::map_value("t", message, "t2", "You are alone at the moment.");
+    _eventDispatcher->dispatchCustomEvent("bigAlert", &alertData);
 }
 
 void GameManager::leaveGame()
 {
-    // TODO: implement...?
+    // TODO: finish
+    reset();
+    _menu->showPlayMenu();
+    _menu->setVisible(true);
 }
 
 void GameManager::reset()

@@ -1,5 +1,6 @@
 #include "InputManager.h"
 
+#include "gui/GameGui.h"
 #include "GameManager.h"
 #include "Player.h"
 
@@ -18,6 +19,11 @@ bool InputManager::initWithGame(GameManager* game)
     _game   = game;
     _player = game->getPlayer();
     return true;
+}
+
+void InputManager::enterGame()
+{
+    _gameGui = GameGui::getMain();
 }
 
 }  // namespace opendw

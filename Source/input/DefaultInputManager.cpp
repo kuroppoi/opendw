@@ -1,7 +1,9 @@
 #include "DefaultInputManager.h"
 
 #include "graphics/WorldRenderer.h"
+#include "gui/GameGui.h"
 #include "zone/WorldZone.h"
+#include "AudioManager.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
 #include "Player.h"
@@ -18,6 +20,7 @@ DefaultInputManager* DefaultInputManager::createWithGame(GameManager* game)
 
 void DefaultInputManager::enterGame()
 {
+    InputManager::enterGame();
     _keyboardListener                = EventListenerKeyboard::create();
     _keyboardListener->onKeyPressed  = AX_CALLBACK_2(DefaultInputManager::onKeyPressed, this);
     _keyboardListener->onKeyReleased = AX_CALLBACK_2(DefaultInputManager::onKeyReleased, this);
@@ -27,6 +30,8 @@ void DefaultInputManager::enterGame()
 void DefaultInputManager::exitGame()
 {
     _eventDispatcher->removeEventListener(_keyboardListener);
+    _keysPressed.clear();
+    InputManager::exitGame();
 }
 
 void DefaultInputManager::checkInput(float deltaTime)
@@ -78,6 +83,18 @@ void DefaultInputManager::checkInput(float deltaTime)
 
 void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
 {
+    // NOTE: in v2.9.0 we can use `EventKeyboard::isRepeat`
+    if (!_keysPressed.contains(keyCode))
+    {
+        switch (keyCode)
+        {
+        case KeyCode::KEY_ESCAPE:
+            AudioManager::getInstance()->playButtonSfx();
+            _gameGui->toggleGameMenu();
+            break;
+        }
+    }
+
     _keysPressed.insert(keyCode);
 }
 

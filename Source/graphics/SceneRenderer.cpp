@@ -1,6 +1,7 @@
 #include "SceneRenderer.h"
 
 #include "graphics/WorldRenderer.h"
+#include "gui/GameGui.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 
@@ -23,22 +24,27 @@ bool SceneRenderer::initWithZone(WorldZone* zone)
 
     _worldRenderer = WorldRenderer::createWithZone(zone);
     addChild(_worldRenderer);
+    _gameGui = GameGui::createWithZone(zone);
+    addChild(_gameGui);
     return true;
 }
 
 void SceneRenderer::update(float deltaTime)
 {
     _worldRenderer->update(deltaTime);
+    // TODO: _gameGui->update(deltaTime);
 }
 
 void SceneRenderer::ready()
 {
     _worldRenderer->ready();
+    _gameGui->ready();
 }
 
 void SceneRenderer::clear()
 {
     _worldRenderer->clear();
+    // TODO: _gameGui->clear();
 }
 
 void SceneRenderer::showSpinner()
