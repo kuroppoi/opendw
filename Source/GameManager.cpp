@@ -1,24 +1,16 @@
 #include "GameManager.h"
 
-#include "util/ColorUtil.h"
-#include "util/MapUtil.h"
-#include "AssetManager.h"
-#include "CommonDefs.h"
-#include "MainMenu.h"
-#include "zone/BaseBlock.h"
-#include "graphics/backend/MaskedSprite.h"
-#include "graphics/backend/MaskedSpriteBatchNode.h"
-#include "network/http/HttpFetcher.h"
-
-// Main includes, upper ones are testing
 #include "input/DefaultInputManager.h"
-#include "input/InputManager.h"
+#include "network/http/HttpFetcher.h"
 #include "network/tcp/command/GameCommand.h"
 #include "network/tcp/Message.h"
 #include "network/tcp/TcpClient.h"
+#include "util/MapUtil.h"
 #include "zone/WorldZone.h"
+#include "AssetManager.h"
 #include "AudioManager.h"
 #include "GameConfig.h"
+#include "MainMenu.h"
 #include "Player.h"
 #include "SpineManager.h"
 
