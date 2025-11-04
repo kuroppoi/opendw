@@ -1,5 +1,6 @@
 #include "SpriteButton.h"
 
+#include "util/AxUtil.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
 
@@ -67,7 +68,7 @@ void SpriteButton::runBlinkAction(const Color3B& fromColor, const Color3B& toCol
 
 bool SpriteButton::onTouchBegan(Touch* touch, Event* event)
 {
-    if (!isVisible())
+    if (!ax_util::isNodeVisible(this))
     {
         return false;
     }

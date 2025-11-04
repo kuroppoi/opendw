@@ -1,5 +1,6 @@
 #include "TabsBar.h"
 
+#include "util/AxUtil.h"
 #include "util/MathUtil.h"
 #include "AudioManager.h"
 
@@ -167,7 +168,7 @@ void TabsBar::setSelectedBackground(const std::string& frameName)
 
 bool TabsBar::onTouchBegan(Touch* touch, Event* event)
 {
-    if (!isVisible())
+    if (!ax_util::isNodeVisible(this))
     {
         return false;
     }

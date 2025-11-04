@@ -1,6 +1,7 @@
 #include "TextField.h"
 
 #include "gui/Panel.h"
+#include "util/AxUtil.h"
 #include "util/ColorUtil.h"
 #include "util/MathUtil.h"
 #include "CommonDefs.h"
@@ -250,7 +251,7 @@ void TextField::setPassword(bool password)
 
 bool TextField::onTouchBegan(Touch* touch, Event* event)
 {
-    if (!isVisible())
+    if (!ax_util::isNodeVisible(this))
     {
         return false;
     }

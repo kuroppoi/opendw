@@ -14,4 +14,22 @@ void runFadeSequence(Node* node, float fadeIn, float delay, float fadeOut)
     node->runAction(action);
 }
 
+bool isNodeVisible(Node* node)
+{
+    AX_ASSERT(node);
+    auto current = node;
+
+    while (current)
+    {
+        if (!current->isVisible())
+        {
+            return false;
+        }
+
+        current = current->getParent();
+    }
+
+    return true;
+}
+
 }  // namespace opendw::ax_util
