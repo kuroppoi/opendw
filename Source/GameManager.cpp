@@ -374,6 +374,7 @@ void GameManager::kickPlayer(const std::string& message, bool shouldReconnect)
         else if (!_player->isZoneTeleporting())  // onDisconnected() will handle it if we are zone teleporting
         {
             // Reconnect immediately
+            _menu->setVisible(false);
             loginAsCurrentUser();
         }
 
