@@ -10,7 +10,7 @@
 
 #define APP_NAME        "opendw"
 #define APP_PLATFORM    "axmol"
-#define APP_VERSION     "0.1.0"
+#define APP_VERSION     "0.1.1"
 #define GAME_VERSION    "2.11.1"
 #define DEFAULT_GATEWAY "http://127.0.0.1:5001"
 
