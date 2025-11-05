@@ -7,6 +7,7 @@
 #include "network/tcp/command/GameCommandKick.h"
 #include "network/tcp/command/GameCommandNotification.h"
 #include "network/tcp/command/GameCommandPlayerPosition.h"
+#include "network/tcp/command/GameCommandZoneSearch.h"
 #include "network/tcp/command/GameCommandZoneStatus.h"
 #include "util/Validation.h"
 
@@ -29,6 +30,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandBlockChange();
     case Ident::ZONE_STATUS:
         return new GameCommandZoneStatus();
+    case Ident::ZONE_SEARCH:
+        return new GameCommandZoneSearch();
     case Ident::NOTIFICATION:
         return new GameCommandNotification();
     case Ident::KICK:

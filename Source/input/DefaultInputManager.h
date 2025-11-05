@@ -33,9 +33,12 @@ public:
     /* FUNC: MacManager::ccKeyUp: @ 0x10003EF4B */
     void onKeyReleased(KeyCode keyCode, ax::Event* event);
 
+    bool onMouseMove(ax::EventMouse* event);
+
 private:
     std::unordered_set<KeyCode> _keysPressed;  // MacManager::keysPressed @ 0x100310E70
     ax::EventListenerKeyboard* _keyboardListener;
+    ax::EventListenerMouse* _mouseListener;
 };
 
 }  // namespace opendw

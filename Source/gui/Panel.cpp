@@ -1,5 +1,6 @@
 #include "Panel.h"
 
+#include "util/AxUtil.h"
 #include "CommonDefs.h"
 
 USING_NS_AX;
@@ -23,13 +24,29 @@ bool Panel::initWithStyle(const std::string& style)
 
     _batch = SpriteBatchNode::create("guiv2.png");
     _batch->setCascadeOpacityEnabled(true);
-    addChild(_batch);
+    addChild(_batch, 1);
     setStyle(style);
     setChop(Chop::NONE);
     setBorderScale(1.0F);
     setContentSize(Size::ONE * 100.0F);  // Default size
     setCascadeOpacityEnabled(true);
     return true;
+}
+
+void Panel::onEnter()
+{
+    Node::onEnter();
+
+    // Create touch listener
+    _touchListener               = EventListenerTouchOneByOne::create();
+    _touchListener->onTouchBegan = AX_CALLBACK_2(Panel::onTouchBegan, this);
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(_touchListener, this);
+}
+
+void Panel::onExit()
+{
+    _eventDispatcher->removeEventListener(_touchListener);
+    Node::onExit();
 }
 
 void Panel::visit(Renderer* renderer, const Mat4& transform, uint32_t flags)
@@ -52,6 +69,15 @@ void Panel::updateLayout()
     _backgroundSprite->setScaleX((_contentSize.width - borderScale * 2.0F) / backgroundSize.width);
     _backgroundSprite->setScaleY((_contentSize.height - borderScale * 2.0F) / backgroundSize.height);
     _backgroundSprite->setPosition(borderScale, borderScale);
+
+    // Update background texture
+    if (_backgroundTextureSprite)
+    {
+        auto padding = Vec2::ONE * ((_borderScale * 13.0F) * 2.0F);
+        auto rect    = Rect(Point::ZERO, _contentSize - padding);
+        _backgroundTextureSprite->setPosition(padding * 0.5F);
+        _backgroundTextureSprite->setTextureRect(rect);
+    }
 
     // Update borders
     for (uint8_t i = 0; i < 8; i++)
@@ -133,6 +159,26 @@ void Panel::setStyle(const std::string& style)
     _layoutDirty     = true;
 }
 
+void Panel::setBackgroundTexture(const std::string& textureFile, uint8_t opacity)
+{
+    removeChild(_backgroundTextureSprite);
+
+    if (textureFile.empty())
+    {
+        return;
+    }
+
+    auto texture = _director->getTextureCache()->addImage(textureFile);
+    AX_ASSERT(texture);
+    texture->setTexParameters({backend::SamplerFilter::LINEAR, backend::SamplerFilter::LINEAR,
+                               backend::SamplerAddressMode::REPEAT, backend::SamplerAddressMode::REPEAT});
+    _backgroundTextureSprite = Sprite::createWithTexture(texture);
+    _backgroundTextureSprite->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
+    _backgroundTextureSprite->setOpacity(opacity);
+    addChild(_backgroundTextureSprite, 0);
+    _layoutDirty = true;  // Let updateLayout set position & size
+}
+
 void Panel::setChop(Chop chop)
 {
     if (_chop != chop)
@@ -155,6 +201,24 @@ void Panel::setContentSize(const Size& contentSize)
 {
     Node::setContentSize(contentSize);
     _layoutDirty = true;
+}
+
+bool Panel::onTouchBegan(Touch* touch, Event* event)
+{
+    if (!ax_util::isNodeVisible(this))
+    {
+        return false;
+    }
+
+    auto location = touch->getLocation();
+    auto rect     = Rect(Point::ZERO, _contentSize);
+
+    if (isScreenPointInRect(location, Camera::getVisitingCamera(), getWorldToNodeTransform(), rect, nullptr))
+    {
+        return onPointerDown(touch);
+    }
+
+    return false;
 }
 
 }  // namespace opendw

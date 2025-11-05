@@ -1,9 +1,11 @@
 #include "GameManager.h"
 
+#include "graphics/WorldRenderer.h"
 #include "input/DefaultInputManager.h"
 #include "network/http/HttpFetcher.h"
 #include "network/tcp/command/GameCommand.h"
 #include "network/tcp/TcpClient.h"
+#include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "zone/WorldZone.h"
 #include "AssetManager.h"
@@ -150,6 +152,60 @@ void GameManager::update(float deltaTime)
     }
 }
 
+void GameManager::snapshotScreenAsSpinner(bool snapshotZone)
+{
+    if (_snapshotSpinner)
+    {
+        return;
+    }
+
+    _snapshotSpinner = Node::create();
+    addChild(_snapshotSpinner, 80);
+
+    // 0x100036FAB: Create render texture
+    auto& winSize      = _director->getWinSize();
+    auto renderTexture = RenderTexture::create(winSize.width, winSize.height, backend::PixelFormat::RGB8);
+    renderTexture->begin();
+
+    if (snapshotZone)
+    {
+        _zone->getWorldRenderer()->visit();
+    }
+    else
+    {
+        _menu->visit();
+    }
+
+    renderTexture->end();
+    _snapshotSpinner->addChild(LayerColor::create(Color4B::BLACK));  // HACK: fix transparency issue
+    _snapshotSpinner->addChild(renderTexture, 1);
+
+    // 0x100037148: Create overlay
+    auto layer = LayerColor::create(color_util::hexToColor4("000032FF"));
+    layer->setOpacity(0);
+    _snapshotSpinner->addChild(layer, 2);
+    layer->runAction(FadeTo::create(3.0F, 0x80));
+
+    // Create spinner if we're not snapshotting the menu
+    if (snapshotZone)
+    {
+        auto spinner = Sprite::createWithSpriteFrameName("icons/gear");
+        spinner->setPosition(winSize * 0.5F);
+        spinner->setScale(0.75F);
+        _snapshotSpinner->addChild(spinner, 3);
+        spinner->runAction(RepeatForever::create(RotateBy::create(1.0F, 360.0F)));
+    }
+}
+
+void GameManager::hideSnapshotSpinner()
+{
+    if (_snapshotSpinner)
+    {
+        _snapshotSpinner->removeFromParent();
+        _snapshotSpinner = nullptr;
+    }
+}
+
 void GameManager::loginAsCurrentUser()
 {
     const auto& currentUser = getCurrentUser();
@@ -275,6 +331,8 @@ void GameManager::sendResetPasswordRequest(const std::string& email,
 
 void GameManager::configure(const ValueMap& data)
 {
+    snapshotScreenAsSpinner(false);
+
     if (!_config)
     {
         _config = GameConfig::createWithData(data);

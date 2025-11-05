@@ -1,6 +1,8 @@
 #include "GameGui.h"
 
 #include "gui/Panel.h"
+#include "gui/SpriteButton.h"
+#include "gui/TeleportPanel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
@@ -27,10 +29,30 @@ bool GameGui::initWithZone(WorldZone* zone)
         return false;
     }
 
-    _zone              = zone;
-    _gameMenu          = nullptr;
+    _zone     = zone;
+    _gameMenu = nullptr;
+
+    // Create announcements node
     _announcementsNode = Node::create();
     addChild(_announcementsNode, 10);
+
+    // Create teleport panel
+    _teleportPanel = TeleportPanel::create();
+    _teleportPanel->setVisible(false);
+    addChild(_teleportPanel, 15);
+
+    // Create hud buttons node
+    _hudButtonsNode = Node::create();
+    _hudButtonsNode->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
+    _hudButtonsNode->setScale(0.5F);
+    addChild(_hudButtonsNode, 8);
+
+    // Create world button
+    _worldButton = SpriteButton::createWithBackground("hud/bubble-top", "hud/bubble-icon-world");
+    _worldButton->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
+    _worldButton->setCallback([=]() { showTeleportInterface(nullptr); });
+    _hudButtonsNode->addChild(_worldButton);
+
     AXLOGI("[GameGui] Initialized");
     sMain = this;
     return true;
@@ -39,10 +61,12 @@ bool GameGui::initWithZone(WorldZone* zone)
 void GameGui::onEnter()
 {
     Node::onEnter();
+    _eventListeners.push_back(_eventDispatcher->addCustomEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED,                                                            AX_CALLBACK_0(GameGui::onWindowResized, this)));
     _eventListeners.push_back(_eventDispatcher->addCustomEventListener("bigAlert", [=](EventCustom* event) {
         auto& data = *static_cast<Value*>(event->getUserData());
         showBigAlert(data);
     }));
+    onWindowResized();
 }
 
 void GameGui::onExit()
@@ -102,7 +126,24 @@ void GameGui::toggleGameMenu()
     auto menu = Menu::createWithArray({leaveButton, cancelButton});
     menu->alignItemsVerticallyWithPadding(10.0F);
     menu->setPosition(panel->getContentSize() * 0.5F + Vec2::UNIT_Y * 10.0F);
-    panel->addChild(menu);
+    panel->addChild(menu, 2);
+}
+
+void GameGui::showTeleportInterface(BaseBlock* block)
+{
+    // TODO: finish
+    _teleportPanel->showFromBlock(block);
+}
+
+void GameGui::hideTeleportInterface()
+{
+    // TODO: finish
+    _teleportPanel->setVisible(false);
+}
+
+void GameGui::showTeleportZones(const std::string& type, const std::vector<ZoneSearchInfo>& data)
+{
+    _teleportPanel->showZones(type, data);
 }
 
 void GameGui::showBigAlert(const std::string& title, const std::string& subtitle)
@@ -149,6 +190,20 @@ void GameGui::showBigAlert(const Value& value)
         // Assume string
         showBigAlert(value.asString());
     }
+}
+
+void GameGui::onWindowResized()
+{
+    auto viewOffset  = _director->getVisibleOrigin();
+    auto visibleSize = _director->getVisibleSize();
+    auto left        = viewOffset.x;
+    auto bottom      = viewOffset.y;
+    auto right       = visibleSize.width + left;
+    auto top         = visibleSize.height + bottom;
+    auto smallScreen = visibleSize.width <= 1024.0F;
+
+    // Update elements
+    _hudButtonsNode->setPosition(right - 200.0F, top);
 }
 
 }  // namespace opendw

@@ -8,6 +8,9 @@ namespace opendw
 
 /*
  * CLASS: BatchSpriteButton : CCSprite @ 0x1003174B8
+ *
+ * FIXME: One advantage of BatchSpriteButton was that they could be batched.
+ * Unfortunately, because ax::Label does not inherit from ax::Sprite, this is no longer possible.
  */
 class SpriteButton : public ax::Sprite
 {
@@ -28,6 +31,18 @@ public:
     /* FUNC: BatchSpriteButton::initWithBackground:foreground:color:block: @ 0x1000790AA */
     bool initWithBackground(const std::string& background, const std::string& foreground, const Callback& callback);
 
+    /* FUNC: BatchSpriteButton::onEnter @ 0x1000793F7 */
+    void onEnter() override;
+
+    /* FUNC: BatchSpriteButton::onExit @ 0x100079D0F */
+    void onExit() override;
+
+    /* FUNC: BatchSpriteButton::showSpinner @ 0x100079743 */
+    void showSpinner();
+
+    /* FUNC: BatchSpriteButton::hideSpinner @ 0x1000798A5 */
+    void hideSpinner();
+
     void runBlinkAction(const ax::Color3B& fromColor, const ax::Color3B& toColor, float duration = 1.0F);
 
     /* FUNC: BatchSpriteButton::setBlock: @ 0x1000798F2 */
@@ -47,6 +62,7 @@ protected:
     ax::EventListenerTouchOneByOne* _touchListener;
     ax::Label* _titleLabel;  // BatchSpriteButton::titleLabel @ 0x100311CD8
     Callback _callback;      // BatchSpriteButton::block_ @ 0x100311CA0
+    ax::Sprite* _spinner;
 };
 
 }  // namespace opendw

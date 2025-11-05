@@ -8,6 +8,8 @@ namespace opendw::ax_util
 
 void runFadeSequence(ax::Node* node, float fadeIn, float delay, float fadeOut);
 
+void fadeOutAndRemove(ax::Node* node, float duration = 0.5F);
+
 /* Like `Node::isVisible()`, but also checks the visibility of its ancestors. */
 bool isNodeVisible(ax::Node* node);
 

@@ -19,6 +19,7 @@ public:
         PLAYER_POSITION = 5,
         BLOCK_CHANGE    = 9,
         ZONE_STATUS     = 17,
+        ZONE_SEARCH     = 23,
         NOTIFICATION    = 33,
         KICK            = 255
     };

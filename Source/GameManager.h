@@ -55,6 +55,12 @@ public:
     /* FUNC: GameManager::step: @ 0x100036162 */
     void update(float deltaTime) override;
 
+    /* FUNC: GameManager::snapshotScreenAsSpinner: @ 0x100036D8D */
+    void snapshotScreenAsSpinner(bool snapshotZone);
+
+    /* FUNC: GameManager::hideSnapshotSpinner @ 0x1000372D6 */
+    void hideSnapshotSpinner();
+
     /* FUNC: GameManager::loginAsCurrentUser @ 0x100037589 */
     void loginAsCurrentUser();
 
@@ -154,6 +160,7 @@ private:
     uint16_t _gameServerPort;                     // GameManager::gameServerPort @ 0x100310DC0
     bool _loadAssets;                             // GameManager::loadAssets @ 0x100310CB8
     std::vector<std::string_view> _assetsToLoad;  // GameManager::assetsToLoad @ 0x100310C80
+    ax::Node* _snapshotSpinner;                   // GameManager::snapshotSpinner @ 0x100310D60
     ax::UserDefault* _default;
     MainMenu* _menu;
     TcpClient* _tcpClient;

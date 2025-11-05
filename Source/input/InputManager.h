@@ -28,10 +28,14 @@ public:
     /* FUNC: InputManager::checkInput @ 0x1000E950F */
     virtual void checkInput(float deltaTime) = 0;
 
+    /* FUNC: InputManager::screenPointerPosition @ 0x1000E9677 */
+    const ax::Point& getCursorPosition() const { return _cursorPosition; }
+
 protected:
-    GameManager* _game;  // InputManager::game @ 0x100313178
-    Player* _player;     // InputManager::player @ 0x100313180
-    GameGui* _gameGui;   // InputManager::gameGui @ 0x100313188
+    GameManager* _game;         // InputManager::game @ 0x100313178
+    Player* _player;            // InputManager::player @ 0x100313180
+    GameGui* _gameGui;          // InputManager::gameGui @ 0x100313188
+    ax::Point _cursorPosition;  // InputManager::screenPointerPosition @ 0x100313190
 };
 
 }  // namespace opendw

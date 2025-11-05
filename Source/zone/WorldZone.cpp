@@ -54,6 +54,8 @@ void WorldZone::setup()
 
 void WorldZone::configure(const ValueMap& data)
 {
+    _receivedInitialStatus = false;
+
     auto config  = _game->getConfig();
     _documentId  = map_util::getString(data, "id");
     _name        = map_util::getString(data, "name", "Unknown Zone");
@@ -133,6 +135,12 @@ void WorldZone::configure(const ValueMap& data)
 void WorldZone::update(float deltaTime)
 {
     Node::update(deltaTime);
+
+    // Don't update if we're teleporting to another zone
+    if (_game->getPlayer()->isZoneTeleporting())
+    {
+        return;
+    }
 
     // 0x1000415CF: Update day percent
     _dayPercent = _dayTime >= 0.5F ? 1.0F - (_dayTime - 0.5F) * 2.0F : _dayTime * 2.0F;
@@ -267,6 +275,7 @@ void WorldZone::update(float deltaTime)
     }
 
     _sceneRenderer->hideSpinner();
+    _game->hideSnapshotSpinner();
     _game->getInputManager()->checkInput(deltaTime);
     _game->getPlayer()->update(deltaTime);
     _sceneRenderer->update(deltaTime);
@@ -319,6 +328,7 @@ void WorldZone::begin()
     AXLOGI("[WorldZone] Beginning zone!");
     _state = State::ACTIVE;
     _sceneRenderer->setVisible(true);
+    _game->getPlayer()->begin();
     AudioManager::getInstance()->fadeOutMusic();  // Fade out menu music
     schedule(AX_CALLBACK_0(WorldZone::cleanupChunks, this), 0.033F, "cleanupChunks");
 }

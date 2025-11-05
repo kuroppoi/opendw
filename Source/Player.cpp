@@ -1,7 +1,9 @@
 #include "Player.h"
 
+#include "gui/GameGui.h"
 #include "network/tcp/MessageIdent.h"
 #include "zone/WorldZone.h"
+#include "AudioManager.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
 
@@ -19,9 +21,17 @@ Player* Player::createWithGame(GameManager* game)
 
 bool Player::initWithGame(GameManager* game)
 {
-    _game     = game;
-    _entityId = -1;
+    _game            = game;
+    _entityId        = -1;
+    _zoneTeleporting = false;
+    sMain            = this;
     return true;
+}
+
+void Player::begin()
+{
+    // TODO: finish
+    _zoneTeleporting = false;
 }
 
 void Player::update(float deltaTime)
@@ -30,8 +40,19 @@ void Player::update(float deltaTime)
     sendMoveMessage();
 }
 
-void Player::sendMoveMessage() {
+void Player::teleportToZone(const std::string& id)
+{
+    AudioManager::getInstance()->playSfx("teleport.ogg");
+    // TODO: _usedZoneTeleporter = true;
+    _zoneTeleporting = true;
+    _game->snapshotScreenAsSpinner(true);
+    AXLOGI("===== Teleporting to zone {} =====", id);
+    GameGui::getMain()->hideTeleportInterface();
+    _game->sendMessage(MessageIdent::ZONE_CHANGE, id);
+}
 
+void Player::sendMoveMessage()
+{
     auto time = utils::gettime();
 
     // Do nothing if it's not time yet

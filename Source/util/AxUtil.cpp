@@ -14,6 +14,14 @@ void runFadeSequence(Node* node, float fadeIn, float delay, float fadeOut)
     node->runAction(action);
 }
 
+void fadeOutAndRemove(Node* node, float duration)
+{
+    AX_ASSERT(node);
+    auto cleanup = CallFunc::create([=]() { node->removeFromParent(); });
+    auto action  = Sequence::createWithTwoActions(FadeOut::create(duration), cleanup);
+    node->runAction(action);
+}
+
 bool isNodeVisible(Node* node)
 {
     AX_ASSERT(node);

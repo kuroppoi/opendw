@@ -21,15 +21,23 @@ DefaultInputManager* DefaultInputManager::createWithGame(GameManager* game)
 void DefaultInputManager::enterGame()
 {
     InputManager::enterGame();
+
+    // Create keyboard listener
     _keyboardListener                = EventListenerKeyboard::create();
     _keyboardListener->onKeyPressed  = AX_CALLBACK_2(DefaultInputManager::onKeyPressed, this);
     _keyboardListener->onKeyReleased = AX_CALLBACK_2(DefaultInputManager::onKeyReleased, this);
     _eventDispatcher->addEventListenerWithFixedPriority(_keyboardListener, 11);
+
+    // Create mouse listener
+    _mouseListener = EventListenerMouse::create();
+    _mouseListener->onMouseMove = AX_CALLBACK_1(DefaultInputManager::onMouseMove, this);
+    _eventDispatcher->addEventListenerWithFixedPriority(_mouseListener, 11);
 }
 
 void DefaultInputManager::exitGame()
 {
     _eventDispatcher->removeEventListener(_keyboardListener);
+    _eventDispatcher->removeEventListener(_mouseListener);
     _keysPressed.clear();
     InputManager::exitGame();
 }
@@ -101,6 +109,12 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
 void DefaultInputManager::onKeyReleased(KeyCode keyCode, Event* event)
 {
     _keysPressed.erase(keyCode);
+}
+
+bool DefaultInputManager::onMouseMove(EventMouse* event)
+{
+    _cursorPosition.set(event->getCursorX(), event->getCursorY());
+    return false;
 }
 
 }  // namespace opendw
