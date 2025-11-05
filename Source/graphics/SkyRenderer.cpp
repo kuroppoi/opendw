@@ -148,8 +148,7 @@ void SkyRenderer::rebuild()
     else
     {
         // 0x1000C3B71: Place clouds
-        // TODO: not perfect
-        Rect cloudRect(-0.2F, -0.2F, 1.0F, 1.0F);
+        Rect cloudRect(-0.2F, 0.2F, 1.2F, 0.8F);  // 0 = bottom/left, 1 = top/right
 
         // Place front clouds
         for (size_t i = 0; i < FRONT_CLOUD_COUNT; i++)
@@ -246,8 +245,8 @@ void SkyRenderer::updateColors(float deltaTime)
 
 void SkyRenderer::addCloudInRect(const Rect& rect, bool back)
 {
-    auto x     = _rng.rangef(rect.getMinX(), rect.getMaxX()) * _contentSize.width;
-    auto y     = _rng.rangef(rect.getMinY(), rect.getMaxY()) * _contentSize.height;
+    auto x     = _rng.rangef(rect.getMinX() - 0.5F, rect.getMaxX() - 0.5F) * _contentSize.width;
+    auto y     = _rng.rangef(rect.getMinY() - 0.5F, rect.getMaxY() - 0.5F) * _contentSize.height;
     auto z     = _rng.range(back ? 1 : 10, back ? 3 : 20);  // Front: 10-20, back: 1-3
     auto scale = MathUtil::lerp(0.5F, 1.0F, z / 100.0F) * 1.7F * (back ? 0.75F : 1.0F);
     auto batch = back ? _backBatchNode : _batchNode;
@@ -255,11 +254,16 @@ void SkyRenderer::addCloudInRect(const Rect& rect, bool back)
     cloud->setParallaxer(this);
     cloud->setCascadeColorEnabled(true);
     cloud->setCascadeOpacityEnabled(true);
-    cloud->setRealPosition({x, y});
     cloud->setRealScale(scale);
     cloud->setRotation(_rng.rangef(0.0F, 360.0F));
     cloud->setOpacity(z + 200);
     batch->addChild(cloud, z);
+
+    // Convert screen space to parallax space
+    auto ratio = cloud->getRatio();
+    auto size  = _contentSize * ratio * rect.size;
+    auto max   = rect.origin + rect.size * _contentSize;
+    cloud->setRealPosition({x / scale + _viewPosition.x * ratio, y / scale});
 }
 
 SkyRenderer::FrameMap SkyRenderer::createBackgroundFrameMap(const std::string& type,

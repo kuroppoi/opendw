@@ -72,7 +72,7 @@ void SkyCloud::parallaxify(float deltaTime)
     else
     {
         // Slightly move the cloud towards the east
-        auto x = _realPosition.x + _localZOrder * deltaTime * 0.333F;
+        auto x = _realPosition.x + (float)_localZOrder * deltaTime * 0.333F;
         setRealPosition({x, _realPosition.y});
     }
 
