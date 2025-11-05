@@ -215,14 +215,22 @@ void SkyRenderer::updateColors(float deltaTime)
 
     // TODO: supernova
 
+    // 0x1000C500E: Update biome colors
     if (_biomeBatchNode)
     {
-        // 0x1000C500E: Update biome colors
         auto biomeColor = color_util::lerpColor(Color3B::WHITE, dayColor, acidity);
         biomeColor      = color_util::lerpColor(nightColor, biomeColor, _zone->getDayPercent());
         _biomeBatchNode->setColor(biomeColor);
         _biomeBackBatchNode->setColor(biomeColor);
+    }
 
+    if (biome == Biome::SPACE)
+    {
+        _batchNode->setColor(Color3B::WHITE);
+        _backBatchNode->setColor(Color3B::WHITE);
+    }
+    else
+    {
         // 0x1000C4F09: Update cloud colors
         auto cloudColor    = color_util::lerpColor(skyColor, Color3B::WHITE, dayPercent * 0.9F + 0.1F);
         auto farCloudColor = cloudColor;
