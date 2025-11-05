@@ -332,6 +332,7 @@ void GameManager::sendResetPasswordRequest(const std::string& email,
 void GameManager::configure(const ValueMap& data)
 {
     snapshotScreenAsSpinner(false);
+    _menu->setVisible(false);
 
     if (!_config)
     {
@@ -392,7 +393,6 @@ void GameManager::enterGame(const std::string& message)
     _zone->enter();
     _inputManager->enterGame();
     _zone->setVisible(true);
-    _menu->setVisible(false);
 
     // TODO: use player count
     Value alertData(map_util::mapOf("t", message, "t2", "You are alone at the moment."));
