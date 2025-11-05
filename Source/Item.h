@@ -41,7 +41,9 @@ class Item : public ax::Object
 public:
     typedef std::vector<ax::SpriteFrame*> SpriteList;
 
-    /* Model for connector templates in `config-graphics.yml` */
+    /*
+     * Model for connector templates in `config-graphics.yml`.
+     */
     struct ContinuitySprite
     {
         ax::SpriteFrame* frame;
