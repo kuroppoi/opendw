@@ -199,6 +199,7 @@ void TcpClient::onPacket(event_ptr& event)
 void TcpClient::onOpen(event_ptr& event)
 {
     AXLOGI("[TcpClient] Channel opened!");
+    _open        = true;
     _transport   = event->transport();
     auto game    = GameManager::getInstance();
     auto user    = game->getCurrentUser();
@@ -209,6 +210,7 @@ void TcpClient::onOpen(event_ptr& event)
 void TcpClient::onClose(event_ptr& event)
 {
     AXLOGI("[TcpClient] Channel closed!");
+    _open      = false;
     _transport = nullptr;
     _bytesRead = 0;
     GameManager::getInstance()->onDisconnected();

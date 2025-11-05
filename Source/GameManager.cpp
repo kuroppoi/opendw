@@ -364,10 +364,25 @@ void GameManager::kickPlayer(const std::string& message, bool shouldReconnect)
     if (shouldReconnect)
     {
         AXLOGI("[GameManager] Kick wants reconnect: {}", message);
-        scheduleOnce([=](float) { loginAsCurrentUser(); }, 1.5F, "Reconnect");  // Race condition?
+        snapshotScreenAsSpinner(true);
+
+        if (_tcpClient->isOpen())
+        {
+            // Wait for disconnect
+            _player->setZoneTeleporting(true);
+        }
+        else if (!_player->isZoneTeleporting())  // onDisconnected() will handle it if we are zone teleporting
+        {
+            // Reconnect immediately
+            loginAsCurrentUser();
+        }
+
+        return;
     }
 
-    // TODO: Show message on main menu
+    _menu->showPlayMenu();
+    _menu->showAlert(message);
+    // Server is responsible for closing the connection afterwards
 }
 
 void GameManager::enterGame(const std::string& message)
@@ -393,6 +408,7 @@ void GameManager::leaveGame()
 
 void GameManager::reset()
 {
+    AXLOGI("[GameManager] reset");
     // TODO: player->reset();
 
     if (_zone)
@@ -486,6 +502,15 @@ void GameManager::onDisconnected()
         {
             reset();
         }
+    }
+
+    if (_player->isZoneTeleporting())
+    {
+        loginAsCurrentUser();
+    }
+    else
+    {
+        _menu->setVisible(true);
     }
 }
 

@@ -39,6 +39,8 @@ public:
     void onOpen(yasio::event_ptr& event);
     void onClose(yasio::event_ptr& event);
 
+    bool isOpen() const { return _open; }
+
 private:
     struct PacketHeader
     {
@@ -52,6 +54,7 @@ private:
     uint8_t _inflateBuffer[INFLATE_BUFFER_SIZE];
     size_t _bytesRead       = 0;
     bool _waitingForPayload = false;
+    bool _open              = false;
 };
 
 }  // namespace opendw
