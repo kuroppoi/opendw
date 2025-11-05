@@ -2,6 +2,7 @@
 
 #include "zone/WorldZone.h"
 #include "GameManager.h"
+#include "Player.h"
 
 namespace opendw
 {
@@ -20,12 +21,15 @@ void GameCommandConfigure::run()
     // 3. Configure zone
     // 4. Configure player
 
-    // TODO: implement further
-    auto playerEntityId = _data[0].asInt();
-    AXLOGI("Player's entity ID is {}", playerEntityId);
-    auto game = GameManager::getInstance();
+    auto game     = GameManager::getInstance();
+    auto player   = game->getPlayer();
+    auto entityId = _data[0].asInt();
+    player->setEntityId(entityId);
+    AXLOGI("Player's entity ID is {}", entityId);
+    player->preconfigure(_data[1].asValueMap());
     game->configure(_data[2].asValueMap());
     game->getZone()->configure(_data[3].asValueMap());
+    player->configure(_data[1].asValueMap());
 }
 
 }  // namespace opendw

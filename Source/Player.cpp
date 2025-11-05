@@ -2,6 +2,7 @@
 
 #include "gui/GameGui.h"
 #include "network/tcp/MessageIdent.h"
+#include "util/MapUtil.h"
 #include "zone/WorldZone.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
@@ -26,6 +27,16 @@ bool Player::initWithGame(GameManager* game)
     _zoneTeleporting = false;
     sMain            = this;
     return true;
+}
+
+void Player::preconfigure(const ValueMap& data)
+{
+    _admin = map_util::getBool(data, "admin");
+}
+
+void Player::configure(const ValueMap& data)
+{
+    // TODO: implement
 }
 
 void Player::begin()

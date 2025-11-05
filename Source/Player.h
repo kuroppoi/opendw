@@ -22,6 +22,12 @@ public:
     /* FUNC: Player::initWithGame: @ 0x10001BB05 */
     bool initWithGame(GameManager* game);
 
+    /* FUNC: Player::preconfigure: @ 0x100028C9D */
+    void preconfigure(const ax::ValueMap& data);
+
+    /* FUNC: Player::configure: @ 0x100028D23 */
+    void configure(const ax::ValueMap& data);
+
     /* FUNC: Player::begin @ 0x10001C103 */
     void begin();
 
@@ -33,6 +39,12 @@ public:
 
     /* FUNC: Player::sendMoveCommand @ 0x1000232BC */
     void sendMoveMessage();
+
+    /* FUNC: Player::setEntityId: @ 0x1000C0DD5 */
+    void setEntityId(int32_t entityId) { _entityId = entityId; }
+
+    /* FUNC: Player::entityId @ 1000C0DC4 */
+    int32_t getEntityId() const { return _entityId; }
 
     // TODO: use collider position
     void setPosition(const ax::Point& position) { _position = position; }
@@ -49,6 +61,9 @@ public:
     /* FUNC: Player::isZoneTeleporting @ 0x10002DD28 */
     bool isZoneTeleporting() const { return _zoneTeleporting; }
 
+    /* FUNC: Player::admin @ 0x10002DED1 */
+    bool isAdmin() const { return _admin; }
+
 private:
     inline static Player* sMain;  // 10032EA98
 
@@ -57,6 +72,7 @@ private:
     ax::Point _position;          // TODO: use collider position
     double _nextMoveMessageTime;  // Player::nextMoveMessageTime @ 0x1003108C8
     bool _zoneTeleporting;        // Player::isZoneTeleporting @ 0x1003106F8
+    bool _admin;                  // Player::admin @ 0x100310958
 };
 
 }  // namespace opendw
