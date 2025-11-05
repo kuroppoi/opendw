@@ -4,13 +4,17 @@
 #include "GameManager.h"
 #include "Player.h"
 
+USING_NS_AX;
+
 namespace opendw
 {
 
 void GameCommandConfigure::initWithData(const uint8_t* data, size_t length)
 {
-    GameCommand::initWithData(data, length);
     AXLOGI("Configuration packed size is {}", length);
+    auto start = utils::gettime();
+    GameCommand::initWithData(data, length);
+    AXLOGI("Configuration unpacking took {:.2f}s", utils::gettime() - start);
 }
 
 void GameCommandConfigure::run()
