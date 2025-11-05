@@ -6,6 +6,9 @@
 namespace opendw
 {
 
+/*
+ * CLASS: GameCommandNotification : GameCommand @ 0x10031C4E0
+ */
 class GameCommandNotification : public GameCommand
 {
 public:

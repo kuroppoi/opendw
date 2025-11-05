@@ -6,6 +6,9 @@
 namespace opendw
 {
 
+/*
+ * CLASS: GameCommandKick : GameCommand @ 0x10031C490
+ */
 class GameCommandKick : public GameCommand
 {
 public:

@@ -7,7 +7,7 @@ namespace opendw
 {
 
 /*
- * CLASS: GameCommandZoneStatus @ 0x100319BF0
+ * CLASS: GameCommandZoneStatus : GameCommand @ 0x100319BF0
  */
 class GameCommandZoneStatus : public GameCommand
 {
