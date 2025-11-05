@@ -24,7 +24,7 @@ public:
     /* FUNC: MacManager::exitGame @ 0x10003DFB4 */
     void exitGame() override;
 
-    /* FUNC: MacManager::checkInput @ 0x10003D0D0 */
+    /* FUNC: MacManager::checkInput: @ 0x10003D0D0 */
     void checkInput(float deltaTime) override;
 
     /* FUNC: MacManager::ccKeyDown: @ 0x10003E0D5 */

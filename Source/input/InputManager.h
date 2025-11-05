@@ -25,7 +25,7 @@ public:
     /* FUNC: InputManager::exitGame @ 0x1000E9608 */
     virtual void exitGame() {};
 
-    /* FUNC: InputManager::checkInput @ 0x1000E950F */
+    /* FUNC: InputManager::checkInput: @ 0x1000E950F */
     virtual void checkInput(float deltaTime) = 0;
 
     /* FUNC: InputManager::screenPointerPosition @ 0x1000E9677 */
