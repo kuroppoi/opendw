@@ -3,6 +3,7 @@
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
 #include "GameManager.h"
+#include "Player.h"
 
 #define MAX_FRAME_TIME 0.00075
 
@@ -13,8 +14,10 @@ namespace opendw
 
 void GameCommandBlockChange::run()
 {
-    auto zone  = GameManager::getInstance()->getZone();
-    auto start = utils::gettime();
+    auto game   = GameManager::getInstance();
+    auto zone   = game->getZone();
+    auto player = game->getPlayer();
+    auto start  = utils::gettime();
 
     for (; _currentBlock < _blockCount; _currentBlock++)
     {
@@ -24,15 +27,21 @@ void GameCommandBlockChange::run()
             break;
         }
 
-        // TODO: test against player entity ID
         auto& data     = _data[_currentBlock].asValueVector();
-        auto x         = data[0].asUint();
-        auto y         = data[1].asUint();
-        auto layer     = static_cast<BlockLayer>(1 + data[2].asByte());
         auto& entityId = data[3];  // Nullable
-        auto& item     = data[4];  // Nullable
-        auto& mod      = data[5];  // Nullable
-        auto block     = zone->getBlockAt(x, y);
+
+        // 0x1000E171B: Skip if block change was caused by us
+        if (!entityId.isNull() && entityId.asInt() == player->getEntityId())
+        {
+            continue;
+        }
+
+        auto x     = data[0].asUint();
+        auto y     = data[1].asUint();
+        auto layer = static_cast<BlockLayer>(1 + data[2].asByte());
+        auto& item = data[4];  // Nullable
+        auto& mod  = data[5];  // Nullable
+        auto block = zone->getBlockAt(x, y);
 
         if (!block)
         {
