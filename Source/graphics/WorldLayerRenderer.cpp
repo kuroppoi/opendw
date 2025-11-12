@@ -11,16 +11,18 @@
 #include "GameConfig.h"
 #include "GameManager.h"
 
-#define BASE_EARTH   2
-#define BASE_MAW     5
-#define BASE_PIPE    6
-#define PLUGGED_MAW  7
-#define PLUGGED_PIPE 8
-#define WATER        192
-#define GIANT_CLOCK  761
-#define LANDSCAPE    797
-#define WINE_PRESS   863
-#define HELL_DISH    1010
+#define BASE_EARTH          2
+#define BASE_MAW            5
+#define BASE_PIPE           6
+#define PLUGGED_MAW         7
+#define PLUGGED_PIPE        8
+#define WATER               192
+#define DAGUERREOTYPE_SMALL 754
+#define DAGUERREOTYPE_LARGE 755
+#define GIANT_CLOCK         761
+#define LANDSCAPE           797
+#define WINE_PRESS          863
+#define HELL_DISH           1010
 
 USING_NS_AX;
 
@@ -180,11 +182,52 @@ void WorldLayerRenderer::placeSpecialItem(BaseBlock* block, Item* item)
 void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
 {
     auto config = GameManager::getInstance()->getConfig();
+    auto x      = block->getX();
+    auto y      = block->getY();
 
     // TODO: finish, add all other unique items
     // Add your cool custom block animations (or other unique behavior) here :)
     switch (item->getCode())
     {
+    // 0x1000AAFA4: Small daguerreotype
+    case DAGUERREOTYPE_SMALL:
+    {
+        auto type  = (x + y) % 12;
+        auto name  = std::format("furniture/daguerreotype-image-{}", type + 1);
+        auto frame = config->getCurrentBiomeFrame(name);
+        auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 3);
+        sprite->setScale(0.6F);
+        sprite->setFlippedX(~x & 1);
+        sprite->setPosition(sprite->getPosition() - Vec2::ONE * BLOCK_SIZE * 0.5F);
+        break;
+    }
+    // 0x1000AA42E: Large daguerreotype
+    case DAGUERREOTYPE_LARGE:
+    {
+        struct Portrait
+        {
+            int type;
+            float offset;
+            bool flipped;
+            int z;
+        };
+
+        // TODO: better randomness for type
+        Portrait portraits[] = {Portrait((x + y) % 12, BLOCK_SIZE * -0.25F, ~y & 1, 4),
+                                Portrait((x * y) % 12, BLOCK_SIZE * 0.25F, ~x & 1, 3)};
+
+        for (auto& portrait : portraits)
+        {
+            auto name      = std::format("furniture/daguerreotype-image-{}", portrait.type + 1);
+            auto frame     = config->getCurrentBiomeFrame(name);
+            auto sprite    = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, portrait.z);
+            auto& position = sprite->getPosition();
+            sprite->setFlippedX(portrait.flipped);
+            sprite->setPositionX(position.x - portrait.offset);
+        }
+
+        break;
+    }
     // 0x1000AA8C8: Wine press
     case WINE_PRESS:
     {
