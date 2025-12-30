@@ -61,7 +61,8 @@ bool GameGui::initWithZone(WorldZone* zone)
 void GameGui::onEnter()
 {
     Node::onEnter();
-    _eventListeners.push_back(_eventDispatcher->addCustomEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED,                                                            AX_CALLBACK_0(GameGui::onWindowResized, this)));
+    _eventListeners.push_back(_eventDispatcher->addCustomEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED,
+                                                                       AX_CALLBACK_0(GameGui::onWindowResized, this)));
     _eventListeners.push_back(_eventDispatcher->addCustomEventListener("bigAlert", [=](EventCustom* event) {
         auto& data = *static_cast<Value*>(event->getUserData());
         showBigAlert(data);
