@@ -100,6 +100,9 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
             AudioManager::getInstance()->playButtonSfx();
             _gameGui->toggleGameMenu();
             break;
+        case KeyCode::KEY_F1:
+            _director->setStatsDisplay(!_director->isStatsDisplay());
+            break;
         }
     }
 

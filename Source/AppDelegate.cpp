@@ -36,9 +36,9 @@ bool AppDelegate::applicationDidFinishLaunching()
         director->setRenderView(renderView);
     }
 
-// #if _AX_DEBUG
+#if _AX_DEBUG
     director->setStatsDisplay(true);
-// #endif
+#endif
     director->setAnimationInterval(0.0F);  // Unlimited
     renderView->setDesignResolutionSize(DESIGN_RESOLUTION.width, DESIGN_RESOLUTION.height, ResolutionPolicy::NO_BORDER);
     director->runWithScene(opendw::GameManager::createScene());
