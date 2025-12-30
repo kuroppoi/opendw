@@ -2,6 +2,7 @@
 
 #include "spine/SkeletonAnimation.h"
 
+#include "entity/SpineManager.h"
 #include "graphics/CavernRenderer.h"
 #include "gui/Panel.h"
 #include "gui/SpriteButton.h"
@@ -11,7 +12,6 @@
 #include "util/MathUtil.h"
 #include "AudioManager.h"
 #include "GameManager.h"
-#include "SpineManager.h"
 
 #define MAX_NEWS_ENTRIES       8
 #define ENABLE_NEWS_BACKGROUND 0
@@ -247,7 +247,7 @@ void MainMenu::spawnEntity(const std::string& name,
     auto& designSize = _director->getRenderView()->getDesignResolutionSize();
     auto direction   = (end - start).getNormalized();
     auto offset      = 80.0F;
-    auto skeleton    = SpineManager::getInstance()->getSkeletonData(name, "entities-animated+hd2.atlas", true);
+    auto skeleton    = SpineManager::getInstance()->getSkeletonData(name);
     auto entity      = spine::SkeletonAnimation::createWithData(skeleton);
     auto action      = Sequence::createWithTwoActions(DelayTime::create(delay),
                                                       MoveTo::create(duration, end * designSize + direction * offset));

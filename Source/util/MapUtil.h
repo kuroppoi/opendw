@@ -29,6 +29,8 @@ ax::ValueMap mapOf(T... t)
     return result;
 }
 
+void merge(const ax::ValueMap& src, ax::ValueMap& dst);
+
 ax::ValueMap::const_iterator find(const ax::ValueMap& map, const std::string& key);
 
 const ax::Value& getValue(const ax::ValueMap& map, const std::string& path, const ax::Value& def = ax::Value::Null);

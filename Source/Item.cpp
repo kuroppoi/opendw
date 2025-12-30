@@ -47,6 +47,8 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _shadow           = map_util::getBool(data, "shadow");
     _borderShadow     = map_util::getBool(data, "border_shadow");
     _jiggle           = map_util::getFloat(data, "jiggle");
+    _glow             = map_util::getFloat(data, "glow");
+    _color            = color_util::hexToColor(map_util::getString(data, "color"));
     _mirrorable       = map_util::getString(data, "rotation") == "mirror";
     _spriteZ          = map_util::getInt32(data, "sprite_z");
 
@@ -93,8 +95,10 @@ void Item::processSprites()
     }
     else
     {
-        auto frame   = sprite.getType() == Value::Type::STRING ? sprite.asString() : _name;
-        _spriteFrame = _config->getCurrentBiomeFrame(frame);
+        // Prioritize spine sprite for clothing
+        _spriteName  = map_util::getString(_data, "spine_sprite",
+                                          sprite.getType() == Value::Type::STRING ? sprite.asString() : _name);
+        _spriteFrame = _config->getCurrentBiomeFrame(_spriteName);
         AX_SAFE_RETAIN(_spriteFrame);
     }
 

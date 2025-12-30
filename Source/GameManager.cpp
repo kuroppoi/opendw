@@ -1,5 +1,6 @@
 #include "GameManager.h"
 
+#include "entity/SpineManager.h"
 #include "graphics/WorldRenderer.h"
 #include "input/DefaultInputManager.h"
 #include "network/http/HttpFetcher.h"
@@ -13,7 +14,6 @@
 #include "GameConfig.h"
 #include "MainMenu.h"
 #include "Player.h"
-#include "SpineManager.h"
 
 USING_NS_AX;
 
@@ -48,7 +48,7 @@ GameManager* GameManager::getInstance()
 
 Scene* GameManager::createScene()
 {
-    auto scene = utils::createInstance<Scene>();
+    auto scene = Scene::create();
     scene->addChild(GameManager::getInstance());
     return scene;
 }
@@ -394,8 +394,11 @@ void GameManager::enterGame(const std::string& message)
     _inputManager->enterGame();
     _zone->setVisible(true);
 
-    // TODO: use player count
-    Value alertData(map_util::mapOf("t", message, "t2", "You are alone at the moment."));
+    // 0x10003A712: Show welcome message
+    auto peers    = _zone->getPeerCount();
+    auto subtitle = !peers ? "You are alone at the moment."
+                           : std::format("You are joining {} other player{}.", peers, peers > 1 ? "s" : "");
+    Value alertData(map_util::mapOf("t", message, "t2", subtitle));
     _eventDispatcher->dispatchCustomEvent("bigAlert", &alertData);
 }
 

@@ -1,5 +1,7 @@
 #include "WorldZone.h"
 
+#include "entity/Entity.h"
+#include "entity/EntityAnimatedAvatar.h"
 #include "graphics/SceneRenderer.h"
 #include "graphics/WorldRenderer.h"
 #include "input/InputManager.h"
@@ -41,6 +43,7 @@ bool WorldZone::initWithGame(GameManager* game)
     _game  = game;
     _state = State::INACTIVE;
     _inactiveChunks.reserve(CHUNK_PREALLOC_COUNT);
+    sMain = this;
     return true;
 }
 
@@ -274,6 +277,12 @@ void WorldZone::update(float deltaTime)
         _lastBlocksIgnoreAt = utils::gettime();
     }
 
+    // 0x10004269E: Update entities
+    for (auto& entry : _entities)
+    {
+        entry.second->update(deltaTime);
+    }
+
     _sceneRenderer->hideSpinner();
     _game->hideSnapshotSpinner();
     _game->getInputManager()->checkInput(deltaTime);
@@ -396,6 +405,96 @@ void WorldZone::removePendingChunk(uint16_t x, uint16_t y)
     _pendingChunks.erase(chunkY * _chunkCountX + chunkX);
 }
 
+Entity* WorldZone::registerEntity(int32_t id, int32_t code, const std::string& name, const ValueMap& details)
+{
+    // 0x10004775A: Update entity if it already exists
+    auto entity = getEntityById(id);
+
+    if (entity)
+    {
+        entity->setName(name);
+        entity->change(details);
+        return entity;
+    }
+
+    // 0x1000477DE: Handle targeting
+    auto parent = getEntityById(map_util::getInt32(details, "<", -1));
+
+    if (parent && parent->isBlock())
+    {
+        auto target = getEntityById(map_util::getInt32(details, ">", -1));
+
+        if (target)
+        {
+            auto rotation = -MATH_RAD_TO_DEG(atan2f(target->getPositionY() - parent->getPositionY(),
+                                   target->getPositionX() - parent->getPositionX()));
+            parent->setRealRotation(rotation);
+        }
+    }
+
+    // 0x100047A7F: Create entity
+    entity = _worldRenderer->addEntity(code, name, details);
+
+    if (!entity)
+    {
+        return nullptr;
+    }
+
+    entity->setEntityId(id);
+
+    if (code == 0)
+    {
+        auto peer = static_cast<EntityAnimatedAvatar*>(entity);
+        _peers.insert(id, peer);
+    }
+
+    if (!entity->isClientDirected())
+    {
+        _entities.insert(id, entity);
+    }
+
+    // TODO: add collision
+    // TODO: something with slot
+    // TODO: burst
+
+    return entity;
+}
+
+void WorldZone::removeEntity(int32_t id, bool violent)
+{
+    // TODO: finish
+    auto it = _entities.find(id);
+
+    if (it == _entities.end())
+    {
+        return;
+    }
+
+    auto entity = (*it).second;
+
+    if (violent)
+    {
+        // TODO: entity->animateViolentDeath();
+    }
+
+    _entities.erase(it);
+
+    if (entity->isAvatar())
+    {
+        _peers.erase(id);
+        // TODO: post notifications
+    }
+
+    // IMPORTANT: Do last to keep refcount
+    entity->removeFromParent();  // Removes it from its respective WorldRenderer entity node
+}
+
+Entity* WorldZone::getEntityById(int32_t id)
+{
+    auto it = _entities.find(id);
+    return it == _entities.end() ? nullptr : (*it).second;
+}
+
 void WorldZone::leave()
 {
     if (_state != State::ACTIVE)
@@ -420,6 +519,8 @@ void WorldZone::leave()
     _activeChunks.clear();
     _pendingChunks.clear();
     _chunks.clear();  // free(chunks); chunks = nullptr;
+    _entities.clear();
+    _peers.clear();
     // TODO: clear other containers as we add them
 }
 

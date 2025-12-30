@@ -4,6 +4,9 @@
 #include "network/tcp/command/GameCommandBlockChange.h"
 #include "network/tcp/command/GameCommandBlocks.h"
 #include "network/tcp/command/GameCommandConfigure.h"
+#include "network/tcp/command/GameCommandEntityChange.h"
+#include "network/tcp/command/GameCommandEntityPosition.h"
+#include "network/tcp/command/GameCommandEntityStatus.h"
 #include "network/tcp/command/GameCommandKick.h"
 #include "network/tcp/command/GameCommandNotification.h"
 #include "network/tcp/command/GameCommandPlayerPosition.h"
@@ -26,6 +29,12 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandBlocks();
     case Ident::PLAYER_POSITION:
         return new GameCommandPlayerPosition();
+    case Ident::ENTITY_POSITION:
+        return new GameCommandEntityPosition();
+    case Ident::ENTITY_STATUS:
+        return new GameCommandEntityStatus();
+    case Ident::ENTITY_CHANGE:
+        return new GameCommandEntityChange();
     case Ident::BLOCK_CHANGE:
         return new GameCommandBlockChange();
     case Ident::ZONE_STATUS:

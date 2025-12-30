@@ -1,5 +1,6 @@
 #include "GameConfig.h"
 
+#include "entity/EntityConfig.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
 #include "Item.h"
@@ -93,7 +94,26 @@ bool GameConfig::initWithData(const ValueMap& data)
         }
     }
 
-    AXLOGI("[GameConfig] Configured {} items in {:.2f}s", itemCount, utils::gettime() - start);
+    AXLOGI("[GameConfig] Configured {} items in {:.2f}s", itemCount, utils::gettime() - itemStart);
+
+    // 0x10004FDBD: Configure entities
+    auto entityStart = utils::gettime();
+    auto& entities   = map_util::getMap(data, "entities");
+
+    for (auto& entry : entities)
+    {
+        auto& name  = entry.first;
+        auto entity = EntityConfig::createWithData(entry.second.asValueMap());
+        auto code   = entity->getCode();
+        _entitiesByName.insert(name, entity);
+
+        if (code != -1)
+        {
+            _entitiesByCode.insert(code, entity);
+        }
+    }
+
+    AXLOGI("[GameConfig] Configured {} entities in {:.2f}s", _entitiesByName.size(), utils::gettime() - entityStart);
 
     // 0x100050038: Configure decay masks
     auto& singleDecay = map_util::getArray(data, "decay.single");
@@ -154,8 +174,8 @@ bool GameConfig::initWithData(const ValueMap& data)
         _singleDecayByMaterial[material] = result;
     }
 
-
     AXLOGI("[GameConfig] Configuration took {:.2f}s", utils::gettime() - start);
+    sMain = this;
     return true;
 }
 
@@ -178,6 +198,18 @@ Item* GameConfig::getItemForCode(uint16_t code) const
 {
     auto it = _itemsByCode.find(code);
     return it == _itemsByCode.end() ? nullptr : (*it).second;
+}
+
+EntityConfig* GameConfig::getEntityForName(const std::string& name) const
+{
+    auto it = _entitiesByName.find(name);
+    return it == _entitiesByName.end() ? nullptr : (*it).second;
+}
+
+EntityConfig* GameConfig::getEntityForCode(int32_t code) const
+{
+    auto it = _entitiesByCode.find(code);
+    return it == _entitiesByCode.end() ? nullptr : (*it).second;
 }
 
 void GameConfig::loadBiome(const std::string& biome)

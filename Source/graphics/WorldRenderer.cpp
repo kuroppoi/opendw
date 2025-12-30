@@ -1,7 +1,10 @@
 #include "WorldRenderer.h"
 
-#include "graphics/backend/MaskedSpriteBatchNode.h"
+#include "entity/Entity.h"
+#include "entity/EntityAnimated.h"
+#include "entity/EntityConfig.h"
 #include "graphics/backend/MaskedSprite.h"
+#include "graphics/backend/MaskedSpriteBatchNode.h"
 #include "graphics/CavernRenderer.h"
 #include "graphics/SkyRenderer.h"
 #include "graphics/WorldLayerRenderer.h"
@@ -84,6 +87,15 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _frontBlocksNode->addAltRenderer(_signsNode);
     _frontBlocksNode->addAltRenderer(_frontQualityBlocksNode);
 
+    // 0x10007D566: Create entity nodes
+    _entitiesNode = SpriteBatchNode::create("entities+hd2.png");
+    _foreground->addChild(_entitiesNode, getNextZIndex());
+    auto& winSize = _director->getWinSize();
+    _animatedEntitiesNode = Node::create();
+    _foreground->addChild(_animatedEntitiesNode, getNextZIndex());
+
+    // _ghostsNode = SpriteBa
+
     // 0x10007D7F2: Create liquid layer renderer
     _liquidBlocksNode = createLayerRenderer("liquid", BlockLayer::LIQUID, "liquid+hd2.png");
 
@@ -95,6 +107,14 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _fronterBlocksNode->addAltRenderer(_fronterBiomeBlocksNode);
     _fronterBlocksNode->addAltRenderer(fronterBaseNode);
     _fronterBlocksNode->addAltRenderer(_fronterAccentsNode);
+
+    // 0x10007D8FC: Create fronter entity nodes
+    _animatedGhostlyEntitiesNode = Node::create();
+    _foreground->addChild(_animatedGhostlyEntitiesNode, getNextZIndex());
+
+    // Create misc nodes
+    _textNode = Node::create();  // Originally SpriteBatchNode but we cannot add labels to those
+    _foreground->addChild(_textNode, getNextZIndex());
 
     // 0x10007DE0F: Precompute corner masks
     _wholenessCornerMasks.reserve(256);
@@ -185,8 +205,16 @@ void WorldRenderer::clear()
 
     for (auto& child : _foreground->getChildren())
     {
-        auto renderer = static_cast<WorldLayerRenderer*>(child);
-        renderer->clear();
+        auto renderer = dynamic_cast<WorldLayerRenderer*>(child);
+
+        if (renderer)
+        {
+            renderer->clear();
+        }
+        else
+        {
+            child->removeAllChildren();
+        }
     }
 }
 
@@ -464,7 +492,7 @@ void WorldRenderer::updateLiquidInBlock(BaseBlock* block)
 
 void WorldRenderer::updateViewport(float deltaTime)
 {
-    auto viewport  = getViewportPosition();
+    auto viewport = getViewportPosition();
 
     // TODO: clean up
     auto player        = GameManager::getInstance()->getPlayer();
@@ -543,6 +571,43 @@ bool WorldRenderer::hasRenderedAllPlacedBlocks()
     }
 
     return true;
+}
+
+Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const ValueMap& details)
+{
+    // Safe: config null check is handled by Entity::createWithConfig
+    auto config = GameConfig::getMain()->getEntityForCode(code);
+    auto entity = Entity::createWithConfig(config, name, details);
+
+    if (!entity)
+    {
+        return nullptr;
+    }
+
+    auto nameLabel = entity->getNameLabel();
+
+    if (nameLabel)
+    {
+        _textNode->addChild(nameLabel);
+    }
+
+    if (dynamic_cast<EntityAnimated*>(entity))
+    {
+        if (config->isGhostly())
+        {
+            _animatedGhostlyEntitiesNode->addChild(entity);
+        }
+        else
+        {
+            _animatedEntitiesNode->addChild(entity);
+        }
+    }
+    else if (entity->getTexture() == _entitiesNode->getTexture())
+    {
+        _entitiesNode->addChild(entity);
+    }
+
+    return entity;
 }
 
 void WorldRenderer::setWorldScale(float scale)

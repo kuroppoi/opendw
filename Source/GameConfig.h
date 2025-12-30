@@ -6,6 +6,7 @@
 namespace opendw
 {
 
+class EntityConfig;
 class Item;
 
 /*
@@ -17,6 +18,9 @@ public:
     typedef std::vector<ax::SpriteFrame*> SpriteList;
     typedef std::vector<std::vector<std::string>> DecayMaskMap;
     typedef std::map<std::string, SpriteList> DecayMaterialMap;
+
+    /* FUNC: Config::main @ 0x10004E53B */
+    static GameConfig* getMain() { return sMain; }
 
     static GameConfig* createWithData(const ax::ValueMap& data);
 
@@ -31,6 +35,12 @@ public:
 
     /* FUNC: Config::itemForCode: @ 0x100051BB0 */
     Item* getItemForCode(uint16_t code) const;
+
+    /* FUNC: Config::entityForName: @ 0x100052089 */
+    EntityConfig* getEntityForName(const std::string& name) const;
+
+    /* FUNC: Config::entityForCode: @ 0x1000520A6 */
+    EntityConfig* getEntityForCode(int32_t code) const;
 
     /* FUNC: Config::loadBiome: @ 0x10005296D */
     void loadBiome(const std::string& biome);
@@ -52,13 +62,16 @@ public:
 
 private:
     inline static SpriteList sEmptySpriteList;
+    inline static GameConfig* sMain;  // 0x10032EAC8
 
-    ax::ValueMap _data;                       // Config::data @ 0x100311540
-    ax::StringMap<Item*> _itemsByName;        // Config::itemsByName @ 0x100311568
-    ax::Map<uint16_t, Item*> _itemsByCode;    // Config::itemsByCode @ 0x100311578
-    ax::ValueMap _currentBiomeConfig;         // Config::currentBiomeConfig @ 0x1003115D8
-    DecayMaskMap _singleDecayMasks;           // Config::singleDecay @ 0x100311598
-    DecayMaterialMap _singleDecayByMaterial;  // Config::singleDecayByMaterial @ 0x1003115A8
+    ax::ValueMap _data;                               // Config::data @ 0x100311540
+    ax::StringMap<Item*> _itemsByName;                // Config::itemsByName @ 0x100311568
+    ax::Map<uint16_t, Item*> _itemsByCode;            // Config::itemsByCode @ 0x100311578
+    ax::StringMap<EntityConfig*> _entitiesByName;     // Config::entitiesByName @ 0x100311588
+    ax::Map<int32_t, EntityConfig*> _entitiesByCode;  // Config::entitiesByCode @ 0x100311580
+    ax::ValueMap _currentBiomeConfig;                 // Config::currentBiomeConfig @ 0x1003115D8
+    DecayMaskMap _singleDecayMasks;                   // Config::singleDecay @ 0x100311598
+    DecayMaterialMap _singleDecayByMaterial;          // Config::singleDecayByMaterial @ 0x1003115A8
     uint16_t _maxItemCode = 0;
 };
 

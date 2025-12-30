@@ -122,6 +122,9 @@ public:
     /* FUNC: Item::jiggle @ 0x10004E301 */
     float getJiggle() const { return _jiggle; }
 
+    /* FUNC: Item::glow @ 0x10004E313 */
+    float getGlow() const { return _glow; }
+
     /* FUNC: Item::isMirrorable @ 0x10004D726 */
     bool isMirrorable() const { return _mirrorable; }
 
@@ -142,6 +145,12 @@ public:
 
     /* FUNC: Item::changeItems @ 0x10004E469 */
     const std::vector<Item*>& getChangeItems() const { return _changeItems; }
+
+    /* FUNC: Item::color @ 0x10004E2AC */
+    const ax::Color3B& getColor() const { return _color; }
+
+    /* FUNC: Item::spriteName @ 0x10004E177 */
+    const std::string& getSpriteName() const { return _spriteName; }
 
     /* FUNC: Item::spriteFrame @ 0x10004D5A4 */
     ax::SpriteFrame* getSpriteFrame() const { return _spriteFrame; }
@@ -234,9 +243,12 @@ private:
     bool _shadow;                                    // Item::shadow @ 0x100311258
     bool _borderShadow;                              // Item::borderShadow @ 0x1003112B0
     float _jiggle;                                   // Item::jiggle @ 0x100311400
+    float _glow;                                     // Item::glow @ 0x100311408
     Item* _parentItem;                               // Item::parentItem @ 0x100311528
     Item* _useChangeItem;                            // Item::useChangeItem @ 0x100311530
     std::vector<Item*> _changeItems;                 // Item::changeItems @ 0x100311528
+    ax::Color3B _color;                              // Item::color @ 0x100311458
+    std::string _spriteName;                         // Item::spriteName @ 0x1003114B0
     ax::SpriteFrame* _spriteFrame;                   // Item::spriteCode @ 0x1003114B8
     SpriteList _spriteOptions;                       // Item::spriteOptions @ 0x1003114A8
     ax::Color3B _spriteColor;                        // Item::spriteColor @ 0x1003113E8

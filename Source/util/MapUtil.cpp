@@ -5,6 +5,14 @@ USING_NS_AX;
 namespace opendw::map_util
 {
 
+void merge(const ValueMap& src, ValueMap& dst)
+{
+    for (auto& entry : src)
+    {
+        dst.insert_or_assign(entry.first, entry.second);
+    }
+}
+
 // TODO: this functionality will extend to EVERYTHING, not just items, which might not be 100% intended.
 ValueMap::const_iterator find(const ValueMap& map, const std::string& key)
 {

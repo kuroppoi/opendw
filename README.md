@@ -19,7 +19,7 @@
 > That said, there are a few things to be aware of if you do so:
 > - All audio files have to be converted to `.ogg`
 > - Specifically, `title-fs8.png` has to be renamed to `title.png`
-> - Local skeleton files from an original client will not work, so please use the ones in the [game config](https://github.com/kuroppoi/deepworld-config/blob/master/config-spine.yml).
+> - Skeleton data has to be updated to support Spine 4.2
 
 ### Instructions
 

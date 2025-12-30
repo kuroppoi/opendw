@@ -8,6 +8,8 @@ namespace opendw
 
 class BaseBlock;
 class CavernRenderer;
+class Entity;
+class FrameBufferNode;
 class SkyRenderer;
 class WorldLayerRenderer;
 class WorldZone;
@@ -80,6 +82,9 @@ public:
     /* FUNC: WorldRenderer::hasRenderedAllPlacedBlocks @ 0x100081DAD */
     bool hasRenderedAllPlacedBlocks();
 
+    /* FUNC: WorldRenderer::addEntity:name:details: @ 0x1000825E0 */
+    Entity* addEntity(int32_t code, const std::string& name, const ax::ValueMap& details);
+
     /* FUNC: WorldRenderer::setWorldScale: @ 0x100082B33 */
     void setWorldScale(float scale);
 
@@ -124,6 +129,10 @@ private:
     WorldLayerRenderer* _fronterBiomeBlocksNode;  // WorldRenderer::fronterBiomeBlocksNode @ 0x100311ED0
     WorldLayerRenderer* _fronterBlocksNode;       // WorldRenderer::fronterBlocksNode @ 0x100311ED8
     WorldLayerRenderer* _fronterAccentsNode;      // WorldRenderer::frontAccentsNode @ 0x100311EE0
+    ax::SpriteBatchNode* _entitiesNode;           // WorldRenderer::entitiesNode @ 0100311EA0
+    ax::Node* _animatedEntitiesNode;              // WorldRenderer::animatedEntitiesNode @ 0x100311EA8
+    ax::Node* _animatedGhostlyEntitiesNode;       // WorldRenderer::animatedGhostlyEntitiesNode @ 0x100311EE8
+    ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
     ax::Vector<BaseBlock*> _renderQueue;          // WorldRenderer::renderQueue @ 0x100311DF8
     ax::Rect _lastArrangeRect;                    // WorldRenderer::lastArrangeRect @ 0x100311FF8
     ax::Rect _blockRect;                          // WorldRenderer::blockRect @ 0x100312008

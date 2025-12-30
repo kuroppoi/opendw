@@ -7,6 +7,8 @@ namespace opendw
 {
 
 class BaseBlock;
+class Entity;
+class EntityAnimatedAvatar;
 class GameManager;
 class SceneRenderer;
 class WorldRenderer;
@@ -38,6 +40,9 @@ public:
     };
 
     typedef std::unordered_map<std::string, std::vector<std::pair<double, ax::SpriteFrame*>>> DepthGraphics;
+
+    /* FUNC: WorldZone::main @ 0x10003F646 */
+    static WorldZone* getMain() { return sMain; }
 
     static WorldZone* createWithGame(GameManager* game);
 
@@ -73,6 +78,19 @@ public:
 
     /* FUNC: WorldZone::didLoadChunkX:y: @ 0x100046C6B */
     void removePendingChunk(uint16_t x, uint16_t y);
+
+    /* FUNC: WorldZone::registerEntity:ilk:name:details: @ 0x1000476FC */
+    Entity* registerEntity(int32_t id, int32_t code, const std::string& name, const ax::ValueMap& details);
+
+    /* FUNC: WorldZone::removeEntity:withDeath: @ 0x1000484D5 */
+    void removeEntity(int32_t id, bool violent = false);
+
+    Entity* getEntityById(int32_t id);
+
+    /* FUNC: WorldZone::peers @ 0x10004A3B9 */
+    const ax::Map<int32_t, EntityAnimatedAvatar*>& getPeers() const { return _peers; }
+
+    ssize_t getPeerCount() const { return _peers.size(); }
 
     /* FUNC: WorldZone::leave @ 0x1000497AB */
     void leave();
@@ -165,47 +183,51 @@ public:
     State getState() const { return _state; }
 
 private:
+    inline static WorldZone* sMain;  // 0x10032EAC0
+
     /* SNIPPET: 0x10003FD44 - 0x10003FEAE */
     static Biome getBiomeForName(const std::string& name);
 
-    GameManager* _game;                         // WorldZone::game @ 0x100310EA8
-    SceneRenderer* _sceneRenderer;              // WorldZone::sceneRenderer @ 0x1003110B8
-    WorldRenderer* _worldRenderer;              // WorldZone::worldRenderer @ 0x100310FC0
-    ax::Vector<WorldChunk*> _inactiveChunks;    // WorldZone::inactiveChunks @ 0x100310EE8
-    ax::Vector<WorldChunk*> _activeChunks;      // WorldZone::activeChunks @ 0x100310EE0
-    std::map<uint32_t, double> _pendingChunks;  // WorldZone::pendingChunks @ 0x100310EF0
-    std::vector<uint32_t> _cleanedChunks;       // WorldZone::cleanedChunks @ 0x100310F08
-    ax::Map<uint32_t, WorldChunk*> _chunks;     // WorldZone::chunks @ 0x100311088
-    std::string _documentId;                    // WorldZone::documentId @ 0x100311170
-    std::string _name;                          // WorldZone::name @ 0x100311190
-    std::string _biome;                         // WorldZone::biome @ 0x100310F98
-    Biome _biomeType;                           // WorldZone::biomeType @ 0x100310FA0
-    ax::ValueMap _biomeConfig;                  // WorldZone::biomeConfig @ 0x100310FC8
-    DepthGraphics _depthGraphics;               // WorldZone::depthGraphics @ 0x100310FB8
-    uint64_t _seed;                             // WorldZone::seed @ 0x1003111A0
-    uint16_t _blocksWidth;                      // WorldZone::blocksWidth @ 0x100310FF8
-    uint16_t _blocksHeight;                     // WorldZone::blocksHeight @ 0x100311000
-    uint32_t _blockCount;                       // WorldZone::blocksCount @ 0x100311050
-    uint16_t _chunkWidth;                       // WorldZone::chunkWidth @ 0x100311008
-    uint16_t _chunkHeight;                      // WorldZone::chunkHeight @ 0x100311010
-    uint16_t _chunkSize;                        // WorldZone::chunkSize @ 0x100311018
-    uint32_t _chunkCount;                       // WorldZone::chunksCount @ 0x100311010
-    uint16_t _chunkCountX;                      // WorldZone::xChunksCount @ 0x100311020
-    uint16_t _chunkCountY;                      // WorldZone::yChunksCount @ 0x100311028
-    uint16_t _surfaceTop;                       // WorldZone::surfaceTop @ 0x100311060
-    uint16_t _surfaceBottom;                    // WorldZone::surfaceBottom @ 0x100311068
-    ax::ValueVector _timedStatus;               // WorldZone::status @ 0x100311110
-    bool _receivedInitialStatus;                // WorldZone::receivedInitialStatus @ 0x100310F58
-    float _dayPercent;                          // WorldZone::dayPercent @ 0x1003110E8
-    float _dayTime;                             // WorldZone::daytime @ 0x1003110E0
-    float _acidity;                             // WorldZone::acidity @ 0x100311138
-    float _cloudCover;                          // WorldZone::cloudCover @ 0x100311160
-    double _lastBlocksRequestAt;                // WorldZone::lastBlocksRequestAt @ 0x100311100
-    double _lastBlocksIgnoreAt;                 // WorldZone::lastBlocksIgnoreAt @ 0x100311108
-    double _doneWaitingForBlocksAt;             // WorldZone::doneWaitingForBlocksAt @ 0x1003110F8
-    bool _justWaitedForBlocks;                  // WorldZone::justWaitedForBlocks @ 0x1003110F0
-    State _state;                               // WorldZone::state @ 0x100310F28
-    bool _paused;                               // WorldZone::paused @ 0x100310F30
+    GameManager* _game;                              // WorldZone::game @ 0x100310EA8
+    SceneRenderer* _sceneRenderer;                   // WorldZone::sceneRenderer @ 0x1003110B8
+    WorldRenderer* _worldRenderer;                   // WorldZone::worldRenderer @ 0x100310FC0
+    ax::Vector<WorldChunk*> _inactiveChunks;         // WorldZone::inactiveChunks @ 0x100310EE8
+    ax::Vector<WorldChunk*> _activeChunks;           // WorldZone::activeChunks @ 0x100310EE0
+    std::map<uint32_t, double> _pendingChunks;       // WorldZone::pendingChunks @ 0x100310EF0
+    std::vector<uint32_t> _cleanedChunks;            // WorldZone::cleanedChunks @ 0x100310F08
+    ax::Map<uint32_t, WorldChunk*> _chunks;          // WorldZone::chunks @ 0x100311088
+    ax::Map<int32_t, Entity*> _entities;             // WorldZone::entities @ 0x100310EB8
+    ax::Map<int32_t, EntityAnimatedAvatar*> _peers;  // WorldZone::peers @ 0x100310EC8
+    std::string _documentId;                         // WorldZone::documentId @ 0x100311170
+    std::string _name;                               // WorldZone::name @ 0x100311190
+    std::string _biome;                              // WorldZone::biome @ 0x100310F98
+    Biome _biomeType;                                // WorldZone::biomeType @ 0x100310FA0
+    ax::ValueMap _biomeConfig;                       // WorldZone::biomeConfig @ 0x100310FC8
+    DepthGraphics _depthGraphics;                    // WorldZone::depthGraphics @ 0x100310FB8
+    uint64_t _seed;                                  // WorldZone::seed @ 0x1003111A0
+    uint16_t _blocksWidth;                           // WorldZone::blocksWidth @ 0x100310FF8
+    uint16_t _blocksHeight;                          // WorldZone::blocksHeight @ 0x100311000
+    uint32_t _blockCount;                            // WorldZone::blocksCount @ 0x100311050
+    uint16_t _chunkWidth;                            // WorldZone::chunkWidth @ 0x100311008
+    uint16_t _chunkHeight;                           // WorldZone::chunkHeight @ 0x100311010
+    uint16_t _chunkSize;                             // WorldZone::chunkSize @ 0x100311018
+    uint32_t _chunkCount;                            // WorldZone::chunksCount @ 0x100311010
+    uint16_t _chunkCountX;                           // WorldZone::xChunksCount @ 0x100311020
+    uint16_t _chunkCountY;                           // WorldZone::yChunksCount @ 0x100311028
+    uint16_t _surfaceTop;                            // WorldZone::surfaceTop @ 0x100311060
+    uint16_t _surfaceBottom;                         // WorldZone::surfaceBottom @ 0x100311068
+    ax::ValueVector _timedStatus;                    // WorldZone::status @ 0x100311110
+    bool _receivedInitialStatus;                     // WorldZone::receivedInitialStatus @ 0x100310F58
+    float _dayPercent;                               // WorldZone::dayPercent @ 0x1003110E8
+    float _dayTime;                                  // WorldZone::daytime @ 0x1003110E0
+    float _acidity;                                  // WorldZone::acidity @ 0x100311138
+    float _cloudCover;                               // WorldZone::cloudCover @ 0x100311160
+    double _lastBlocksRequestAt;                     // WorldZone::lastBlocksRequestAt @ 0x100311100
+    double _lastBlocksIgnoreAt;                      // WorldZone::lastBlocksIgnoreAt @ 0x100311108
+    double _doneWaitingForBlocksAt;                  // WorldZone::doneWaitingForBlocksAt @ 0x1003110F8
+    bool _justWaitedForBlocks;                       // WorldZone::justWaitedForBlocks @ 0x1003110F0
+    State _state;                                    // WorldZone::state @ 0x100310F28
+    bool _paused;                                    // WorldZone::paused @ 0x100310F30
 };
 
 }  // namespace opendw
