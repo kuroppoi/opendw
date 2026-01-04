@@ -11,9 +11,8 @@ namespace opendw
  */
 class GameCommandBlocks : public GameCommand
 {
-
 public:
-    /* FUNC: GameCommandBlocks::run @ 0x1000E1952*/
+    /* FUNC: GameCommandBlocks::run @ 0x1000E1952 */
     void run() override;
 
     /* FUNC: GameCommandBlocks::postUnpack @ 0x1000E18F3 */

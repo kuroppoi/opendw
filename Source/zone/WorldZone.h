@@ -79,6 +79,14 @@ public:
     /* FUNC: WorldZone::didLoadChunkX:y: @ 0x100046C6B */
     void removePendingChunk(uint16_t x, uint16_t y);
 
+    /* FUNC: WorldZone::updateSunlightX:depth: @ 0x100046AD2 */
+    void updateSunlight(int16_t x, int16_t depth);
+
+    /* FUNC: WorldZone::sunlight @ 0x10004A219 */
+    const int16_t* getSunlight() const { return _sunlight; }
+
+    int16_t getSunlightAt(int16_t x) const;
+
     /* FUNC: WorldZone::registerEntity:ilk:name:details: @ 0x1000476FC */
     Entity* registerEntity(int32_t id, int32_t code, const std::string& name, const ax::ValueMap& details);
 
@@ -216,6 +224,7 @@ private:
     uint16_t _chunkCountY;                           // WorldZone::yChunksCount @ 0x100311028
     uint16_t _surfaceTop;                            // WorldZone::surfaceTop @ 0x100311060
     uint16_t _surfaceBottom;                         // WorldZone::surfaceBottom @ 0x100311068
+    int16_t* _sunlight;                              // WorldZone::sunlight @ 0x100311080
     ax::ValueVector _timedStatus;                    // WorldZone::status @ 0x100311110
     bool _receivedInitialStatus;                     // WorldZone::receivedInitialStatus @ 0x100310F58
     float _dayPercent;                               // WorldZone::dayPercent @ 0x1003110E8

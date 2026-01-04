@@ -21,6 +21,7 @@ public:
         ENTITY_STATUS   = 7,
         ENTITY_CHANGE   = 8,
         BLOCK_CHANGE    = 9,
+        LIGHT           = 15,
         ZONE_STATUS     = 17,
         ZONE_SEARCH     = 23,
         NOTIFICATION    = 33,

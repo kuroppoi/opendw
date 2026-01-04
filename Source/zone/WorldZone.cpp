@@ -43,7 +43,8 @@ bool WorldZone::initWithGame(GameManager* game)
     _game  = game;
     _state = State::INACTIVE;
     _inactiveChunks.reserve(CHUNK_PREALLOC_COUNT);
-    sMain = this;
+    _sunlight = nullptr;
+    sMain     = this;
     return true;
 }
 
@@ -100,6 +101,9 @@ void WorldZone::configure(const ValueMap& data)
         _surfaceTop    = MIN(_surfaceTop, y);
         _surfaceBottom = MAX(_surfaceBottom, y);
     }
+
+    AX_SAFE_DELETE_ARRAY(_sunlight);
+    _sunlight = new int16_t[_blocksWidth];
 
     // Preallocate a bunch of chunks if none are allocated at the moment
     if (WorldChunk::getChunksAllocated() == 0)
@@ -405,6 +409,19 @@ void WorldZone::removePendingChunk(uint16_t x, uint16_t y)
     _pendingChunks.erase(chunkY * _chunkCountX + chunkX);
 }
 
+void WorldZone::updateSunlight(int16_t x, int16_t depth)
+{
+    if (_sunlight && x >= 0 && x < _blocksWidth)
+    {
+        _sunlight[x] = depth;
+    }
+}
+
+int16_t WorldZone::getSunlightAt(int16_t x) const
+{
+    return _sunlight && x >= 0 && x < _blocksWidth ? _sunlight[x] : -1;
+}
+
 Entity* WorldZone::registerEntity(int32_t id, int32_t code, const std::string& name, const ValueMap& details)
 {
     // 0x10004775A: Update entity if it already exists
@@ -518,7 +535,8 @@ void WorldZone::leave()
     _inactiveChunks.clear();
     _activeChunks.clear();
     _pendingChunks.clear();
-    _chunks.clear();  // free(chunks); chunks = nullptr;
+    _chunks.clear();
+    AX_SAFE_DELETE_ARRAY(_sunlight);
     _entities.clear();
     _peers.clear();
     // TODO: clear other containers as we add them
