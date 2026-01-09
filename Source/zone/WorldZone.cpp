@@ -8,6 +8,7 @@
 #include "network/tcp/MessageIdent.h"
 #include "util/ArrayUtil.h"
 #include "util/MapUtil.h"
+#include "util/MathUtil.h"
 #include "util/StringUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldChunk.h"
@@ -615,6 +616,29 @@ Point WorldZone::getLowerRightScreenBlockPoint() const
     auto& winSize = _director->getWinSize();
     Point point(winSize.width - 1.0F, 1.0F);
     return getBlockPointAtNodePoint(_worldRenderer->getNodePointForScreenPoint(point));
+}
+
+std::vector<BaseBlock*> WorldZone::getBlocksInRect(const Rect& rect)
+{
+    auto zoneRect    = Rect(0.0F, 0.0F, _blocksWidth, _blocksHeight);
+    auto clampedRect = math_util::clampRect(rect, zoneRect);
+    std::vector<BaseBlock*> blocks;
+    blocks.reserve((size_t)(ceil(clampedRect.size.width) * ceil(clampedRect.size.height)));
+
+    for (auto y = clampedRect.getMinY(); y <= clampedRect.getMaxY(); y++)
+    {
+        for (auto x = clampedRect.getMinX(); x <= clampedRect.getMaxX(); x++)
+        {
+            auto block = getBlockAt(x, y);
+
+            if (block)
+            {
+                blocks.push_back(block);
+            }
+        }
+    }
+
+    return blocks;
 }
 
 Biome WorldZone::getBiomeForName(const std::string& name)

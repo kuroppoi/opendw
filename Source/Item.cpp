@@ -48,6 +48,8 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _borderShadow     = map_util::getBool(data, "border_shadow");
     _jiggle           = map_util::getFloat(data, "jiggle");
     _glow             = map_util::getFloat(data, "glow");
+    _light            = map_util::getFloat(data, "light");
+    _lightColor       = color_util::hexToColor(map_util::getString(data, "light_color"));
     _color            = color_util::hexToColor(map_util::getString(data, "color"));
     _mirrorable       = map_util::getString(data, "rotation") == "mirror";
     _spriteZ          = map_util::getInt32(data, "sprite_z");
@@ -59,6 +61,16 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     {
         _width  = size[0].asInt();
         _height = size[1].asInt();
+    }
+
+    // 0x10004B5FC: Configure light position
+    auto& lightPosition = map_util::getArray(data, "light_position");
+
+    if (lightPosition.size() >= 2)
+    {
+        auto x = lightPosition[0].asFloat();
+        auto y = lightPosition[1].asFloat();
+        _lightPosition.set(x, y);
     }
 
     return true;

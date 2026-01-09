@@ -619,6 +619,11 @@ MaskedSprite* BaseBlock::getTopSpriteForLayer(BlockLayer layer) const
     return topSprite;
 }
 
+bool BaseBlock::isOpaque() const
+{
+    return isBackOpaque() && isFrontOpaque();
+}
+
 bool BaseBlock::isOpaque(BlockLayer layer) const
 {
     switch (layer)

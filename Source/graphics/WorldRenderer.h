@@ -9,7 +9,7 @@ namespace opendw
 class BaseBlock;
 class CavernRenderer;
 class Entity;
-class FrameBufferNode;
+class Lightmapper;
 class SkyRenderer;
 class WorldLayerRenderer;
 class WorldZone;
@@ -109,12 +109,16 @@ public:
     /* FUNC: WorldRenderer::continuityCornerMasks @ 0x100086F2A */
     const CornerMasks& getContinuityCornerMasks() const { return _continuityCornerMasks; }
 
+    /* FUNC: WorldRenderer::lightMapper @ 0x100086F8B */
+    Lightmapper* getLightmapper() const { return _lightmapper; }
+
 private:
     WorldZone* _zone;                             // WorldRenderer::zone @ 0x100311DE8
     ax::Node* _background;                        // WorldRenderer::background @ 0x100311E30
     ax::Node* _foreground;                        // WorldRenderer::foreground @ 0x100311E48
     CavernRenderer* _cavern;                      // WorldRenderer::cavern @ 0x100311E38
     SkyRenderer* _sky;                            // WorldRenderer::sky @ 0x100311E40
+    Lightmapper* _lightmapper;                    // WorldRenderer::lightmapper @ 0x100311F18
     WorldLayerRenderer* _baseBiomeBlocksNode;     // WorldRenderer::baseBiomeBlocksNode @ 0x100311E50
     WorldLayerRenderer* _baseBlocksNode;          // WorldRenderer::baseBlocksNode @ 0x100311E58
     WorldLayerRenderer* _baseAccentsNode;         // WorldRenderer::baseAccentsNode @ 0x100311E60

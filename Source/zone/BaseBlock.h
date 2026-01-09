@@ -104,6 +104,7 @@ public:
     void updateBack();
 
     /* FUNC: BaseBlock::isOpaque @ 0x10002F6F1 */
+    bool isOpaque() const;
     bool isOpaque(BlockLayer layer) const;
     bool isBackOpaque() const;
     bool isFrontOpaque() const;
@@ -198,6 +199,36 @@ public:
     /* FUNC: BaseBlock::setRendering: @ 0x1000334BA */
     void setRendering(bool rendering) { _rendering = rendering; }
 
+    /* FUNC: BaseBlock::setCurrentLightR: @ 0x10003330E */
+    void setCurrentLightR(float value) { _currentLightR = value; }
+
+    /* FUNC: BaseBlock::currentLightR @ 0x1000332FC */
+    float getCurrentLightR() const { return _currentLightR; }
+
+    /* FUNC: BaseBlock::setCurrentLightG: @ 0x100033332 */
+    void setCurrentLightG(float value) { _currentLightG = value; }
+
+    /* FUNC: BaseBlock::currentLightG @ 0x100033320 */
+    float getCurrentLightG() const { return _currentLightG; }
+
+    /* FUNC: BaseBlock::setCurrentLightB: @ 0x100033356 */
+    void setCurrentLightB(float value) { _currentLightB = value; }
+
+    /* FUNC: BaseBlock::currentLightB @ 0x100033344 */
+    float getCurrentLightB() const { return _currentLightB; }
+
+    /* FUNC: BaseBlock::setCurrentLightA: @ 0x10003337A */
+    void setCurrentLightA(float value) { _currentLightA = value; }
+
+    /* FUNC: BaseBlock::currentLightA @ 0x100033368 */
+    float getCurrentLightA() const { return _currentLightA; }
+
+    /* FUNC: BaseBlock::setCurrentLightLit: @ 0x10003339D */
+    void setCurrentLightLit(bool value) { _currentLightLit = value; }
+
+    /* FUNC: BaseBlock::currentLightLit @ 0x10003338C */
+    bool isCurrentLightLit() const { return _currentLightLit; }
+
     // Continuity constants
     static constexpr auto CONTINUITY_TOP          = 0b00000001ui8;
     static constexpr auto CONTINUITY_RIGHT        = 0b00000010ui8;
@@ -216,32 +247,37 @@ private:
 
     inline static size_t sBlocksAllocated = 0;  // 0x10032EAA8
 
-    WorldZone* _zone;                     // BaseBlock::zone @ 0x100310A58
-    uint16_t _x;                          // BaseBlock::x @ 0x100310A60
-    uint16_t _y;                          // BaseBlock::y @ 0x100310A68
-    uint8_t _base;                        // BaseBlock::base @ 0x100310A80
-    uint16_t _back;                       // BaseBlock::back @ 0x100310A88
-    uint8_t _backMod;                     // BaseBlock::backMod @ 0x100310A90
-    uint16_t _front;                      // BaseBlock::front @ 0x100310A98
-    uint8_t _frontMod;                    // BaseBlock::frontMod @ 0x100310AA0
-    bool _frontNatural;                   // BaseBlock::frontNatural @ 0x100310AA8
-    uint8_t _liquid;                      // BaseBlock::liquid @ 0x100310AB0
-    uint8_t _liquidMod;                   // BaseBlock::liquidMod @ 0x100310AB8
-    Item* _baseItem;                      // BaseBlock::baseItem @ 0x100310AC0
-    Item* _backItem;                      // BaseBlock::backItem @ 0x100310AC8
-    Item* _frontItem;                     // BaseBlock::frontItem @ 0x100310AD0
-    Item* _liquidItem;                    // BaseBlock::liquidItem @ 0x100310AD8
-    double _queuedAt;                     // BaseBlock::queuedAt @ 0x100310BB8
-    ax::Vector<MaskedSprite*> _sprites;   // BaseBlock::sprites @ 0x100310B58
-    bool _placing;                        // BaseBlock::placing @ 0x100310A70
-    bool _rendering;                      // BaseBlock::rendering @ 0x100310A78
-    uint8_t _wholeness;                   // BaseBlock::wholeness @ 0x100310B18
-    uint8_t _baseContinuity;              // BaseBlock::baseContinuity @ 0x100310AF0
-    uint8_t _backContinuity;              // BaseBlock::backContinuity @ 0x100310AE8
-    uint8_t _backModContinuity;           // BaseBlock::backModContinuity @ 0x100310B20
-    uint8_t _frontContinuity;             // BaseBlock::frontContinuity @ 0x100310AE0
-    uint8_t _frontModContinuity;          // BaseBlock::frontModContinuity @ 0x100310B28
-    uint16_t _liquidity;                  // BaseBlock::liquidity @ 0x100310B30
+    WorldZone* _zone;                    // BaseBlock::zone @ 0x100310A58
+    uint16_t _x;                         // BaseBlock::x @ 0x100310A60
+    uint16_t _y;                         // BaseBlock::y @ 0x100310A68
+    uint8_t _base;                       // BaseBlock::base @ 0x100310A80
+    uint16_t _back;                      // BaseBlock::back @ 0x100310A88
+    uint8_t _backMod;                    // BaseBlock::backMod @ 0x100310A90
+    uint16_t _front;                     // BaseBlock::front @ 0x100310A98
+    uint8_t _frontMod;                   // BaseBlock::frontMod @ 0x100310AA0
+    bool _frontNatural;                  // BaseBlock::frontNatural @ 0x100310AA8
+    uint8_t _liquid;                     // BaseBlock::liquid @ 0x100310AB0
+    uint8_t _liquidMod;                  // BaseBlock::liquidMod @ 0x100310AB8
+    Item* _baseItem;                     // BaseBlock::baseItem @ 0x100310AC0
+    Item* _backItem;                     // BaseBlock::backItem @ 0x100310AC8
+    Item* _frontItem;                    // BaseBlock::frontItem @ 0x100310AD0
+    Item* _liquidItem;                   // BaseBlock::liquidItem @ 0x100310AD8
+    double _queuedAt;                    // BaseBlock::queuedAt @ 0x100310BB8
+    ax::Vector<MaskedSprite*> _sprites;  // BaseBlock::sprites @ 0x100310B58
+    bool _placing;                       // BaseBlock::placing @ 0x100310A70
+    bool _rendering;                     // BaseBlock::rendering @ 0x100310A78
+    uint8_t _wholeness;                  // BaseBlock::wholeness @ 0x100310B18
+    uint8_t _baseContinuity;             // BaseBlock::baseContinuity @ 0x100310AF0
+    uint8_t _backContinuity;             // BaseBlock::backContinuity @ 0x100310AE8
+    uint8_t _backModContinuity;          // BaseBlock::backModContinuity @ 0x100310B20
+    uint8_t _frontContinuity;            // BaseBlock::frontContinuity @ 0x100310AE0
+    uint8_t _frontModContinuity;         // BaseBlock::frontModContinuity @ 0x100310B28
+    uint16_t _liquidity;                 // BaseBlock::liquidity @ 0x100310B30
+    float _currentLightR;                // BaseBlock::currentLightR @ 0x100310B88
+    float _currentLightG;                // BaseBlock::currentLightG @ 0x100310B90
+    float _currentLightB;                // BaseBlock::currentLightB @ 0x100310B98
+    float _currentLightA;                // BaseBlock::currentLightA @ 0x100310BA0
+    bool _currentLightLit;               // BaseBlock::currentLightLit @ 0x100310BA8
 };
 
 }  // namespace opendw

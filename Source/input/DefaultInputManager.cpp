@@ -1,5 +1,6 @@
 #include "DefaultInputManager.h"
 
+#include "graphics/Lightmapper.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
 #include "zone/WorldZone.h"
@@ -92,18 +93,29 @@ void DefaultInputManager::checkInput(float deltaTime)
 void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
 {
     // NOTE: in v2.9.0 we can use `EventKeyboard::isRepeat`
-    if (!_keysPressed.contains(keyCode))
+    if (_keysPressed.contains(keyCode))
     {
-        switch (keyCode)
-        {
-        case KeyCode::KEY_ESCAPE:
-            AudioManager::getInstance()->playButtonSfx();
-            _gameGui->toggleGameMenu();
-            break;
-        case KeyCode::KEY_F1:
-            _director->setStatsDisplay(!_director->isStatsDisplay());
-            break;
-        }
+        return;
+    }
+
+    auto worldRenderer = _game->getZone()->getWorldRenderer();
+    auto lightmapper   = worldRenderer->getLightmapper();
+
+    switch (keyCode)
+    {
+    case KeyCode::KEY_ESCAPE:
+        AudioManager::getInstance()->playButtonSfx();
+        _gameGui->toggleGameMenu();
+        break;
+    case KeyCode::KEY_F1:
+        _director->setStatsDisplay(!_director->isStatsDisplay());
+        break;
+    case KeyCode::KEY_F2:
+        lightmapper->setMoodLighting(!lightmapper->isMoodLighting());  // TODO: chat command
+        break;
+    case KeyCode::KEY_F3:
+        lightmapper->flash(255.0F);
+        break;
     }
 
     _keysPressed.insert(keyCode);

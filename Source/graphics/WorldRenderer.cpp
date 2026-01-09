@@ -6,6 +6,7 @@
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/backend/MaskedSpriteBatchNode.h"
 #include "graphics/CavernRenderer.h"
+#include "graphics/Lightmapper.h"
 #include "graphics/SkyRenderer.h"
 #include "graphics/WorldLayerRenderer.h"
 #include "util/MathUtil.h"
@@ -57,6 +58,10 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _foreground = Node::create();
     addChild(_foreground);
 
+    // Create lightmapper
+    _lightmapper = Lightmapper::createWithZone(zone);
+    addChild(_lightmapper);
+
     // 0x10007D1D2: Create base layer renderers
     _baseBiomeBlocksNode = createLayerRenderer("baseBiome", BlockLayer::BASE, "front-0+hd2.png", true);
     _baseBlocksNode      = createLayerRenderer("base", BlockLayer::BASE, "base+hd2.png");
@@ -93,8 +98,6 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     auto& winSize = _director->getWinSize();
     _animatedEntitiesNode = Node::create();
     _foreground->addChild(_animatedEntitiesNode, getNextZIndex());
-
-    // _ghostsNode = SpriteBa
 
     // 0x10007D7F2: Create liquid layer renderer
     _liquidBlocksNode = createLayerRenderer("liquid", BlockLayer::LIQUID, "liquid+hd2.png");
@@ -270,6 +273,8 @@ void WorldRenderer::update(float deltaTime)
         _liquidFrame++;
         _nextLiquidCycle = utils::gettime() + LIQUID_CYCLE_INTERVAL;
     }
+
+    _lightmapper->update(deltaTime);
 }
 
 void WorldRenderer::updateBlocks()

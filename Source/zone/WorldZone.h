@@ -124,6 +124,9 @@ public:
     /* FUNC: WorldZone::lowerRightScreenBlockIndex @ 0x1000468D2 */
     ax::Point getLowerRightScreenBlockPoint() const;
 
+    /* FUNC: WorldZone::blocksInRect: @ 0x10004664A */
+    std::vector<BaseBlock*> getBlocksInRect(const ax::Rect& rect);
+
     /* FUNC: WorldZone::documentId @ 0x100049FC3 */
     const std::string& getDocumentId() const { return _documentId; }
 

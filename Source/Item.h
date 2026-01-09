@@ -125,6 +125,15 @@ public:
     /* FUNC: Item::glow @ 0x10004E313 */
     float getGlow() const { return _glow; }
 
+    /* FUNC: Item::light @ 0x10004E0EE */
+    float getLight() const { return _light; }
+
+    /* FUNC: Item::lightColor @ 0x10004E100 */
+    const ax::Color3B& getLightColor() const { return _lightColor; }
+
+    /* FUNC: Item::lightPosition @ 0x10004E11B */
+    const ax::Point& getLightPosition() const { return _lightPosition; }
+
     /* FUNC: Item::isMirrorable @ 0x10004D726 */
     bool isMirrorable() const { return _mirrorable; }
 
@@ -244,6 +253,9 @@ private:
     bool _borderShadow;                              // Item::borderShadow @ 0x1003112B0
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
+    float _light;                                    // Item::light @ 0x1003113B8
+    ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
+    ax::Point _lightPosition;                        // Item::lightPosition @ 0x1003113C8
     Item* _parentItem;                               // Item::parentItem @ 0x100311528
     Item* _useChangeItem;                            // Item::useChangeItem @ 0x100311530
     std::vector<Item*> _changeItems;                 // Item::changeItems @ 0x100311528
