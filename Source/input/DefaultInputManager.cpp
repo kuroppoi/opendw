@@ -116,6 +116,23 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
     case KeyCode::KEY_F3:
         lightmapper->flash(255.0F);
         break;
+    case KeyCode::KEY_ENTER:
+        if (_keysPressed.contains(KeyCode::KEY_ALT))
+        {
+            auto view = static_cast<RenderViewImpl*>(_director->getRenderView());
+
+            if (view->isFullscreen())
+            {
+                auto& designSize = _director->getRenderView()->getDesignResolutionSize();
+                view->setWindowed(designSize.width, designSize.height);
+            }
+            else
+            {
+                view->setFullscreen();
+            }
+        }
+
+        break;
     }
 
     _keysPressed.insert(keyCode);
