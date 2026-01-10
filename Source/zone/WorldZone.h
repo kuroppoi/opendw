@@ -10,6 +10,8 @@ class BaseBlock;
 class Entity;
 class EntityAnimatedAvatar;
 class GameManager;
+class Item;
+class MetaBlock;
 class SceneRenderer;
 class WorldRenderer;
 class WorldChunk;
@@ -127,6 +129,12 @@ public:
     /* FUNC: WorldZone::blocksInRect: @ 0x10004664A */
     std::vector<BaseBlock*> getBlocksInRect(const ax::Rect& rect);
 
+    /* FUNC: WorldZone::setMetaBlockX:y:item:metadata: @ 0x100046DBE */
+    void setMetaBlock(int16_t x, int16_t y, Item* item, const ax::ValueMap& metadata);
+
+    /* FUNC: WorldZone::metaBlockAtX:y: @ 0x10004717A */
+    MetaBlock* getMetaBlockAt(int16_t x, int16_t y) const;
+
     /* FUNC: WorldZone::documentId @ 0x100049FC3 */
     const std::string& getDocumentId() const { return _documentId; }
 
@@ -207,6 +215,7 @@ private:
     std::map<uint32_t, double> _pendingChunks;       // WorldZone::pendingChunks @ 0x100310EF0
     std::vector<uint32_t> _cleanedChunks;            // WorldZone::cleanedChunks @ 0x100310F08
     ax::Map<uint32_t, WorldChunk*> _chunks;          // WorldZone::chunks @ 0x100311088
+    ax::Map<int32_t, MetaBlock*> _metaBlocks;        // WorldZone::metaBlocks @ 0x100311090
     ax::Map<int32_t, Entity*> _entities;             // WorldZone::entities @ 0x100310EB8
     ax::Map<int32_t, EntityAnimatedAvatar*> _peers;  // WorldZone::peers @ 0x100310EC8
     std::string _documentId;                         // WorldZone::documentId @ 0x100311170

@@ -2,6 +2,7 @@
 
 #include "msgpack/MessagePack.h"
 #include "network/tcp/command/GameCommandBlockChange.h"
+#include "network/tcp/command/GameCommandBlockMeta.h"
 #include "network/tcp/command/GameCommandBlocks.h"
 #include "network/tcp/command/GameCommandConfigure.h"
 #include "network/tcp/command/GameCommandEntityChange.h"
@@ -42,6 +43,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandLight();
     case Ident::ZONE_STATUS:
         return new GameCommandZoneStatus();
+    case Ident::BLOCK_META:
+        return new GameCommandBlockMeta();
     case Ident::ZONE_SEARCH:
         return new GameCommandZoneSearch();
     case Ident::NOTIFICATION:

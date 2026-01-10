@@ -11,6 +11,7 @@
 #include "util/MathUtil.h"
 #include "util/StringUtil.h"
 #include "zone/BaseBlock.h"
+#include "zone/MetaBlock.h"
 #include "zone/WorldChunk.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
@@ -537,6 +538,7 @@ void WorldZone::leave()
     _activeChunks.clear();
     _pendingChunks.clear();
     _chunks.clear();
+    _metaBlocks.clear();
     AX_SAFE_DELETE_ARRAY(_sunlight);
     _entities.clear();
     _peers.clear();
@@ -639,6 +641,56 @@ std::vector<BaseBlock*> WorldZone::getBlocksInRect(const Rect& rect)
     }
 
     return blocks;
+}
+
+void WorldZone::setMetaBlock(int16_t x, int16_t y, Item* item, const ValueMap& metadata)
+{
+    if (x < 0 || x >= _blocksWidth || y < 0 || y >= _blocksHeight)
+    {
+        return;
+    }
+
+    auto index = y * _blocksWidth + x;
+    auto it    = _metaBlocks.find(index);
+    MetaBlock* metaBlock;
+
+    if (it != _metaBlocks.end())
+    {
+        if (item)
+        {
+            metaBlock = (*it).second;
+            metaBlock->setItem(item);
+            metaBlock->setMetadata(metadata);
+        }
+        else
+        {
+            _metaBlocks.erase(it);
+        }
+    }
+    else if (item)
+    {
+        metaBlock = MetaBlock::createWithData(x, y, item, metadata);
+        _metaBlocks.insert(index, metaBlock);
+    }
+
+    auto block = getBlockAt(x, y);
+
+    if (block)
+    {
+        block->updateEnvironment();
+    }
+}
+
+MetaBlock* WorldZone::getMetaBlockAt(int16_t x, int16_t y) const
+{
+    if (x < 0 || x >= _blocksWidth || y < 0 || y >= _blocksHeight)
+    {
+        return nullptr;
+    }
+
+    auto index = y * _blocksWidth + x;
+    auto it    = _metaBlocks.find(index);
+    return it == _metaBlocks.end() ? nullptr : (*it).second;
 }
 
 Biome WorldZone::getBiomeForName(const std::string& name)
