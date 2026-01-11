@@ -403,7 +403,7 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         }
     }
 
-    _flash = clampf(_flash - deltaTime * (255.0F / 0.1F), 0.0F, 255.0F);  // HACK: consistent flash duration
+    _flash = clampf(_flash - deltaTime * (255.0F / 0.0167F), 0.0F, 255.0F);  // HACK: consistent flash duration
     _texture->updateWithData(_textureData, _textureSizeBytes, backend::PixelFormat::RGBA8, backend::PixelFormat::RGBA8,
                              _textureWidth, _textureHeight, false);
 }
