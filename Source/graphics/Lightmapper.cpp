@@ -1,16 +1,19 @@
 #include "Lightmapper.h"
 
 #include "graphics/WorldRenderer.h"
+#include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
+#include "zone/MetaBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 #include "Item.h"
 
-#define LIGHT_RING_ITERATIONS 8
-#define LIGHTMAP_SCALE        0.5
-#define LIGHTMAP_SHADER       "custom/Lightmap_fs"
-#define TEXTURE_PADDING       4
-#define DEFAULT_BASE_LIGHT    200.0
+#define LIGHT_RING_ITERATIONS      8
+#define LIGHTMAP_SCALE             0.5
+#define LIGHTMAP_SHADER            "custom/Lightmap_fs"
+#define TEXTURE_PADDING            4
+#define DEFAULT_BASE_LIGHT         200.0
+#define RESTRICT_FIELD_DAMAGE_AURA 0  // Whether or not field damage aura should only display in hell biomes
 
 USING_NS_AX;
 
@@ -359,10 +362,26 @@ void Lightmapper::illuminateBlocks(float deltaTime)
             blue -= glow;
         }
 
-        // TODO: hell dish radius (requires metadata)
+        // 0x10005873E: Show field damage radius
+#if RESTRICT_FIELD_DAMAGE_AURA
+        if (_zone->getBiomeType() == Biome::HELL)
+#endif
+        {
+            auto fieldDamageBlock = _zone->getFieldDamageBlock();
+
+            if (fieldDamageBlock)
+            {
+                auto& color    = fieldDamageBlock->getItem()->getColor();
+                auto distance  = math_util::getDistance(x, y, fieldDamageBlock->getX(), fieldDamageBlock->getY());
+                auto intensity = clampf(distance / -50.0F + 1.0F, 0.0F, 1.0F);
+                red            = MathUtil::lerp(red, color.r, intensity);
+                green          = MathUtil::lerp(green, color.g, intensity);
+                blue           = MathUtil::lerp(blue, color.b, intensity);
+            }
+        }
+
         // TODO: haze
         // TODO: death overlay
-        // TODO: flashlight
 
         red   = clampf(red, 0.0F, 255.0F);
         green = clampf(green, 0.0F, 255.0F);

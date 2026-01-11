@@ -17,6 +17,7 @@
 #include "CommonDefs.h"
 #include "GameConfig.h"
 #include "GameManager.h"
+#include "Item.h"
 #include "Player.h"
 
 #define CHUNK_PREALLOC_COUNT   60
@@ -144,9 +145,10 @@ void WorldZone::configure(const ValueMap& data)
 void WorldZone::update(float deltaTime)
 {
     Node::update(deltaTime);
+    auto player = _game->getPlayer();
 
     // Don't update if we're teleporting to another zone
-    if (_game->getPlayer()->isZoneTeleporting())
+    if (player->isZoneTeleporting())
     {
         return;
     }
@@ -282,6 +284,31 @@ void WorldZone::update(float deltaTime)
         _cleanedChunks.clear();
         _lastBlocksIgnoreAt = utils::gettime();
     }
+    
+    // 0x100042896: Find closest field damage block
+    // BUGFIX: Do this *before* updating subcomponents because _fieldDamageBlock might be deleted
+    _fieldDamageBlock    = nullptr;
+    auto playerPosition  = player->getBlockPosition();
+    auto nearestDistance = 0.0F;
+
+    for (auto& entry : _fieldMetaBlocks)
+    {
+        auto block = entry.second;
+        auto x     = block->getX();
+        auto y     = block->getY();
+        auto item  = block->getItem();
+
+        if (item->getFieldDamageType() != DamageType::NONE)
+        {
+            auto distance = math_util::getDistance(x, y, playerPosition.x, playerPosition.y);
+
+            if (!_fieldDamageBlock || distance < nearestDistance)
+            {
+                _fieldDamageBlock = block;
+                nearestDistance   = distance;
+            }
+        }
+    }
 
     // 0x10004269E: Update entities
     for (auto& entry : _entities)
@@ -292,7 +319,7 @@ void WorldZone::update(float deltaTime)
     _sceneRenderer->hideSpinner();
     _game->hideSnapshotSpinner();
     _game->getInputManager()->checkInput(deltaTime);
-    _game->getPlayer()->update(deltaTime);
+    player->update(deltaTime);
     _sceneRenderer->update(deltaTime);
 
     // 0x100042714: Update timed status
@@ -539,6 +566,7 @@ void WorldZone::leave()
     _pendingChunks.clear();
     _chunks.clear();
     _metaBlocks.clear();
+    _fieldMetaBlocks.clear();
     AX_SAFE_DELETE_ARRAY(_sunlight);
     _entities.clear();
     _peers.clear();
@@ -671,6 +699,16 @@ void WorldZone::setMetaBlock(int16_t x, int16_t y, Item* item, const ValueMap& m
     {
         metaBlock = MetaBlock::createWithData(x, y, item, metadata);
         _metaBlocks.insert(index, metaBlock);
+    }
+
+    _fieldMetaBlocks.erase(index);
+
+    if (item)
+    {
+        if (item->getField() > 0)
+        {
+            _fieldMetaBlocks[index] = metaBlock;
+        }
     }
 
     auto block = getBlockAt(x, y);

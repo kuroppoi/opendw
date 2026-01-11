@@ -20,6 +20,9 @@ ax::Size getScaledSize(ax::Node* node);
 float getScaledWidth(ax::Node* node);
 float getScaledHeight(ax::Node* node);
 
+/* @return The distance between 2 points. */
+float getDistance(float x, float y, float x2, float y2);
+
 }  // namespace opendw::math_util
 
 #endif // __MATH_UTIL_H__

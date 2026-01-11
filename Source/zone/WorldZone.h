@@ -201,6 +201,9 @@ public:
     /* FUNC: WorldZone::state @ 0x10004A507 */
     State getState() const { return _state; }
 
+    /* FUNC: WorldZone::fieldDamageBlock @ 0x10004A527 */
+    MetaBlock* getFieldDamageBlock() const { return _fieldDamageBlock; }
+
 private:
     inline static WorldZone* sMain;  // 0x10032EAC0
 
@@ -216,6 +219,7 @@ private:
     std::vector<uint32_t> _cleanedChunks;            // WorldZone::cleanedChunks @ 0x100310F08
     ax::Map<uint32_t, WorldChunk*> _chunks;          // WorldZone::chunks @ 0x100311088
     ax::Map<int32_t, MetaBlock*> _metaBlocks;        // WorldZone::metaBlocks @ 0x100311090
+    std::map<int32_t, MetaBlock*> _fieldMetaBlocks;  // WorldZone::fieldMetaBlocks @ 0x1003110A8
     ax::Map<int32_t, Entity*> _entities;             // WorldZone::entities @ 0x100310EB8
     ax::Map<int32_t, EntityAnimatedAvatar*> _peers;  // WorldZone::peers @ 0x100310EC8
     std::string _documentId;                         // WorldZone::documentId @ 0x100311170
@@ -247,6 +251,7 @@ private:
     double _lastBlocksIgnoreAt;                      // WorldZone::lastBlocksIgnoreAt @ 0x100311108
     double _doneWaitingForBlocksAt;                  // WorldZone::doneWaitingForBlocksAt @ 0x1003110F8
     bool _justWaitedForBlocks;                       // WorldZone::justWaitedForBlocks @ 0x1003110F0
+    MetaBlock* _fieldDamageBlock;                    // WorldZone::fieldDamageBlock @ 0x100311120
     State _state;                                    // WorldZone::state @ 0x100310F28
     bool _paused;                                    // WorldZone::paused @ 0x100310F30
 };

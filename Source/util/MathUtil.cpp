@@ -75,4 +75,9 @@ float getScaledHeight(Node* node)
     return node->getContentSize().height * node->getScaleY();
 }
 
+float getDistance(float x, float y, float x2, float y2)
+{
+    return hypotf(x - x2, y - y2);
+}
+
 }  // namespace opendw::math_util

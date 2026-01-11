@@ -52,7 +52,17 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _lightColor       = color_util::hexToColor(map_util::getString(data, "light_color"));
     _color            = color_util::hexToColor(map_util::getString(data, "color"));
     _mirrorable       = map_util::getString(data, "rotation") == "mirror";
+    _field            = map_util::getInt32(data, "field");
     _spriteZ          = map_util::getInt32(data, "sprite_z");
+
+    // 0x10004AE79: Configure field damage
+    auto& fieldDamage = map_util::getArray(data, "field_damage");
+    _fieldDamageType  = DamageType::NONE;
+
+    if (fieldDamage.size() >= 2)
+    {
+        _fieldDamageType = getDamageTypeForName(fieldDamage[0].asString());
+    }
 
     // 0x10004B22C: Configure size
     auto& size = map_util::getArray(data, "size");
@@ -352,6 +362,40 @@ SpecialPlacement Item::getSpecialPlacementForName(const std::string& name)
         return SpecialPlacement::UNIQUE;
 
     return SpecialPlacement::NONE;
+}
+
+DamageType Item::getDamageTypeForName(const std::string& name)
+{
+    if (name == "none")
+        return DamageType::NONE;
+    else if (name == "bludgeoning")
+        return DamageType::BLUDGEONING;
+    else if (name == "slashing")
+        return DamageType::SLASHING;
+    else if (name == "piercing")
+        return DamageType::PIERCING;
+    else if (name == "crushing")
+        return DamageType::CRUSHING;
+    else if (name == "acid")
+        return DamageType::ACID;
+    else if (name == "fire")
+        return DamageType::FIRE;
+    else if (name == "steam")
+        return DamageType::STEAM;
+    else if (name == "cold")
+        return DamageType::COLD;
+    else if (name == "energy")
+        return DamageType::ENERGY;
+    else if (name == "sonic")
+        return DamageType::ENERGY;
+    else if (name == "ink")
+        return DamageType::INK;
+    else if (name == "dessication")
+        return DamageType::DESSICATION;
+    else if (name == "stink")
+        return DamageType::STINK;
+
+    return DamageType::NONE;
 }
 
 }  // namespace opendw

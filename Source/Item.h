@@ -33,6 +33,25 @@ enum class SpecialPlacement : uint8_t
     UNIQUE
 };
 
+// TODO: Move to standalone file
+enum class DamageType : uint8_t
+{
+    NONE,
+    BLUDGEONING,
+    SLASHING,
+    PIERCING,
+    CRUSHING,
+    ACID,
+    FIRE,
+    STEAM,
+    COLD,
+    ENERGY,
+    SONIC,
+    INK,
+    DESSICATION,
+    STINK
+};
+
 /*
  * CLASS: Item : NSObject @ 0x100316E78
  */
@@ -127,6 +146,12 @@ public:
 
     /* FUNC: Item::light @ 0x10004E0EE */
     float getLight() const { return _light; }
+
+    /* FUNC: Item::field @ 0x10004DF44 */
+    int32_t getField() const { return _field; }
+
+    /* FUNC: Item::fieldDamageType @ 0x10004DF66 */
+    DamageType getFieldDamageType() const { return _fieldDamageType; }
 
     /* FUNC: Item::lightColor @ 0x10004E100 */
     const ax::Color3B& getLightColor() const { return _lightColor; }
@@ -234,6 +259,9 @@ private:
     /* SNIPPET: 0x10004BE0B - 0x10004BED2 */
     static SpecialPlacement getSpecialPlacementForName(const std::string& name);
 
+    /* FUNC: 0x10005322D */
+    static DamageType getDamageTypeForName(const std::string& name);
+
     GameConfig* _config;                             // Item::manager @ 0x1003111C8
     ax::ValueMap _data;                              // Item::config @ 0x1003111C0
     std::string _name;                               // Item::name @ 0x1003111E8
@@ -254,6 +282,8 @@ private:
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8
+    int32_t _field;                                  // Item::field @ 0x1003112B8
+    DamageType _fieldDamageType;                     // Item::fieldDamageType @ 0x1003112D8
     ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
     ax::Point _lightPosition;                        // Item::lightPosition @ 0x1003113C8
     Item* _parentItem;                               // Item::parentItem @ 0x100311528
