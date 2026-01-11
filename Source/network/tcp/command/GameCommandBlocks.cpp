@@ -25,20 +25,20 @@ void GameCommandBlocks::run()
             break;
         }
 
-        auto& chunk         = _data[_currentChunk].asValueVector();
-        uint16_t x          = chunk[0].asUint();
-        uint16_t y          = chunk[1].asUint();
-        uint16_t width      = chunk[2].asUint();
-        uint16_t height     = chunk[3].asUint();
-        auto& blocks        = chunk[4].asValueVector();
-        uint32_t blockCount = width * height;
+        auto& chunk     = _data[_currentChunk].asValueVector();
+        auto x          = chunk[0].asInt();
+        auto y          = chunk[1].asInt();
+        auto width      = chunk[2].asInt();
+        auto height     = chunk[3].asInt();
+        auto& blocks    = chunk[4].asValueVector();
+        auto blockCount = width * height;
         AX_ASSERT(blocks.size() / 3 == blockCount);
 
-        for (uint32_t i = 0; i < blockCount; i++)
+        for (auto i = 0; i < blockCount; i++)
         {
-            uint16_t blockX = x + (i % width);
-            uint16_t blockY = y + i / width;
-            auto block      = zone->getBlockAt(blockX, blockY, true);
+            auto blockX = x + (i % width);
+            auto blockY = y + i / width;
+            auto block  = zone->getBlockAt(blockX, blockY, true);
             AX_ASSERT(block);
             block->setData(blocks, i);
 

@@ -20,12 +20,12 @@ WorldChunk::~WorldChunk()
     sChunksAllocated--;
 }
 
-WorldChunk* WorldChunk::createWithZone(WorldZone* zone, uint16_t x, uint16_t y, uint32_t count)
+WorldChunk* WorldChunk::createWithZone(WorldZone* zone, int16_t x, int16_t y, uint32_t count)
 {
     CREATE_INIT(WorldChunk, initWithZone, zone, x, y, count);
 }
 
-bool WorldChunk::initWithZone(WorldZone* zone, uint16_t x, uint16_t y, uint32_t count)
+bool WorldChunk::initWithZone(WorldZone* zone, int16_t x, int16_t y, uint32_t count)
 {
     AXASSERT(!_blocks, "Reinitialization is not allowed");
     _zone   = zone;
@@ -44,7 +44,7 @@ bool WorldChunk::initWithZone(WorldZone* zone, uint16_t x, uint16_t y, uint32_t 
     return true;
 }
 
-void WorldChunk::setPosition(uint16_t x, uint16_t y)
+void WorldChunk::setPosition(int16_t x, int16_t y)
 {
     _x      = x;
     _y      = y;
@@ -72,7 +72,7 @@ void WorldChunk::recycle()
     }
 }
 
-BaseBlock* WorldChunk::getBlockAt(uint16_t x, uint16_t y)
+BaseBlock* WorldChunk::getBlockAt(int16_t x, int16_t y)
 {
     auto index = y * _zone->getChunkWidth() + x;
 

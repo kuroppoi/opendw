@@ -78,11 +78,11 @@ void WorldZone::configure(const ValueMap& data)
     // Configure dimensions
     auto& size      = map_util::getArray(data, "size");
     auto& chunkSize = map_util::getArray(data, "chunk_size");
-    _blocksWidth    = size[0].asUint();
-    _blocksHeight   = size[1].asUint();
+    _blocksWidth    = size[0].asInt();
+    _blocksHeight   = size[1].asInt();
     _blockCount     = _blocksWidth * _blocksHeight;
-    _chunkWidth     = chunkSize[0].asUint();
-    _chunkHeight    = chunkSize[1].asUint();
+    _chunkWidth     = chunkSize[0].asInt();
+    _chunkHeight    = chunkSize[1].asInt();
     AX_ASSERT(_blocksWidth % _chunkWidth == 0 && _blocksHeight % _chunkHeight == 0);
     _chunkSize   = _chunkWidth * _chunkHeight;
     _chunkCount  = _blockCount / _chunkSize;
@@ -100,7 +100,7 @@ void WorldZone::configure(const ValueMap& data)
 
     for (auto& element : surface)
     {
-        auto y         = static_cast<uint16_t>(element.asUint());
+        auto y         = static_cast<int16_t>(element.asInt());
         _surfaceTop    = MIN(_surfaceTop, y);
         _surfaceBottom = MAX(_surfaceBottom, y);
     }
@@ -158,14 +158,14 @@ void WorldZone::update(float deltaTime)
 
     // 0x1000416F9: Create a list of on-screen chunks that need to be requested
     // TODO: can probably be optimized by just incrementing by chunk size
-    std::unordered_set<uint32_t> chunksToRequest;
+    std::unordered_set<int32_t> chunksToRequest;
     Point clampMax(_blocksWidth - 1, _blocksHeight - 1);
     auto upperLeft  = getUpperLeftScreenBlockPoint().getClampPoint(Point::ZERO, clampMax);
     auto lowerRight = getLowerRightScreenBlockPoint().getClampPoint(Point::ZERO, clampMax);
 
-    for (uint16_t y = upperLeft.y; y <= lowerRight.y; y++)
+    for (int16_t y = upperLeft.y; y <= lowerRight.y; y++)
     {
-        for (uint16_t x = upperLeft.x; x <= lowerRight.x; x++)
+        for (int16_t x = upperLeft.x; x <= lowerRight.x; x++)
         {
             // 0x10004181F: tests for getBlockAt(x, y);
             auto chunkX     = x / _chunkWidth;
@@ -195,10 +195,15 @@ void WorldZone::update(float deltaTime)
                 else
                 {
                     // TODO: doesn't match original implementation
-                    for (uint16_t y = upperLeft.y - 20.0F; y <= lowerRight.y + 20.0F; y += _chunkWidth)
+                    for (int16_t y = upperLeft.y - 20.0F; y <= lowerRight.y + 20.0F; y += _chunkWidth)
                     {
-                        for (uint16_t x = upperLeft.x - 20.0F; x <= lowerRight.x + 20.0F; x += _chunkHeight)
+                        for (int16_t x = upperLeft.x - 20.0F; x <= lowerRight.x + 20.0F; x += _chunkHeight)
                         {
+                            if (x < 0 || x >= _blocksWidth || y < 0 || y >= _blocksHeight)
+                            {
+                                continue;
+                            }
+
                             auto chunkX     = x / _chunkWidth;
                             auto chunkY     = y / _chunkHeight;
                             auto chunkIndex = chunkY * _chunkCountX + chunkX;
@@ -229,7 +234,7 @@ void WorldZone::update(float deltaTime)
     if (!chunksToRequest.empty() && utils::gettime() >= _lastBlocksRequestAt + CHUNK_REQUEST_INTERVAL)
     {
         // Delete pending chunks that are taking too long
-        std::vector<uint32_t> expiredChunks;
+        std::vector<int32_t> expiredChunks;
 
         for (auto it = _pendingChunks.begin(); it != _pendingChunks.end();)
         {
@@ -250,7 +255,7 @@ void WorldZone::update(float deltaTime)
         }
 
         // Create final request list and append to pending chunks
-        std::vector<uint32_t> chunksToSend;
+        std::vector<int32_t> chunksToSend;
 
         for (auto chunk : chunksToRequest)
         {
@@ -431,7 +436,7 @@ void WorldZone::cleanupChunks()
     }
 }
 
-void WorldZone::removePendingChunk(uint16_t x, uint16_t y)
+void WorldZone::removePendingChunk(int16_t x, int16_t y)
 {
     auto chunkX = x / _chunkWidth;
     auto chunkY = y / _chunkHeight;
@@ -573,7 +578,7 @@ void WorldZone::leave()
     // TODO: clear other containers as we add them
 }
 
-BaseBlock* WorldZone::getBlockAt(uint16_t x, uint16_t y, bool allowChunkAlloc)
+BaseBlock* WorldZone::getBlockAt(int16_t x, int16_t y, bool allowChunkAlloc)
 {
     // Check world bounds
     if (x < 0 || x >= _blocksWidth || y < 0 || y >= _blocksHeight)
@@ -624,7 +629,7 @@ uint64_t WorldZone::getDefaultSeed() const
     return static_cast<uint64_t>(std::stoll(_documentId.substr(2, 8), nullptr, 16));
 }
 
-Point WorldZone::getPointAtBlock(uint16_t x, uint16_t y) const
+Point WorldZone::getPointAtBlock(int16_t x, int16_t y) const
 {
     return Point(((float)x + 0.5F) * BLOCK_SIZE, ((float)-y - 0.5F) * BLOCK_SIZE);
 }

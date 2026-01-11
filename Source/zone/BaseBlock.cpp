@@ -26,12 +26,12 @@ BaseBlock::~BaseBlock()
     sBlocksAllocated--;
 }
 
-BaseBlock* BaseBlock::createWithZone(WorldZone* zone, uint16_t x, uint16_t y)
+BaseBlock* BaseBlock::createWithZone(WorldZone* zone, int16_t x, int16_t y)
 {
     CREATE_INIT(BaseBlock, initWithZone, zone, x, y);
 }
 
-bool BaseBlock::initWithZone(WorldZone* zone, uint16_t x, uint16_t y)
+bool BaseBlock::initWithZone(WorldZone* zone, int16_t x, int16_t y)
 {
     _zone      = zone;
     _x         = x;

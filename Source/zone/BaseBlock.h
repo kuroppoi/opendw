@@ -29,13 +29,13 @@ public:
     /* FUNC: BaseBlock::dealloc @ 0x100033050 */
     ~BaseBlock() override;
 
-    static BaseBlock* createWithZone(WorldZone* zone, uint16_t x, uint16_t y);
+    static BaseBlock* createWithZone(WorldZone* zone, int16_t x, int16_t y);
 
     /* FUNC: BaseBlock::blocksAllocated @ 0x10002E308 */
     static size_t getBlocksAllocated() { return sBlocksAllocated; }
 
     /* FUNC: BaseBlock::initWithWorldZone:x:y: @ 0x10002E322 */
-    bool initWithZone(WorldZone* zone, uint16_t x, uint16_t y);
+    bool initWithZone(WorldZone* zone, int16_t x, int16_t y);
 
     /* FUNC: BaseBlock::setData:idx: @ 0x10002E798 */
     void setData(const ax::ValueVector& data, uint32_t index);
@@ -140,16 +140,16 @@ public:
     BaseBlock* getRight() const;
 
     /* FUNC: BaseBlock::setX: @ 0x1000330F9 */
-    void setX(uint16_t x) { _x = x; }
+    void setX(int16_t x) { _x = x; }
 
     /* FUNC: BaseBlock::x @ 0x1000330E8 */
-    uint16_t getX() const { return _x; }
+    int16_t getX() const { return _x; }
 
     /* FUNC: BaseBlock::setY: @ 0x10003311B */
-    void setY(uint16_t y) { _y = y; }
+    void setY(int16_t y) { _y = y; }
 
     /* FUNC: BaseBlock::y @ 0x10003310A */
-    uint16_t getY() const { return _y; }
+    int16_t getY() const { return _y; }
 
     /* FUNC: BaseBlock::base @ 0x10003315A */
     uint8_t getBase() const { return _base; }
@@ -248,8 +248,8 @@ private:
     inline static size_t sBlocksAllocated = 0;  // 0x10032EAA8
 
     WorldZone* _zone;                    // BaseBlock::zone @ 0x100310A58
-    uint16_t _x;                         // BaseBlock::x @ 0x100310A60
-    uint16_t _y;                         // BaseBlock::y @ 0x100310A68
+    int16_t _x;                          // BaseBlock::x @ 0x100310A60
+    int16_t _y;                          // BaseBlock::y @ 0x100310A68
     uint8_t _base;                       // BaseBlock::base @ 0x100310A80
     uint16_t _back;                      // BaseBlock::back @ 0x100310A88
     uint8_t _backMod;                    // BaseBlock::backMod @ 0x100310A90

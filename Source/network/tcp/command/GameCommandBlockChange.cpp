@@ -36,8 +36,8 @@ void GameCommandBlockChange::run()
             continue;
         }
 
-        auto x     = data[0].asUint();
-        auto y     = data[1].asUint();
+        auto x     = data[0].asInt();
+        auto y     = data[1].asInt();
         auto layer = static_cast<BlockLayer>(1 + data[2].asByte());
         auto& item = data[4];  // Nullable
         auto& mod  = data[5];  // Nullable

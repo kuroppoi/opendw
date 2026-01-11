@@ -79,7 +79,7 @@ public:
     void cleanupChunks();
 
     /* FUNC: WorldZone::didLoadChunkX:y: @ 0x100046C6B */
-    void removePendingChunk(uint16_t x, uint16_t y);
+    void removePendingChunk(int16_t x, int16_t y);
 
     /* FUNC: WorldZone::updateSunlightX:depth: @ 0x100046AD2 */
     void updateSunlight(int16_t x, int16_t depth);
@@ -106,7 +106,7 @@ public:
     void leave();
 
     /* FUNC: 0x100045192 */
-    BaseBlock* getBlockAt(uint16_t x, uint16_t y, bool allowChunkAlloc = false);
+    BaseBlock* getBlockAt(int16_t x, int16_t y, bool allowChunkAlloc = false);
 
     /* FUNC: WorldZone::defaultSeed @ 0x100041497 */
     uint64_t getDefaultSeed() const;
@@ -115,7 +115,7 @@ public:
     WorldRenderer* getWorldRenderer() const { return _worldRenderer; }
 
     /* FUNC: WorldZone::pointAtBlockX:y: @ 0x10004643C */
-    ax::Point getPointAtBlock(uint16_t x, uint16_t y) const;
+    ax::Point getPointAtBlock(int16_t x, int16_t y) const;
 
     /* FUNC: WorldZone::blockIndexAtNodePoint: 0x100046549 */
     ax::Point getBlockPointAtNodePoint(const ax::Point& point) const;
@@ -157,31 +157,31 @@ public:
     uint64_t getSeed() const { return _seed; }
 
     /* FUNC: WorldZone::blocksWidth @ 0x100049D33 */
-    uint16_t getBlocksWidth() const { return _blocksWidth; }
+    int16_t getBlocksWidth() const { return _blocksWidth; }
 
     /* FUNC: WorldZone::blocksHeight @ 0x100049D44 */
-    uint16_t getBlocksHeight() const { return _blocksHeight; }
+    int16_t getBlocksHeight() const { return _blocksHeight; }
 
     /* FUNC: WorldZone::chunkWidth @ 0x100049DEA */
-    uint16_t getChunkWidth() const { return _chunkWidth; }
+    int16_t getChunkWidth() const { return _chunkWidth; }
 
     /* FUNC: WorldZone::chunkHeight @ 0x100049DFB */
-    uint16_t getChunkHeight() const { return _chunkHeight; }
+    int16_t getChunkHeight() const { return _chunkHeight; }
 
     /* FUNC: WorldZone::chunksCount @ 0x100049E3F */
-    uint32_t getChunkCount() const { return _chunkCount; }
+    int32_t getChunkCount() const { return _chunkCount; }
 
     /* FUNC: WorldZone::xChunksCount @ 0x100049E1D */
-    uint16_t getChunkCountX() const { return _chunkCountX; }
+    int16_t getChunkCountX() const { return _chunkCountX; }
 
     /* FUNC: WorldZone::yChunksCount @ 0x100049E2E */
-    uint16_t getChunkCountY() const { return _chunkCountY; }
+    int16_t getChunkCountY() const { return _chunkCountY; }
 
     /* FUNC: WorldZone::surfaceTop @ 0x10004A28D */
-    uint16_t getSurfaceTop() const { return _surfaceTop; }
+    int16_t getSurfaceTop() const { return _surfaceTop; }
 
     /* FUNC: WorldZone::surfaceBottom @ 0x10004A29E */
-    uint16_t getSurfaceBottom() const { return _surfaceBottom; }
+    int16_t getSurfaceBottom() const { return _surfaceBottom; }
 
     /* FUNC: WorldZone::dayPercent @ 0x10004A177 */
     float getDayPercent() const { return _dayPercent; }
@@ -215,9 +215,9 @@ private:
     WorldRenderer* _worldRenderer;                   // WorldZone::worldRenderer @ 0x100310FC0
     ax::Vector<WorldChunk*> _inactiveChunks;         // WorldZone::inactiveChunks @ 0x100310EE8
     ax::Vector<WorldChunk*> _activeChunks;           // WorldZone::activeChunks @ 0x100310EE0
-    std::map<uint32_t, double> _pendingChunks;       // WorldZone::pendingChunks @ 0x100310EF0
-    std::vector<uint32_t> _cleanedChunks;            // WorldZone::cleanedChunks @ 0x100310F08
-    ax::Map<uint32_t, WorldChunk*> _chunks;          // WorldZone::chunks @ 0x100311088
+    std::map<int32_t, double> _pendingChunks;        // WorldZone::pendingChunks @ 0x100310EF0
+    std::vector<int32_t> _cleanedChunks;             // WorldZone::cleanedChunks @ 0x100310F08
+    ax::Map<int32_t, WorldChunk*> _chunks;           // WorldZone::chunks @ 0x100311088
     ax::Map<int32_t, MetaBlock*> _metaBlocks;        // WorldZone::metaBlocks @ 0x100311090
     std::map<int32_t, MetaBlock*> _fieldMetaBlocks;  // WorldZone::fieldMetaBlocks @ 0x1003110A8
     ax::Map<int32_t, Entity*> _entities;             // WorldZone::entities @ 0x100310EB8
@@ -229,17 +229,17 @@ private:
     ax::ValueMap _biomeConfig;                       // WorldZone::biomeConfig @ 0x100310FC8
     DepthGraphics _depthGraphics;                    // WorldZone::depthGraphics @ 0x100310FB8
     uint64_t _seed;                                  // WorldZone::seed @ 0x1003111A0
-    uint16_t _blocksWidth;                           // WorldZone::blocksWidth @ 0x100310FF8
-    uint16_t _blocksHeight;                          // WorldZone::blocksHeight @ 0x100311000
-    uint32_t _blockCount;                            // WorldZone::blocksCount @ 0x100311050
-    uint16_t _chunkWidth;                            // WorldZone::chunkWidth @ 0x100311008
-    uint16_t _chunkHeight;                           // WorldZone::chunkHeight @ 0x100311010
-    uint16_t _chunkSize;                             // WorldZone::chunkSize @ 0x100311018
-    uint32_t _chunkCount;                            // WorldZone::chunksCount @ 0x100311010
-    uint16_t _chunkCountX;                           // WorldZone::xChunksCount @ 0x100311020
-    uint16_t _chunkCountY;                           // WorldZone::yChunksCount @ 0x100311028
-    uint16_t _surfaceTop;                            // WorldZone::surfaceTop @ 0x100311060
-    uint16_t _surfaceBottom;                         // WorldZone::surfaceBottom @ 0x100311068
+    int16_t _blocksWidth;                            // WorldZone::blocksWidth @ 0x100310FF8
+    int16_t _blocksHeight;                           // WorldZone::blocksHeight @ 0x100311000
+    int32_t _blockCount;                             // WorldZone::blocksCount @ 0x100311050
+    int16_t _chunkWidth;                             // WorldZone::chunkWidth @ 0x100311008
+    int16_t _chunkHeight;                            // WorldZone::chunkHeight @ 0x100311010
+    int16_t _chunkSize;                              // WorldZone::chunkSize @ 0x100311018
+    int32_t _chunkCount;                             // WorldZone::chunksCount @ 0x100311010
+    int16_t _chunkCountX;                            // WorldZone::xChunksCount @ 0x100311020
+    int16_t _chunkCountY;                            // WorldZone::yChunksCount @ 0x100311028
+    int16_t _surfaceTop;                             // WorldZone::surfaceTop @ 0x100311060
+    int16_t _surfaceBottom;                          // WorldZone::surfaceBottom @ 0x100311068
     int16_t* _sunlight;                              // WorldZone::sunlight @ 0x100311080
     ax::ValueVector _timedStatus;                    // WorldZone::status @ 0x100311110
     bool _receivedInitialStatus;                     // WorldZone::receivedInitialStatus @ 0x100310F58
