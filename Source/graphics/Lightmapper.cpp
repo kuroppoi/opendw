@@ -43,11 +43,24 @@ bool Lightmapper::initWithZone(WorldZone* zone)
 
     _zone = zone;
 
+    // Create texture
+    _texture = new Texture2D();
+    _texture->autorelease();
+    AX_SAFE_RETAIN(_texture);
+
     // Create program state
     auto program  = ProgramManager::getInstance()->loadProgram("positionTextureColor_vs", LIGHTMAP_SHADER);
     _programState = new ProgramState(program);
     _programState->autorelease();
     AX_SAFE_RETAIN(_programState);
+    _programState->setTexture(program->getUniformLocation("u_texture"), 0, _texture->getBackendTexture());
+    
+    // Create sprite
+    _sprite = Sprite::createWithTexture(_texture);
+    AX_SAFE_RETAIN(_sprite);
+    _sprite->setProgramState(_programState);
+    _sprite->setBlendFunc({backend::BlendFactor::ONE, backend::BlendFactor::ONE});
+    _sprite->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
 
     // Create lightmap
     auto& winSize = _director->getWinSize();  // Window size is fixed
@@ -92,28 +105,21 @@ bool Lightmapper::initWithZone(WorldZone* zone)
 void Lightmapper::setupScreen()
 {
     AX_SAFE_DELETE_ARRAY(_textureData);
-    AX_SAFE_RELEASE(_texture);
-    AX_SAFE_RELEASE(_sprite);
     auto worldScale = _zone->getWorldRenderer()->getWorldScale();
     auto& winSize   = _director->getWinSize();
 
-    // Create texture
+    // Allocate texture memory
     _textureWidth     = (int)(ceil(winSize.width / worldScale / BLOCK_SIZE) + TEXTURE_PADDING * 2);
     _textureHeight    = (int)(ceil(winSize.height / worldScale / BLOCK_SIZE) + TEXTURE_PADDING * 2);
     _textureSizeBytes = (ssize_t)_textureWidth * _textureHeight * 4;
     _textureData      = new uint8_t[_textureSizeBytes];
     memset(_textureData, 0x7F, _textureSizeBytes);
-    _texture = new Texture2D();
-    _texture->autorelease();
-    _texture->retain();
     _texture->initWithData(_textureData, _textureSizeBytes, backend::PixelFormat::RGBA8, _textureWidth, _textureHeight);
 
-    // Create sprite
-    _sprite = Sprite::createWithTexture(_texture);
-    _sprite->retain();
-    _sprite->setProgramState(_programState);
-    _sprite->setBlendFunc({backend::BlendFactor::ONE, backend::BlendFactor::ONE});
-    _sprite->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
+    // Update sprite rect
+    Rect rect = Rect::ZERO;
+    rect.size = _texture->getContentSize();
+    _sprite->setTextureRect(rect);
 }
 
 void Lightmapper::update(float deltaTime)
