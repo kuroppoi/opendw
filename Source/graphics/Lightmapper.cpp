@@ -217,8 +217,8 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         }
 
         // 0x100057CC7: Apply light rings
-        light             = clampf(light, 1.0F, (float)LIGHT_RING_ITERATIONS - 1.0F);
-        auto ringCount    = MAX(2, MIN(LIGHT_RING_ITERATIONS, (int)light + 1));
+        light             = clampf(light, 1.0F, (float)LIGHT_RING_ITERATIONS);
+        auto ringCount    = MIN(LIGHT_RING_ITERATIONS, (int)light);
         ssize_t ringIndex = 0;
 
         for (ssize_t i = 0; i < ringCount; i++)
