@@ -85,8 +85,10 @@ void DefaultInputManager::checkInput(float deltaTime)
     _player->setPosition(position + moveDirection * speed * deltaTime);
 
     // Update world scale
-    auto renderer   = _game->getZone()->getWorldRenderer();
-    auto worldScale = renderer->getWorldScale() + zoomDirection * 0.5F * deltaTime;
+    auto zoomSpeed    = _keysPressed.contains(KeyCode::KEY_ALT) ? 0.25F : 1.0F;
+    auto renderer     = _game->getZone()->getWorldRenderer();
+    auto currentScale = renderer->getWorldScale();
+    auto worldScale   = currentScale + zoomDirection * zoomSpeed * deltaTime * currentScale;
     renderer->setWorldScale(MAX(0.3F, MIN(1.2F, worldScale)));
 }
 
