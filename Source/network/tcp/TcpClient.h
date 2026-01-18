@@ -6,9 +6,6 @@
 
 #include "util/ArrayUtil.h"
 
-#define READ_BUFFER_SIZE    512 * 1024       // 512 KB
-#define INFLATE_BUFFER_SIZE 4 * 1024 * 1024  // 4 MB
-
 namespace opendw
 {
 
@@ -18,6 +15,7 @@ class TcpClient : public ax::Object
 {
 public:
     ~TcpClient() override;
+    TcpClient();
 
     void connect(const char* address, uint16_t port);
     void stop();
@@ -50,11 +48,11 @@ private:
 
     yasio::io_service* _service          = nullptr;
     yasio::transport_handle_t _transport = nullptr;
-    uint8_t _readBuffer[READ_BUFFER_SIZE];
-    uint8_t _inflateBuffer[INFLATE_BUFFER_SIZE];
-    size_t _bytesRead       = 0;
-    bool _waitingForPayload = false;
-    bool _open              = false;
+    uint8_t* _readBuffer                 = nullptr;
+    uint8_t* _inflateBuffer              = nullptr;
+    size_t _bytesRead                    = 0;
+    bool _waitingForPayload              = false;
+    bool _open                           = false;
 };
 
 }  // namespace opendw

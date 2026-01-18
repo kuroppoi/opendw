@@ -8,8 +8,10 @@
 #include "util/StringUtil.h"
 #include "GameManager.h"
 
-#define CHANNEL_INDEX 0
-#define HEADER_LENGTH 5
+#define READ_BUFFER_SIZE    512 * 1024       // 512 KB
+#define INFLATE_BUFFER_SIZE 4 * 1024 * 1024  // 4 MB
+#define CHANNEL_INDEX       0
+#define HEADER_LENGTH       5
 
 USING_NS_AX;
 using namespace yasio;
@@ -20,6 +22,14 @@ namespace opendw
 TcpClient::~TcpClient()
 {
     AX_SAFE_DELETE(_service);
+    AX_SAFE_DELETE_ARRAY(_readBuffer);
+    AX_SAFE_DELETE_ARRAY(_inflateBuffer);
+}
+
+TcpClient::TcpClient() : Object()
+{
+    _readBuffer    = new uint8_t[READ_BUFFER_SIZE];
+    _inflateBuffer = new uint8_t[INFLATE_BUFFER_SIZE];
 }
 
 void TcpClient::connect(const char* address, uint16_t port)
