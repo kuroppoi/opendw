@@ -48,7 +48,7 @@ bool GameConfig::initWithData(const ValueMap& data)
         if (useChange != ValueMapNull)
         {
             useChange.insert(parentData.begin(), parentData.end());
-            useChange["code"] = _maxItemCode++;
+            useChange["code"] = ++_maxItemCode;
             auto name         = map_util::getString(useChange, "name");
             AX_ASSERT(!name.empty());
             auto child = registerItem(name, useChange);
@@ -81,7 +81,7 @@ bool GameConfig::initWithData(const ValueMap& data)
                     }
                 }
 
-                data["code"] = _maxItemCode++;
+                data["code"] = ++_maxItemCode;
                 auto name =
                     map_util::getString(data, "name", std::format("{}-change-{}", item->getName(), nameSuffix++));
                 auto child = registerItem(name, data);
