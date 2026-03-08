@@ -11,7 +11,7 @@
 #define LIGHT_RING_ITERATIONS      8
 #define LIGHTMAP_SCALE             0.5
 #define LIGHTMAP_SHADER            "custom/Lightmap_fs"
-#define TEXTURE_PADDING            4
+#define TEXTURE_PADDING            LIGHT_RING_ITERATIONS
 #define DEFAULT_BASE_LIGHT         200.0
 #define RESTRICT_FIELD_DAMAGE_AURA 0  // Whether or not field damage aura should only display in hell biomes
 
