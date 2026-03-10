@@ -12,6 +12,7 @@ class EntityAnimatedAvatar;
 class GameManager;
 class Item;
 class MetaBlock;
+class PhysicsSpace;
 class SceneRenderer;
 class WorldRenderer;
 class WorldChunk;
@@ -135,6 +136,11 @@ public:
     /* FUNC: WorldZone::metaBlockAtX:y: @ 0x10004717A */
     MetaBlock* getMetaBlockAt(int16_t x, int16_t y) const;
 
+    void queueBlockForPhysics(BaseBlock* block);
+
+    /* FUNC: WorldZone::hasPhysickedAllPlacedBlocks @ 0x1000472F4 */
+    bool hasPhysickedAllPlacedBlocks() const;
+
     /* FUNC: WorldZone::documentId @ 0x100049FC3 */
     const std::string& getDocumentId() const { return _documentId; }
 
@@ -152,6 +158,9 @@ public:
 
     /* FUNC: WorldZone::depthGraphics @ 0x10004A2F3 */
     const DepthGraphics& getDepthGraphics() const { return _depthGraphics; }
+
+    /* FUNC: WorldZone::space @ 0x100049D22 */
+    PhysicsSpace* getSpace() const { return _space; }
 
     /* FUNC: WorldZone::seed @ 0x10004A012 */
     uint64_t getSeed() const { return _seed; }
@@ -205,7 +214,8 @@ public:
     MetaBlock* getFieldDamageBlock() const { return _fieldDamageBlock; }
 
 private:
-    inline static WorldZone* sMain;  // 0x10032EAC0
+    inline static WorldZone* sMain;   // 0x10032EAC0
+    inline static double sFixedTime;  // 0x10032E9C8
 
     /* SNIPPET: 0x10003FD44 - 0x10003FEAE */
     static Biome getBiomeForName(const std::string& name);
@@ -222,12 +232,15 @@ private:
     std::map<int32_t, MetaBlock*> _fieldMetaBlocks;  // WorldZone::fieldMetaBlocks @ 0x1003110A8
     ax::Map<int32_t, Entity*> _entities;             // WorldZone::entities @ 0x100310EB8
     ax::Map<int32_t, EntityAnimatedAvatar*> _peers;  // WorldZone::peers @ 0x100310EC8
+    ax::Vector<BaseBlock*> _physicsBlockQueue;       // WorldZone::physicsBlockQueue @ 0x100310F40
     std::string _documentId;                         // WorldZone::documentId @ 0x100311170
     std::string _name;                               // WorldZone::name @ 0x100311190
     std::string _biome;                              // WorldZone::biome @ 0x100310F98
     Biome _biomeType;                                // WorldZone::biomeType @ 0x100310FA0
     ax::ValueMap _biomeConfig;                       // WorldZone::biomeConfig @ 0x100310FC8
     DepthGraphics _depthGraphics;                    // WorldZone::depthGraphics @ 0x100310FB8
+    PhysicsSpace* _space;                            // WorldZone::space @ 0x100310FE8
+    float _fixedTimeStep;                            // WorldZone::fixedTimeStep @ 0x100310FF0
     uint64_t _seed;                                  // WorldZone::seed @ 0x1003111A0
     int16_t _blocksWidth;                            // WorldZone::blocksWidth @ 0x100310FF8
     int16_t _blocksHeight;                           // WorldZone::blocksHeight @ 0x100311000

@@ -18,6 +18,7 @@ public:
     typedef std::vector<ax::SpriteFrame*> SpriteList;
     typedef std::vector<std::vector<std::string>> DecayMaskMap;
     typedef std::map<std::string, SpriteList> DecayMaterialMap;
+    typedef std::vector<std::vector<ax::Point>> PhysicsDefinition;
 
     /* FUNC: Config::main @ 0x10004E53B */
     static GameConfig* getMain() { return sMain; }
@@ -51,27 +52,32 @@ public:
     /* FUNC: Config::currentBiomeFrame: @ 0x100052AD3 */
     ax::SpriteFrame* getCurrentBiomeFrame(const std::string& frame) const;
 
+    std::string getCurrentBiomeFrameName(const std::string& frame) const;
+
     /* FUNC: Config::singleDecayMasks @ 0x10005236D */
     const DecayMaskMap& getSingleDecayMasks() const { return _singleDecayMasks; }
 
     /* FUNC: Config::singleDecayForMaterial: @ 0x1000523E9 */
     const SpriteList& getSingleDecayForMaterial(const std::string& material) const;
 
+    /* FUNC: Config::physicsDefinitionForItem: @ 0x1000520F4 */
+    const PhysicsDefinition& getPhysicsDefinitionForItem(const std::string& name) const;
+
     /* FUNC: Config::data @ 0x100052EA8 */
     const ax::ValueMap& getData() const { return _data; }
 
 private:
-    inline static SpriteList sEmptySpriteList;
     inline static GameConfig* sMain;  // 0x10032EAC8
 
-    ax::ValueMap _data;                               // Config::data @ 0x100311540
-    ax::StringMap<Item*> _itemsByName;                // Config::itemsByName @ 0x100311568
-    ax::Map<uint16_t, Item*> _itemsByCode;            // Config::itemsByCode @ 0x100311578
-    ax::StringMap<EntityConfig*> _entitiesByName;     // Config::entitiesByName @ 0x100311588
-    ax::Map<int32_t, EntityConfig*> _entitiesByCode;  // Config::entitiesByCode @ 0x100311580
-    ax::ValueMap _currentBiomeConfig;                 // Config::currentBiomeConfig @ 0x1003115D8
-    DecayMaskMap _singleDecayMasks;                   // Config::singleDecay @ 0x100311598
-    DecayMaterialMap _singleDecayByMaterial;          // Config::singleDecayByMaterial @ 0x1003115A8
+    ax::ValueMap _data;                                            // Config::data @ 0x100311540
+    ax::StringMap<Item*> _itemsByName;                             // Config::itemsByName @ 0x100311568
+    ax::Map<uint16_t, Item*> _itemsByCode;                         // Config::itemsByCode @ 0x100311578
+    ax::StringMap<EntityConfig*> _entitiesByName;                  // Config::entitiesByName @ 0x100311588
+    ax::Map<int32_t, EntityConfig*> _entitiesByCode;               // Config::entitiesByCode @ 0x100311580
+    ax::ValueMap _currentBiomeConfig;                              // Config::currentBiomeConfig @ 0x1003115D8
+    DecayMaskMap _singleDecayMasks;                                // Config::singleDecay @ 0x100311598
+    DecayMaterialMap _singleDecayByMaterial;                       // Config::singleDecayByMaterial @ 0x1003115A8
+    std::map<std::string, PhysicsDefinition> _physicsDefinitions;  // Config::physicsDefinitions @ 0x1003115B8
     uint16_t _maxItemCode = 0;
 };
 

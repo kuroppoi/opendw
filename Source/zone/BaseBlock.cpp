@@ -3,6 +3,8 @@
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/WorldLayerRenderer.h"
 #include "graphics/WorldRenderer.h"
+#include "physics/Physical.h"
+#include "physics/PhysicsSpace.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 #include "GameConfig.h"
@@ -38,6 +40,7 @@ bool BaseBlock::initWithZone(WorldZone* zone, int16_t x, int16_t y)
     _y         = y;
     _placing   = true;
     _rendering = false;
+    _physical  = nullptr;
     sBlocksAllocated++;
     return true;
 }
@@ -73,6 +76,7 @@ void BaseBlock::setData(const ValueVector& data, uint32_t index)
 void BaseBlock::postPlace()
 {
     updateEnvironment();
+    updatePhysical();  // NOTE: adminLoad seems to be practically unused
     _placing = false;
 }
 
@@ -310,6 +314,11 @@ uint8_t BaseBlock::getContinuityForLayer(BlockLayer layer) const
     }
 }
 
+Point BaseBlock::getWorldPosition() const
+{
+    return _zone->getPointAtBlock(_x, _y);
+}
+
 void BaseBlock::setBase(uint8_t base)
 {
     if (_base != base)
@@ -486,7 +495,7 @@ void BaseBlock::updateFront()
     {
         updateEnvironment();
         updateNeighbors();
-        // TODO: updatePhysical();
+        updatePhysical();
     }
 }
 
@@ -534,8 +543,86 @@ void BaseBlock::updateBack()
 
 void BaseBlock::clearFromWorld()
 {
-    // TODO: clearPhysical();
+    clearPhysical();
     recycleSprites();
+}
+
+void BaseBlock::clearPhysical()
+{
+    if (_physical)
+    {
+        _zone->getSpace()->remove(_physical);
+        AX_SAFE_RELEASE_NULL(_physical);
+    }
+}
+
+void BaseBlock::updatePhysical()
+{
+    _zone->queueBlockForPhysics(this);
+}
+
+void BaseBlock::processPhysical()
+{
+    auto shape = _frontItem->getShape();
+    auto space = _zone->getSpace();
+
+    if (shape == Item::Shape::NONE)
+    {
+        clearPhysical();
+        return;
+    }
+
+    if (_physical)
+    {
+        space->remove(_physical);
+    }
+    else
+    {
+        _physical = Physical::createWithTarget(this);
+        _physical->retain();
+        _physical->useStaticBody();
+    }
+
+    auto blockSize = Size::ONE * BLOCK_SIZE;
+    auto position  = getWorldPosition() - blockSize * 0.5F;
+    auto size      = blockSize;
+
+    if (!_frontItem->isTileable())
+    {
+        size.width *= _frontItem->getWidth();
+        size.height *= _frontItem->getHeight();
+    }
+
+    switch (shape)
+    {
+    case Item::Shape::BOX:
+    {
+        auto offset = position + size * 0.5F;
+        _physical->setShapeAsBox(size, offset);
+        break;
+    }
+    case Item::Shape::POLYGONAL:
+    {
+        auto& definition = GameConfig::getMain()->getPhysicsDefinitionForItem(_frontItem->getShapeDefinition());
+
+        if (definition.empty())
+        {
+            AXLOGW("WARNING: Item {} has polygonal shape but no def", _frontItem->getName());
+            AX_SAFE_RELEASE_NULL(_physical);
+            return;
+        }
+
+        auto flipped  = _frontItem->isMirrorable() && _frontMod == 4;
+        auto rotation = _frontItem->getModType() == ModType::ROTATION && !flipped ? (_frontMod % 4) * 90.0F : 0.0F;
+        _physical->setShapeFromDefinition(definition, size, position, rotation, flipped);
+        break;
+    }
+    }
+
+    AX_ASSERT(_physical);
+    _physical->setLayer(0x7D6);
+    _physical->setGroup(_zone);
+    space->add(_physical);
 }
 
 void BaseBlock::pushSprite(MaskedSprite* sprite)

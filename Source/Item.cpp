@@ -55,6 +55,23 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _field            = map_util::getInt32(data, "field");
     _spriteZ          = map_util::getInt32(data, "sprite_z");
 
+    // 0x10004A98C: Configure physics shape
+    auto shape = map_util::getString(data, "shape");
+
+    if (shape == "box")
+    {
+        _shape = Shape::BOX;
+    }
+    else if (shape == "polygonal")
+    {
+        _shape           = Shape::POLYGONAL;
+        _shapeDefinition = map_util::getString(data, "shape_definition", _name);
+    }
+    else
+    {
+        _shape = Shape::NONE;
+    }
+
     // 0x10004AE79: Configure field damage
     auto& fieldDamage = map_util::getArray(data, "field_damage");
     _fieldDamageType  = DamageType::NONE;

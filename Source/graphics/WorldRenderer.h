@@ -80,7 +80,7 @@ public:
     void queueBlockForRendering(BaseBlock* block);
 
     /* FUNC: WorldRenderer::hasRenderedAllPlacedBlocks @ 0x100081DAD */
-    bool hasRenderedAllPlacedBlocks();
+    bool hasRenderedAllPlacedBlocks() const;
 
     /* FUNC: WorldRenderer::addEntity:name:details: @ 0x1000825E0 */
     Entity* addEntity(int32_t code, const std::string& name, const ax::ValueMap& details);
@@ -102,6 +102,9 @@ public:
 
     /* FUNC: WorldRenderer::frontAccentsNode @ 0x100086E6F */
     WorldLayerRenderer* getFronterAccentsNode() const { return _fronterAccentsNode; }
+
+    /* FUNC: WorldRenderer::physicsDebugNode @ 0x100086F4C */
+    ax::Node* getPhysicsDebugNode() const { return _physicsDebugNode; }
 
     /* FUNC: WorldRenderer::wholenessCornerMasks @ 0x100086F19 */
     const CornerMasks& getWholenessCornerMasks() const { return _wholenessCornerMasks; }
@@ -137,6 +140,7 @@ private:
     ax::Node* _animatedEntitiesNode;              // WorldRenderer::animatedEntitiesNode @ 0x100311EA8
     ax::Node* _animatedGhostlyEntitiesNode;       // WorldRenderer::animatedGhostlyEntitiesNode @ 0x100311EE8
     ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
+    ax::Node* _physicsDebugNode;                  // WorldRenderer::physicsDebugNode @ 0x100311F20
     ax::Vector<BaseBlock*> _renderQueue;          // WorldRenderer::renderQueue @ 0x100311DF8
     ax::Rect _lastArrangeRect;                    // WorldRenderer::lastArrangeRect @ 0x100311FF8
     ax::Rect _blockRect;                          // WorldRenderer::blockRect @ 0x100312008

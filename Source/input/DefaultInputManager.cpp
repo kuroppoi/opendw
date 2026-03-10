@@ -135,6 +135,12 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         }
 
         break;
+    case KeyCode::KEY_PERIOD:
+    {
+        auto physicsNode = worldRenderer->getPhysicsDebugNode();
+        physicsNode->setVisible(!physicsNode->isVisible());
+        break;
+    }
     }
 
     _keysPressed.insert(keyCode);

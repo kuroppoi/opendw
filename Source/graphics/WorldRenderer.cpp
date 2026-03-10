@@ -9,6 +9,7 @@
 #include "graphics/Lightmapper.h"
 #include "graphics/SkyRenderer.h"
 #include "graphics/WorldLayerRenderer.h"
+#include "physics/PhysicsDebugNode.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
@@ -118,6 +119,9 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     // Create misc nodes
     _textNode = Node::create();  // Originally SpriteBatchNode but we cannot add labels to those
     _foreground->addChild(_textNode, getNextZIndex());
+    _physicsDebugNode = PhysicsDebugNode::create();
+    _physicsDebugNode->setVisible(false);
+    _foreground->addChild(_physicsDebugNode, getNextZIndex());
 
     // 0x10007DE0F: Precompute corner masks
     _wholenessCornerMasks.reserve(256);
@@ -562,7 +566,7 @@ void WorldRenderer::queueBlockForRendering(BaseBlock* block)
     _renderQueue.pushBack(block);
 }
 
-bool WorldRenderer::hasRenderedAllPlacedBlocks()
+bool WorldRenderer::hasRenderedAllPlacedBlocks() const
 {
     if (!_renderQueue.empty())
     {

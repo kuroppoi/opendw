@@ -1,6 +1,7 @@
 #include "GameConfig.h"
 
 #include "entity/EntityConfig.h"
+#include "util/ArrayUtil.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
 #include "Item.h"
@@ -47,9 +48,12 @@ bool GameConfig::initWithData(const ValueMap& data)
 
         if (useChange != ValueMapNull)
         {
-            useChange.insert(parentData.begin(), parentData.end());
-            useChange["code"] = ++_maxItemCode;
-            auto name         = map_util::getString(useChange, "name");
+            // Only inherit certain properties
+            // TODO: not everything is inherited yet
+            useChange["size"]      = array_util::arrayOf(item->getWidth(), item->getHeight());
+            useChange["code"]      = ++_maxItemCode;
+            useChange["inventory"] = item->getName();
+            auto name              = map_util::getString(useChange, "name");
             AX_ASSERT(!name.empty());
             auto child = registerItem(name, useChange);
             child->setParentItem(item);
@@ -144,7 +148,7 @@ bool GameConfig::initWithData(const ValueMap& data)
 
         for (auto& sprite : sprites)
         {
-            std::string name  = "";
+            std::string name = "";
             size_t count     = 1;
 
             if (sprite.getType() == Value::Type::VECTOR)
@@ -172,6 +176,42 @@ bool GameConfig::initWithData(const ValueMap& data)
         }
 
         _singleDecayByMaterial[material] = result;
+    }
+
+    // 0x10005080E: Configure physics definitions
+    auto& shapes = map_util::getMap(data, "shapes");
+
+    if (!shapes.empty())
+    {
+        auto scale = BLOCK_SIZE / 100.0F;
+
+        for (auto& shape : shapes)
+        {
+            auto& name     = shape.first;
+            auto& polygons = shape.second.asValueVector();
+            PhysicsDefinition definition;
+
+            for (auto& polygon : polygons)
+            {
+                auto& points = polygon.asValueVector();
+                auto count   = points.size();
+                std::vector<Point> result;
+                result.reserve(count);
+
+                for (ssize_t i = 0; i < count; i++)
+                {
+                    auto& point = points[i].asValueVector();
+                    AX_ASSERT(point.size() >= 2);
+                    auto x = point[0].asFloat() * scale;
+                    auto y = point[1].asFloat() * scale;
+                    result.push_back({x, y});
+                }
+
+                definition.push_back(result);
+            }
+
+            _physicsDefinitions[name] = definition;
+        }
     }
 
     AXLOGI("[GameConfig] Configuration took {:.2f}s", utils::gettime() - start);
@@ -233,9 +273,13 @@ const ValueMap& GameConfig::getBiomeConfig(const std::string& biome) const
 SpriteFrame* GameConfig::getCurrentBiomeFrame(const std::string& frame) const
 {
     auto cache = SpriteFrameCache::getInstance();
-    auto path  = std::format("items.{}", frame);
-    return cache->findFrame(
-        map_util::getString(_currentBiomeConfig, path, frame));  // Use findFrame to prevent console spam
+    return cache->findFrame(getCurrentBiomeFrameName(frame));  // Use findFrame to prevent console spam
+}
+
+std::string GameConfig::getCurrentBiomeFrameName(const std::string& frame) const
+{
+    auto path = std::format("items.{}", frame);
+    return map_util::getString(_currentBiomeConfig, path, frame);
 }
 
 const GameConfig::SpriteList& GameConfig::getSingleDecayForMaterial(const std::string& material) const
@@ -247,7 +291,27 @@ const GameConfig::SpriteList& GameConfig::getSingleDecayForMaterial(const std::s
         return (*it).second;
     }
 
-    return sEmptySpriteList;
+    static const SpriteList empty;
+    return empty;
+}
+
+const GameConfig::PhysicsDefinition& GameConfig::getPhysicsDefinitionForItem(const std::string& name) const
+{
+    auto frame = getCurrentBiomeFrameName(name);
+    auto it    = _physicsDefinitions.find(frame);
+
+    if (it == _physicsDefinitions.end())
+    {
+        it = _physicsDefinitions.find(name);
+    }
+
+    if (it != _physicsDefinitions.end())
+    {
+        return (*it).second;
+    }
+
+    static const PhysicsDefinition empty;
+    return empty;
 }
 
 }  // namespace opendw

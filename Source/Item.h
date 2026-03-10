@@ -58,6 +58,13 @@ enum class DamageType : uint8_t
 class Item : public ax::Object
 {
 public:
+    enum class Shape : uint8_t
+    {
+        NONE,
+        BOX,
+        POLYGONAL
+    };
+
     typedef std::vector<ax::SpriteFrame*> SpriteList;
 
     /*
@@ -146,6 +153,12 @@ public:
 
     /* FUNC: Item::light @ 0x10004E0EE */
     float getLight() const { return _light; }
+
+    /* FUNC: Item::shape @ 0x10004DDBF */
+    Shape getShape() const { return _shape; }
+
+    /* FUNC: Item::shapeDefinition @ 0x10004DDCF */
+    const std::string& getShapeDefinition() const { return _shapeDefinition; }
 
     /* FUNC: Item::field @ 0x10004DF44 */
     int32_t getField() const { return _field; }
@@ -282,6 +295,8 @@ private:
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8
+    Shape _shape;                                    // Item::shape @ 0x100311218
+    std::string _shapeDefinition;                    // Item::shapeDefinition @ 0x100311220
     int32_t _field;                                  // Item::field @ 0x1003112B8
     DamageType _fieldDamageType;                     // Item::fieldDamageType @ 0x1003112D8
     ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
