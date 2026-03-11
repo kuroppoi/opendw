@@ -1,24 +1,24 @@
-#include "PhysicsSpace.h"
+#include "ChipmunkSpace.h"
 
-#include "physics/PhysicsBody.h"
-#include "physics/PhysicsShape.h"
+#include "physics/ChipmunkBody.h"
+#include "physics/ChipmunkShape.h"
 
 USING_NS_AX;
 
 namespace opendw
 {
 
-PhysicsSpace::~PhysicsSpace()
+ChipmunkSpace::~ChipmunkSpace()
 {
     freeSpace();
     AX_SAFE_RELEASE(_staticBody);
 }
 
-bool PhysicsSpace::initWithSpace(cpSpace* space)
+bool ChipmunkSpace::initWithSpace(cpSpace* space)
 {
     _space = space;
     cpSpaceSetUserData(space, this);
-    _staticBody = PhysicsBody::createWithMass(0.0F, 0.0F);
+    _staticBody = ChipmunkBody::createWithMass(0.0F, 0.0F);
     _staticBody->retain();
     _staticBody->setType(CP_BODY_TYPE_STATIC);
 
@@ -28,35 +28,35 @@ bool PhysicsSpace::initWithSpace(cpSpace* space)
     return true;
 }
 
-bool PhysicsSpace::init()
+bool ChipmunkSpace::init()
 {
     return initWithSpace(cpSpaceNew());
 }
 
-void PhysicsSpace::update(float deltaTime)
+void ChipmunkSpace::update(float deltaTime)
 {
     cpSpaceStep(_space, deltaTime);
 }
 
-void PhysicsSpace::freeSpace()
+void ChipmunkSpace::freeSpace()
 {
     cpSpaceFree(_space);
 }
 
-void PhysicsSpace::setGravity(const Vec2& gravity)
+void ChipmunkSpace::setGravity(const Vec2& gravity)
 {
     cpSpaceSetGravity(_space, cpv(gravity.x, gravity.y));
 }
 
-void PhysicsSpace::add(PhysicsObject* object)
+void ChipmunkSpace::add(ChipmunkObject* object)
 {
-    if (auto base = dynamic_cast<PhysicsBaseObject*>(object))
+    if (auto base = dynamic_cast<ChipmunkBaseObject*>(object))
     {
         base->addToSpace(this);
     }
     else
     {
-        for (auto&& child : object->getPhysicsObjects())
+        for (auto&& child : object->getChipmunkObjects())
         {
             add(child);
         }
@@ -65,15 +65,15 @@ void PhysicsSpace::add(PhysicsObject* object)
     }
 }
 
-void PhysicsSpace::remove(PhysicsObject* object)
+void ChipmunkSpace::remove(ChipmunkObject* object)
 {
-    if (auto base = dynamic_cast<PhysicsBaseObject*>(object))
+    if (auto base = dynamic_cast<ChipmunkBaseObject*>(object))
     {
         base->removeFromSpace(this);
     }
     else
     {
-        for (auto&& child : object->getPhysicsObjects())
+        for (auto&& child : object->getChipmunkObjects())
         {
             remove(child);
         }
@@ -82,25 +82,25 @@ void PhysicsSpace::remove(PhysicsObject* object)
     }
 }
 
-void PhysicsSpace::addBody(PhysicsBody* body)
+void ChipmunkSpace::addBody(ChipmunkBody* body)
 {
     cpSpaceAddBody(_space, body->getBody());
     _children.pushBack(body);
 }
 
-void PhysicsSpace::removeBody(PhysicsBody* body)
+void ChipmunkSpace::removeBody(ChipmunkBody* body)
 {
     cpSpaceRemoveBody(_space, body->getBody());
     _children.eraseObject(body);
 }
 
-void PhysicsSpace::addShape(PhysicsShape* shape)
+void ChipmunkSpace::addShape(ChipmunkShape* shape)
 {
     cpSpaceAddShape(_space, shape->getShape());
     _children.pushBack(shape);
 }
 
-void PhysicsSpace::removeShape(PhysicsShape* shape)
+void ChipmunkSpace::removeShape(ChipmunkShape* shape)
 {
     cpSpaceRemoveShape(_space, shape->getShape());
     _children.eraseObject(shape);

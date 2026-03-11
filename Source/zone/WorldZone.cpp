@@ -6,8 +6,8 @@
 #include "graphics/WorldRenderer.h"
 #include "input/InputManager.h"
 #include "network/tcp/MessageIdent.h"
+#include "physics/ChipmunkSpace.h"
 #include "physics/Physical.h"
-#include "physics/PhysicsSpace.h"
 #include "util/ArrayUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -146,7 +146,7 @@ void WorldZone::configure(const ValueMap& data)
 
     // 0x100040554: Configure physics space
     AX_SAFE_RELEASE(_space);
-    _space = PhysicsSpace::create();
+    _space = ChipmunkSpace::create();
     _space->retain();
     auto gravity = _biomeType == Biome::SPACE ? 8.0F : 15.0F;
     _space->setGravity({0.0F, -gravity});

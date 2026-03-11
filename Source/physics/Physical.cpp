@@ -1,8 +1,8 @@
 #include "Physical.h"
 
-#include "physics/PhysicsBody.h"
-#include "physics/PhysicsShape.h"
-#include "physics/PhysicsSpace.h"
+#include "physics/ChipmunkBody.h"
+#include "physics/ChipmunkShape.h"
+#include "physics/ChipmunkSpace.h"
 #include "util/MathUtil.h"
 #include "CommonDefs.h"
 
@@ -36,7 +36,7 @@ void Physical::addBody()
     }
 
     auto moment = cpMomentForBox(1.0F, 1.0F, 1.0F);
-    _body       = PhysicsBody::createWithMass(1.0F, moment);
+    _body       = ChipmunkBody::createWithMass(1.0F, moment);
     AX_SAFE_RETAIN(_body);
     _body->setUserData(_target);
 }
@@ -50,9 +50,9 @@ void Physical::useStaticBody()
 
 void Physical::setLayer(uint32_t layer)
 {
-    for (auto&& object : _physicsObjects)
+    for (auto&& object : _chipmunkObjects)
     {
-        if (auto shape = dynamic_cast<PhysicsShape*>(object))
+        if (auto shape = dynamic_cast<ChipmunkShape*>(object))
         {
             // NOTE: It seems to do `setFilter((void*)filter, ((uint64_t)layer << 32) | layer)`
             // which I *assume* sets categories & mask to layer while leaving the group unchanged.
@@ -66,9 +66,9 @@ void Physical::setLayer(uint32_t layer)
 
 void Physical::setGroup(void* group)
 {
-    for (auto&& object : _physicsObjects)
+    for (auto&& object : _chipmunkObjects)
     {
-        if (auto shape = dynamic_cast<PhysicsShape*>(object))
+        if (auto shape = dynamic_cast<ChipmunkShape*>(object))
         {
             auto filter  = shape->getFilter();
             filter.group = (cpGroup)group;
@@ -77,13 +77,13 @@ void Physical::setGroup(void* group)
     }
 }
 
-PhysicsPolyShape* Physical::createBoxShape(const Size& size, const Point& offset)
+ChipmunkPolyShape* Physical::createBoxShape(const Size& size, const Point& offset)
 {
     auto origin = size * 0.5F;
     auto points =
         std::vector<Point>{{-origin.x, -origin.y}, {origin.x, -origin.y}, {origin.x, origin.y}, {-origin.x, origin.y}};
     auto transform = AffineTransformMake(1.0F, 0.0F, 0.0F, 1.0F, offset.x, offset.y);
-    auto shape     = PhysicsPolyShape::createWithBody(_body, points, transform, 0.0F);
+    auto shape     = ChipmunkPolyShape::createWithBody(_body, points, transform, 0.0F);
     shape->setUserData(_target);
     shape->setElasticity(0.3F);
     shape->setFriction(0.3F);
@@ -108,7 +108,7 @@ void Physical::setShapeAsBox(const Size& size, const Point& offset)
         _body->setMoment(moment);
     }
 
-    updatePhysicsObjects();
+    updateChipmunkObjects();
 }
 
 void Physical::setShapeFromDefinition(const PhysicsDefinition& definition,
@@ -151,7 +151,7 @@ void Physical::setShapeFromDefinition(const PhysicsDefinition& definition,
             transform = AffineTransformTranslate(transform, -size.x, 0.0F);
         }
 
-        auto shape = PhysicsPolyShape::createWithBody(_body, points, transform, 0.0F);
+        auto shape = ChipmunkPolyShape::createWithBody(_body, points, transform, 0.0F);
         shape->setUserData(_target);
         shape->setElasticity(0.3F);
         shape->setFriction(0.5F);
@@ -179,10 +179,10 @@ void Physical::setShapeFromDefinition(const PhysicsDefinition& definition,
         _body->setMoment(moment);
     }
 
-    updatePhysicsObjects();
+    updateChipmunkObjects();
 }
 
-void Physical::bindInternalShape(PhysicsShape* shape)
+void Physical::bindInternalShape(ChipmunkShape* shape)
 {
     AXASSERT(!_internalShapes.contains(shape), "Shape already bound");
     _internalShapes.pushBack(shape);
@@ -193,18 +193,18 @@ void Physical::clearShapes()
     _internalShapes.clear();
 }
 
-void Physical::updatePhysicsObjects()
+void Physical::updateChipmunkObjects()
 {
-    _physicsObjects.clear();
+    _chipmunkObjects.clear();
 
     if (_body->getType() != CP_BODY_TYPE_STATIC)
     {
-        _physicsObjects.pushBack(_body);
+        _chipmunkObjects.pushBack(_body);
     }
 
     for (auto&& shape : _internalShapes)
     {
-        _physicsObjects.pushBack(shape);
+        _chipmunkObjects.pushBack(shape);
     }
 }
 

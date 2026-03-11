@@ -1,21 +1,21 @@
 #ifndef __PHYSICAL_H__
 #define __PHYSICAL_H__
 
-#include "physics/PhysicsObject.h"
+#include "physics/ChipmunkObject.h"
 
 namespace opendw
 {
 
-class PhysicsBaseObject;
-class PhysicsBody;
-class PhysicsPolyShape;
-class PhysicsShape;
-class PhysicsSpace;
+class ChipmunkBaseObject;
+class ChipmunkBody;
+class ChipmunkPolyShape;
+class ChipmunkShape;
+class ChipmunkSpace;
 
 /*
  * CLASS: Physical : NSObject @ 0x1003175F8
  */
-class Physical : public PhysicsObject
+class Physical : public ChipmunkObject
 {
 public:
     typedef std::vector<std::vector<ax::Point>> PhysicsDefinition;
@@ -27,7 +27,7 @@ public:
     static Physical* createWithTarget(void* target);
 
     /* FUNC: Physical::setSpace: @ 0x10007A656 */
-    static void setSpace(PhysicsSpace* space) { sGlobalSpace = space; }
+    static void setSpace(ChipmunkSpace* space) { sGlobalSpace = space; }
 
     /* FUNC: Physical::initWithTarget: @ 0x10007A6B5 */
     bool initWithTarget(void* target);
@@ -45,7 +45,7 @@ public:
     void setGroup(void* group);
 
     /* FUNC: Physical::shapeBox:offset: @ 0x10007AFDE */
-    PhysicsPolyShape* createBoxShape(const ax::Size& size, const ax::Point& offset);
+    ChipmunkPolyShape* createBoxShape(const ax::Size& size, const ax::Point& offset);
 
     /* FUNC: Physical::setShapeAsBox:offset: @ 0x10007B13C */
     void setShapeAsBox(const ax::Size& size, const ax::Point& offset);
@@ -58,24 +58,24 @@ public:
                                 bool flipped);
 
     /* FUNC: Physical::bindInternalShape: @ 0x10007B8D6 */
-    void bindInternalShape(PhysicsShape* shape);
+    void bindInternalShape(ChipmunkShape* shape);
 
     /* FUNC: Physical::clearShapes @ 0x10007B92C */
     void clearShapes();
 
     /* FUNC: Physical::updateChipmunkObjects @ 0x10007B9CD */
-    void updatePhysicsObjects();
+    void updateChipmunkObjects();
 
     /* FUNC: Physical::chipmunkObjects @ 0x10007BDBC */
-    const ax::Vector<PhysicsBaseObject*> getPhysicsObjects() override { return _physicsObjects; }
+    const ax::Vector<ChipmunkBaseObject*> getChipmunkObjects() override { return _chipmunkObjects; }
 
 private:
-    inline static PhysicsSpace* sGlobalSpace;  // 0x10032EAE8
+    inline static ChipmunkSpace* sGlobalSpace;  // 0x10032EAE8
 
-    void* _target;                                   // Physical::target @ 0x100311D50
-    PhysicsBody* _body;                              // Physical::body @ 0x100311D68
-    ax::Vector<PhysicsShape*> _internalShapes;       // Physical::internalShapes @ 0x100311D58
-    ax::Vector<PhysicsBaseObject*> _physicsObjects;  // Physical::chipmunkObjects @ 0x100311D70
+    void* _target;                                     // Physical::target @ 0x100311D50
+    ChipmunkBody* _body;                               // Physical::body @ 0x100311D68
+    ax::Vector<ChipmunkShape*> _internalShapes;        // Physical::internalShapes @ 0x100311D58
+    ax::Vector<ChipmunkBaseObject*> _chipmunkObjects;  // Physical::chipmunkObjects @ 0x100311D70
 };
 
 }  // namespace opendw

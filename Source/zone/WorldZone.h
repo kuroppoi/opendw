@@ -7,12 +7,12 @@ namespace opendw
 {
 
 class BaseBlock;
+class ChipmunkSpace;
 class Entity;
 class EntityAnimatedAvatar;
 class GameManager;
 class Item;
 class MetaBlock;
-class PhysicsSpace;
 class SceneRenderer;
 class WorldRenderer;
 class WorldChunk;
@@ -160,7 +160,7 @@ public:
     const DepthGraphics& getDepthGraphics() const { return _depthGraphics; }
 
     /* FUNC: WorldZone::space @ 0x100049D22 */
-    PhysicsSpace* getSpace() const { return _space; }
+    ChipmunkSpace* getSpace() const { return _space; }
 
     /* FUNC: WorldZone::seed @ 0x10004A012 */
     uint64_t getSeed() const { return _seed; }
@@ -239,7 +239,7 @@ private:
     Biome _biomeType;                                // WorldZone::biomeType @ 0x100310FA0
     ax::ValueMap _biomeConfig;                       // WorldZone::biomeConfig @ 0x100310FC8
     DepthGraphics _depthGraphics;                    // WorldZone::depthGraphics @ 0x100310FB8
-    PhysicsSpace* _space;                            // WorldZone::space @ 0x100310FE8
+    ChipmunkSpace* _space;                           // WorldZone::space @ 0x100310FE8
     float _fixedTimeStep;                            // WorldZone::fixedTimeStep @ 0x100310FF0
     uint64_t _seed;                                  // WorldZone::seed @ 0x1003111A0
     int16_t _blocksWidth;                            // WorldZone::blocksWidth @ 0x100310FF8

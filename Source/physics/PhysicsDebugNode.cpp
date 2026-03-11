@@ -1,6 +1,6 @@
 #include "PhysicsDebugNode.h"
 
-#include "physics/PhysicsSpace.h"
+#include "physics/ChipmunkSpace.h"
 #include "zone/WorldZone.h"
 
 USING_NS_AX;

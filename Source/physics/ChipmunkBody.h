@@ -1,35 +1,34 @@
-#ifndef __PHYSICS_BODY_H__
-#define __PHYSICS_BODY_H__
+#ifndef __CHIPMUNK_BODY_H__
+#define __CHIPMUNK_BODY_H__
 
 #include "chipmunk/chipmunk_structs.h"
-
-#include "physics/PhysicsObject.h"
+#include "physics/ChipmunkObject.h"
 
 namespace opendw
 {
 
-class PhysicsSpace;
+class ChipmunkSpace;
 
 /*
  * CLASS: ChipmunkBody : NSObject @ 0x1003172D8
  */
-class PhysicsBody : public PhysicsBaseObject
+class ChipmunkBody : public ChipmunkBaseObject
 {
 public:
     /* FUNC: ChipmunkBody::dealloc @ 0x10006FB09 */
-    virtual ~PhysicsBody() override;
+    virtual ~ChipmunkBody() override;
 
     /* FUNC: ChipmunkBody::bodyWithMass:andMoment: @ 0x10006F915 */
-    static PhysicsBody* createWithMass(float mass, float moment);
+    static ChipmunkBody* createWithMass(float mass, float moment);
 
     /* FUNC: ChipmunkBody::initWithMass:andMoment: @ 0x10006FA09 */
     bool initWithMass(float mass, float moment);
 
     /* FUNC: ChipmunkBody::addToSpace: @ 0x10006FE7C */
-    void addToSpace(PhysicsSpace* space) override;
+    void addToSpace(ChipmunkSpace* space) override;
 
     /* FUNC: ChipmunkBody::removeFromSpace: @ 0x10006FE97 */
-    void removeFromSpace(PhysicsSpace* space) override;
+    void removeFromSpace(ChipmunkSpace* space) override;
 
     /* FUNC: ChipmunkBody::setType: @ 0x10006FBC1 */
     void setType(cpBodyType type);
@@ -65,4 +64,4 @@ private:
 
 }  // namespace opendw
 
-#endif  // __PHYSICS_BODY_H__
+#endif  // __CHIPMUNK_BODY_H__
