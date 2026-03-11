@@ -149,7 +149,7 @@ void WorldZone::configure(const ValueMap& data)
     _space = ChipmunkSpace::create();
     _space->retain();
     auto gravity = _biomeType == Biome::SPACE ? 8.0F : 15.0F;
-    _space->setGravity({0.0F, -gravity});
+    _space->setGravity(Vec2(0.0F, -gravity) * BLOCK_SIZE);
     Physical::setSpace(_space);
     _fixedTimeStep = 0.011111111F;
 }
