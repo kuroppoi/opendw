@@ -61,6 +61,9 @@ public:
     /* FUNC: Entity::entityId @ 0x1000C0DC4 */
     int32_t getEntityId() const { return _entityId; }
 
+    /* FUNC: Entity::currentAnimation @ 0x1000C1086 */
+    int32_t getCurrentAnimation() const { return _currentAnimation; }
+
     /* FUNC: Entity::clientDirected @ 0x1000C0F72 */
     bool isClientDirected() const { return _clientDirected; }
 

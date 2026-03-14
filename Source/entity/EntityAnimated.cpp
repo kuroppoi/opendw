@@ -117,6 +117,17 @@ Size EntityAnimated::computeContentSize()
     return _mainSkeleton ? _mainSkeleton->getBoundingBox().size * Vec2(_scaleX, _scaleY) : Size::ZERO;
 }
 
+void EntityAnimated::animate(const std::string& name)
+{
+    if (!_alive)
+    {
+        return;
+    }
+
+    auto id = _config->getAnimationByName(name);
+    runAnimation(id);
+}
+
 void EntityAnimated::change(const ValueMap& data)
 {
     Entity::change(data);

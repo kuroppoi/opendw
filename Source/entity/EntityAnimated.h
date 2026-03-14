@@ -34,6 +34,9 @@ public:
     /* FUNC: EntityAnimated::computeContentSize @ 0x1001702FC */
     virtual ax::Size computeContentSize();
 
+    /* FUNC: EntityAnimated::animate: @ 0x1001703A3 */
+    void animate(const std::string& name);
+
     /* FUNC: EntityAnimated::setSlot:attachment: @ 0x100171955 */
     void setSlot(const std::string& name, const std::string& attachment);
 

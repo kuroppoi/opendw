@@ -67,6 +67,8 @@ public:
     /* FUNC: EntityConfig::animations @ 0x100120C17 */
     const std::vector<Animation>& getAnimations() const { return _animations; }
 
+    int32_t getAnimationByName(const std::string& name) const;
+
     /* FUNC: EntityConfig::slots @ 0x100120E6E */
     const std::vector<std::string>& getSlots() const { return _slots; }
 
@@ -74,22 +76,23 @@ public:
     const std::vector<std::string>& getAttachments() const { return _attachments; }
 
 protected:
-    int32_t _code;                          // EntityConfig::code @ 0x100313C48
-    std::string _group;                     // EntityConfig::group @ 0x100313C58
-    std::string _classSuffix;               // EntityConfig::classSuffix @ 0x100313C78
-    ax::Size _size;                         // EntityConfig::size @ 0x100313C80
-    float _scaleBase;                       // EntityConfig::scaleBase @ 0x100313D10
-    float _scaleRange;                      // EntityConfig::scaleRange @ 0x100313d18
-    bool _flips;                            // EntityConfig::flips @ 0x100313DD8
-    bool _ghostly;                          // EntityConfig::ghostly @ 0x100313DE0
-    bool _block;                            // EntityConfig::block @ 0x100313C60
-    std::string _spine;                     // EntityConfig::spine @ 0x100313DE8
-    std::string _spineSkin;                 // EntityConfig::spineSkin @ 0x100313DF0
-    ax::Vec2 _spineOffset;                  // EntityConfig::spineOffset @ 0x100313DF8
-    ax::ValueVector _sprites;               // EntityConfig::sprites @ 0x100313CE8
-    std::vector<Animation> _animations;     // EntityConfig::animations @ 0x100313CF0
-    std::vector<std::string> _slots;        // EntityConfig::slots @ 0x100313E00
-    std::vector<std::string> _attachments;  // EntityConfig::attachments @ 0x100313E08
+    int32_t _code;                                     // EntityConfig::code @ 0x100313C48
+    std::string _group;                                // EntityConfig::group @ 0x100313C58
+    std::string _classSuffix;                          // EntityConfig::classSuffix @ 0x100313C78
+    ax::Size _size;                                    // EntityConfig::size @ 0x100313C80
+    float _scaleBase;                                  // EntityConfig::scaleBase @ 0x100313D10
+    float _scaleRange;                                 // EntityConfig::scaleRange @ 0x100313d18
+    bool _flips;                                       // EntityConfig::flips @ 0x100313DD8
+    bool _ghostly;                                     // EntityConfig::ghostly @ 0x100313DE0
+    bool _block;                                       // EntityConfig::block @ 0x100313C60
+    std::string _spine;                                // EntityConfig::spine @ 0x100313DE8
+    std::string _spineSkin;                            // EntityConfig::spineSkin @ 0x100313DF0
+    ax::Vec2 _spineOffset;                             // EntityConfig::spineOffset @ 0x100313DF8
+    ax::ValueVector _sprites;                          // EntityConfig::sprites @ 0x100313CE8
+    std::vector<Animation> _animations;                // EntityConfig::animations @ 0x100313CF0
+    std::map<std::string, int32_t> _animationsByName;  // EntityConfig::animationsByName @ 0x100313CF8
+    std::vector<std::string> _slots;                   // EntityConfig::slots @ 0x100313E00
+    std::vector<std::string> _attachments;             // EntityConfig::attachments @ 0x100313E08
 };
 
 }  // namespace opendw
