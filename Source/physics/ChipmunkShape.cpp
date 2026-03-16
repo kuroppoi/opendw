@@ -39,6 +39,16 @@ float ChipmunkShape::getFriction() const
     return cpShapeGetFriction(getShape());
 }
 
+void ChipmunkShape::setCollisionType(cpCollisionType type)
+{
+    cpShapeSetCollisionType(getShape(), type);
+}
+
+cpCollisionType ChipmunkShape::getCollisionType() const
+{
+    return cpShapeGetCollisionType(getShape());
+}
+
 void ChipmunkShape::setFilter(cpShapeFilter filter)
 {
     cpShapeSetFilter(getShape(), filter);
@@ -47,6 +57,28 @@ void ChipmunkShape::setFilter(cpShapeFilter filter)
 cpShapeFilter ChipmunkShape::getFilter() const
 {
     return cpShapeGetFilter(getShape());
+}
+
+ChipmunkCircleShape::~ChipmunkCircleShape()
+{
+    cpShapeDestroy(getShape());
+}
+
+ChipmunkCircleShape* ChipmunkCircleShape::createWithBody(ChipmunkBody* body, float radius, const Point& offset)
+{
+    CREATE_INIT(ChipmunkCircleShape, initWithBody, body, radius, offset);
+}
+
+bool ChipmunkCircleShape::initWithBody(ChipmunkBody* body, float radius, const Point& offset)
+{
+    cpCircleShapeInit(&_shape, body->getBody(), radius, cpv(offset.x, offset.y));
+    cpShapeSetUserData(getShape(), this);
+    return true;
+}
+
+float ChipmunkCircleShape::getRadius() const
+{
+    return cpCircleShapeGetRadius(getShape());
 }
 
 ChipmunkPolyShape::~ChipmunkPolyShape()

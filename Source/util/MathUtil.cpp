@@ -15,6 +15,11 @@ Vec2 rotateVector(const Vec2& vector, float rotation)
     return Vec2(x, y);
 }
 
+Rect growRect(const Rect& rect, const Size& size)
+{
+    return Rect(rect.origin - size * 0.5F, rect.size + size);
+}
+
 Rect clampRect(const Rect& rectA, const Rect& rectB, Vec2* offset)
 {
     auto minX   = fmaxf(rectA.getMinX(), rectB.getMinX());

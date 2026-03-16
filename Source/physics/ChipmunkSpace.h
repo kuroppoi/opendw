@@ -56,6 +56,9 @@ public:
     /* FUNC: ChipmunkSpace::removeShape: @ 0x10009A0FC */
     void removeShape(ChipmunkShape* shape);
 
+    /* FUNC: ChipmunkSpace::bodies @ 0x100099E2E */
+    std::vector<ChipmunkBody*> getBodies() const;
+
     /* FUNC: ChipmunkSpace::space @ 0x100098CC7 */
     cpSpace* getSpace() const { return _space; }
 

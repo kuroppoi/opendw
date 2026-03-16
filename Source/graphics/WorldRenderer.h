@@ -142,6 +142,7 @@ private:
     ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
     ax::Node* _physicsDebugNode;                  // WorldRenderer::physicsDebugNode @ 0x100311F20
     ax::Vector<BaseBlock*> _renderQueue;          // WorldRenderer::renderQueue @ 0x100311DF8
+    ax::Rect _visibleRect;                        // WorldRenderer::visibleRect @ 0x100311FA0
     ax::Rect _lastArrangeRect;                    // WorldRenderer::lastArrangeRect @ 0x100311FF8
     ax::Rect _blockRect;                          // WorldRenderer::blockRect @ 0x100312008
     float _worldScale;                            // WorldRenderer::worldScale @ 0x100311E20

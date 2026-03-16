@@ -16,12 +16,12 @@ Physical::~Physical()
     AX_SAFE_RELEASE(_body);
 }
 
-Physical* Physical::createWithTarget(void* target)
+Physical* Physical::createWithTarget(Object* target)
 {
     CREATE_INIT(Physical, initWithTarget, target);
 }
 
-bool Physical::initWithTarget(void* target)
+bool Physical::initWithTarget(Object* target)
 {
     _target = target;
     _body   = nullptr;
@@ -46,6 +46,12 @@ void Physical::useStaticBody()
     AX_ASSERT(sGlobalSpace);
     _body = sGlobalSpace->getStaticBody();
     AX_SAFE_RETAIN(_body);
+}
+
+void Physical::addToSpace()
+{
+    AX_ASSERT(sGlobalSpace);
+    sGlobalSpace->add(this);
 }
 
 void Physical::setLayer(uint32_t layer)
@@ -75,6 +81,74 @@ void Physical::setGroup(void* group)
             shape->setFilter(filter);
         }
     }
+}
+
+void Physical::setCollisionType(CollisionType type)
+{
+    for (auto&& object : _chipmunkObjects)
+    {
+        if (auto shape = dynamic_cast<ChipmunkShape*>(object))
+        {
+            shape->setCollisionType(static_cast<cpCollisionType>(type));
+        }
+    }
+}
+
+void Physical::setPosition(const Point& position)
+{
+    _body->setPosition(position);
+
+    if (_body->getType() == CP_BODY_TYPE_STATIC)
+    {
+        if (auto node = dynamic_cast<Node*>(_target))
+        {
+            node->setPosition(getPosition());
+
+            if (_rotates)
+            {
+                node->setRotation(MATH_RAD_TO_DEG(_body->getAngle()));
+            }
+        }
+    }
+}
+
+Point Physical::getPosition() const
+{
+    return _body->getPosition();
+}
+
+void Physical::setVelocity(const Vec2& velocity)
+{
+    _body->setVelocity(velocity);
+}
+
+Vec2 Physical::getVelocity() const
+{
+    return _body->getVelocity();
+}
+
+void Physical::setShapeAsCircle(float radius, const Point& offset)
+{
+    if (!_body)
+    {
+        addBody();
+    }
+
+    clearShapes();
+    auto shape = ChipmunkCircleShape::createWithBody(_body, radius, offset);
+    shape->setUserData(_target);
+    shape->setElasticity(0.3F);
+    shape->setFriction(0.05F);
+    bindInternalShape(shape);
+
+    if (_body->getType() != CP_BODY_TYPE_STATIC)
+    {
+        auto mass   = _body->getMass();
+        auto moment = cpMomentForCircle(mass, radius, radius, cpvzero);
+        _body->setMoment(moment);
+    }
+
+    updateChipmunkObjects();
 }
 
 ChipmunkPolyShape* Physical::createBoxShape(const Size& size, const Point& offset)
@@ -108,6 +182,18 @@ void Physical::setShapeAsBox(const Size& size, const Point& offset)
         _body->setMoment(moment);
     }
 
+    updateChipmunkObjects();
+}
+
+void Physical::addBoxShape(const Size& size, const Point& offset)
+{
+    if (!_body)
+    {
+        addBody();
+    }
+
+    auto shape = createBoxShape(size, offset);
+    bindInternalShape(shape);
     updateChipmunkObjects();
 }
 

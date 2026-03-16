@@ -547,10 +547,10 @@ Entity* WorldZone::registerEntity(int32_t id, int32_t code, const std::string& n
         _entities.insert(id, entity);
     }
 
-    // TODO: add collision
     // TODO: something with slot
     // TODO: burst
 
+    _space->add(entity->getPhysical());
     return entity;
 }
 
@@ -578,6 +578,8 @@ void WorldZone::removeEntity(int32_t id, bool violent)
         _peers.erase(id);
         // TODO: post notifications
     }
+
+    _space->remove(entity->getPhysical());
 
     // IMPORTANT: Do last to keep refcount
     entity->removeFromParent();  // Removes it from its respective WorldRenderer entity node

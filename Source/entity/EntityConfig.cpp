@@ -21,6 +21,7 @@ bool EntityConfig::initWithData(const ValueMap& data)
     _flips       = map_util::getBool(data, "flips", true);
     _ghostly     = map_util::getBool(data, "ghostly");
     _block       = map_util::getBool(data, "block");
+    _shape       = map_util::getString(data, "shape") == "circle" ? Shape::CIRCLE : Shape::BOX;
     _spine       = map_util::getString(data, "spine");
     _spineSkin   = map_util::getString(data, "spine_skin");
     _sprites     = map_util::getArray(data, "sprites");

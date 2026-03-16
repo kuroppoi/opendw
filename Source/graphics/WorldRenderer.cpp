@@ -9,6 +9,8 @@
 #include "graphics/Lightmapper.h"
 #include "graphics/SkyRenderer.h"
 #include "graphics/WorldLayerRenderer.h"
+#include "physics/ChipmunkBody.h"
+#include "physics/ChipmunkSpace.h"
 #include "physics/PhysicsDebugNode.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
@@ -96,7 +98,7 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     // 0x10007D566: Create entity nodes
     _entitiesNode = SpriteBatchNode::create("entities+hd2.png");
     _foreground->addChild(_entitiesNode, getNextZIndex());
-    auto& winSize = _director->getWinSize();
+    auto& winSize         = _director->getWinSize();
     _animatedEntitiesNode = Node::create();
     _foreground->addChild(_animatedEntitiesNode, getNextZIndex());
 
@@ -278,12 +280,33 @@ void WorldRenderer::update(float deltaTime)
         _nextLiquidCycle = utils::gettime() + LIQUID_CYCLE_INTERVAL;
     }
 
+    // 0x10007EFE8: Update game objects
+    for (auto body : _zone->getSpace()->getBodies())
+    {
+        if (body->getType() == CP_BODY_TYPE_STATIC)
+        {
+            continue;
+        }
+
+        if (auto entity = dynamic_cast<Entity*>(body->getUserData()))
+        {
+            auto& contentSize = entity->getContentSize();
+            auto size         = MAX(contentSize.x, contentSize.y) * 2.0F;  // HACK: Overcompensate for rotation
+            auto rect         = math_util::growRect(_visibleRect, {size, size});
+            auto onscreen     = rect.containsPoint(body->getPosition());
+            entity->updateOnscreen(deltaTime, onscreen);
+        }
+    }
+
     _lightmapper->update(deltaTime);
 }
 
 void WorldRenderer::updateBlocks()
 {
-    // TODO
+    auto& winSize = _director->getWinSize();
+    auto origin   = getNodePointForScreenPoint(Point::ZERO);
+    auto size     = winSize / _worldScale;
+    _visibleRect  = Rect(origin, size);
     arrangeBlockSprites();
     renderBlockSprites();
 }

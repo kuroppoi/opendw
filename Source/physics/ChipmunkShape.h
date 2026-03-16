@@ -41,6 +41,12 @@ public:
     /* FUNC: ChipmunkShape::friction @ 0x10013D518 */
     float getFriction() const;
 
+    /* FUNC: ChipmunkShape::setCollisionType: @ 0x10013D5C8 */
+    void setCollisionType(cpCollisionType type);
+
+    /* FUNC: ChipmunkShape::collisionType @ 0x10013D5AE */
+    cpCollisionType getCollisionType() const;
+
     /* FUNC: ChipmunkShape::setFilter: @ 0x10013D609 */
     void setFilter(cpShapeFilter filter);
 
@@ -48,13 +54,37 @@ public:
     cpShapeFilter getFilter() const;
 
     /* FUNC: ChipmunkShape::setUserData: @ 0x10013D81F */
-    void setUserData(void* userData) { _userData = userData; }
+    void setUserData(ax::Object* userData) { _userData = userData; }
 
     /* FUNC: ChipmunkShape::userData @ 0x10013D80E */
-    void* getUserData() const { return _userData; }
+    ax::Object* getUserData() const { return _userData; }
 
 protected:
-    void* _userData;  // ChipmunkShape::_userData @ 0x100314580
+    ax::Object* _userData;  // ChipmunkShape::_userData @ 0x100314580
+};
+
+/*
+ * CLASS: ChipmunkCircleShape : ChipmunkShape @ 0x10031C1E8 
+ */
+class ChipmunkCircleShape : public ChipmunkShape
+{
+public:
+    virtual ~ChipmunkCircleShape() override;
+
+    /* FUNC: ChipmunkCircleShape::circleWithBody:radius:offset: @ 0x10013DCA9 */
+    static ChipmunkCircleShape* createWithBody(ChipmunkBody* body, float radius, const ax::Point& offset);
+
+    /* FUNC: ChipmunkCircleShape::initWithBody:radius:offset: @ 0x10013DD1D */
+    bool initWithBody(ChipmunkBody* body, float radius, const ax::Point& offset);
+
+    /* FUNC: ChipmunkCircleShape::radius @ 0x10013DDD0 */
+    float getRadius() const;
+
+    /* FUNC: ChipmunkCircleShape::shape @ 0x10013DD0D */
+    cpShape* getShape() const override { return (cpShape*)&_shape; }
+
+private:
+    cpCircleShape _shape;  // ChipmunkCircleShape::_shape @ 0x1003145B8
 };
 
 /*

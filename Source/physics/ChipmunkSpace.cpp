@@ -106,4 +106,17 @@ void ChipmunkSpace::removeShape(ChipmunkShape* shape)
     _children.eraseObject(shape);
 }
 
+/* FUNC: 0x100099E71 */
+static void addBodyToVector(cpBody* body, std::vector<ChipmunkBody*>& vector)
+{
+    vector.push_back(static_cast<ChipmunkBody*>(cpBodyGetUserData(body)));
+}
+
+std::vector<ChipmunkBody*> ChipmunkSpace::getBodies() const
+{
+    std::vector<ChipmunkBody*> bodies;
+    cpSpaceEachBody(_space, (cpSpaceBodyIteratorFunc)addBodyToVector, &bodies);
+    return bodies;
+}
+
 }  // namespace opendw
