@@ -6,8 +6,6 @@
 namespace opendw
 {
 
-class PhysicsShape;
-
 /*
  * CLASS: ChipmunkDebugNode : CCNode @ 0x10031A640
  */

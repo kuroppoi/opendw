@@ -4,12 +4,11 @@
 #include "chipmunk/chipmunk.h"
 #include "axmol.h"
 
-#include "physics/ChipmunkObject.h"  // FIXME: ax::Vector
-
 namespace opendw
 {
 
 class ChipmunkBody;
+class ChipmunkObject;
 class ChipmunkShape;
 
 /*
