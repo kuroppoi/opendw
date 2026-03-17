@@ -413,7 +413,7 @@ void GameManager::leaveGame()
 void GameManager::reset()
 {
     AXLOGI("[GameManager] reset");
-    // TODO: player->reset();
+    _player->reset();
 
     if (_zone)
     {

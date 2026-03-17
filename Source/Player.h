@@ -6,7 +6,10 @@
 namespace opendw
 {
 
+class ChipmunkShape;
+class EntityAnimatedAvatar;
 class GameManager;
+class Physical;
 
 /*
  * CLASS: Player : NSObject @ 0x100316AE0
@@ -14,6 +17,9 @@ class GameManager;
 class Player : public ax::Object
 {
 public:
+    /* FUNC: Player::dealloc @ 0x10002D77C */
+    virtual ~Player() override;
+
     /* FUNC: Player::main @ 0x10001BA34 */
     static Player* getMain() { return sMain; }
 
@@ -28,8 +34,14 @@ public:
     /* FUNC: Player::configure: @ 0x100028D23 */
     void configure(const ax::ValueMap& data);
 
+    /* FUNC: Player::configureAvatar: @ 0x1000293CB */
+    void configureAvatar(const ax::ValueMap& data);
+
     /* FUNC: Player::begin @ 0x10001C103 */
     void begin();
+
+    /* FUNC: Player::reset @ 0x10002D6A1 */
+    void reset();
 
     /* FUNC: Player::step: @ 0x10001C351 */
     void update(float deltaTime);
@@ -46,14 +58,23 @@ public:
     /* FUNC: Player::entityId @ 1000C0DC4 */
     int32_t getEntityId() const { return _entityId; }
 
-    // TODO: use collider position
-    void setPosition(const ax::Point& position) { _position = position; }
-
-    // TODO: use collider position
-    const ax::Point& getPosition() const { return _position; }
+    void setPosition(const ax::Point& position);
+    ax::Point getPosition() const;
 
     /* FUNC: Player::blockPosition @ 0x100028B15 */
     ax::Point getBlockPosition() const;
+
+    /* FUNC: Player::avatar @ 0x10002DFAC */
+    EntityAnimatedAvatar* getAvatar() const { return _avatar; }
+
+    /* FUNC: Player::physical @ 0x10002DF57 */
+    Physical* getPhysical() const { return _physical; }
+
+    /* FUNC: Player::feetShape @ 0x10002DF68 */
+    ChipmunkShape* getFeetShape() const { return _feetShape; }
+
+    /* FUNC: Player::headShape @ 0x10002DF79 */
+    ChipmunkShape* getHeadShape() const { return _headShape; }
 
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
@@ -64,15 +85,25 @@ public:
     /* FUNC: Player::admin @ 0x10002DED1 */
     bool isAdmin() const { return _admin; }
 
+    /* FUNC: Player::setClip: @ 0x100021465 */
+    void setClip(bool clip);
+
+    /* FUNC: Player::clip @ 0x100310660 */
+    bool getClip() const { return _clip; }
+
 private:
     inline static Player* sMain;  // 10032EA98
 
-    GameManager* _game;           // Player::game @ 0x100310630
-    int32_t _entityId;            // Player::entityId @ 0x100310638
-    ax::Point _position;          // TODO: use collider position
-    double _nextMoveMessageTime;  // Player::nextMoveMessageTime @ 0x1003108C8
-    bool _zoneTeleporting;        // Player::isZoneTeleporting @ 0x1003106F8
-    bool _admin;                  // Player::admin @ 0x100310958
+    GameManager* _game;             // Player::game @ 0x100310630
+    int32_t _entityId;              // Player::entityId @ 0x100310638
+    EntityAnimatedAvatar* _avatar;  // Player::avatar @ 0x100310718
+    Physical* _physical;            // Player::physical @ 0x100310768
+    ChipmunkShape* _feetShape;      // Player::feetShape @ 0x1003109A0
+    ChipmunkShape* _headShape;      // Player::headShape @ 0x1003109A8
+    double _nextMoveMessageTime;    // Player::nextMoveMessageTime @ 0x1003108C8
+    bool _zoneTeleporting;          // Player::isZoneTeleporting @ 0x1003106F8
+    bool _admin;                    // Player::admin @ 0x100310958
+    bool _clip;                     // Player::clip @ 0x100310660
 };
 
 }  // namespace opendw

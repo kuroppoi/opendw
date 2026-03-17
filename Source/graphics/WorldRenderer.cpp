@@ -101,6 +101,8 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     auto& winSize         = _director->getWinSize();
     _animatedEntitiesNode = Node::create();
     _foreground->addChild(_animatedEntitiesNode, getNextZIndex());
+    _animatedCharactersNode = Node::create();
+    _foreground->addChild(_animatedCharactersNode, getNextZIndex());
 
     // 0x10007D7F2: Create liquid layer renderer
     _liquidBlocksNode = createLayerRenderer("liquid", BlockLayer::LIQUID, "liquid+hd2.png");
@@ -527,27 +529,29 @@ void WorldRenderer::updateViewport(float deltaTime)
     auto viewport = getViewportPosition();
 
     // TODO: clean up
-    auto player        = GameManager::getInstance()->getPlayer();
+    auto player   = Player::getMain();
+    auto position = player->getPosition();
+    Point cameraPosition(position.x, position.y + BLOCK_SIZE * 0.8F);
     auto biome         = _zone->getBiomeType();
-    auto cameraPos     = player->getPosition() * BLOCK_SIZE;
     bool cavernVisible = biome == Biome::DEEP ||
                          (biome != Biome::SPACE && player->getBlockPosition().y > _zone->getSurfaceBottom() + 20);
     _sky->setVisible(!cavernVisible);
     _cavern->setVisible(cavernVisible);
     _foreground->setPosition(-viewport);
     _foreground->setScale(_worldScale);
-    _sky->setViewPosition(cameraPos);
+    _sky->setViewPosition(cameraPosition);
     _sky->setViewScale(_worldScale);
-    _cavern->setViewPosition(cameraPos);
+    _cavern->setViewPosition(cameraPosition);
     _cavern->setViewScale(_worldScale);
 }
 
 Point WorldRenderer::getViewportPosition() const
 {
     // TODO: finish
-    auto& winSize   = _director->getWinSize();
-    auto& cameraPos = GameManager::getInstance()->getPlayer()->getPosition();
-    auto position   = cameraPos * BLOCK_SIZE * _worldScale;
+    auto& winSize       = _director->getWinSize();
+    auto playerPosition = Player::getMain()->getPosition();
+    Point cameraPosition(playerPosition.x, playerPosition.y + BLOCK_SIZE * 0.8F);
+    auto position = cameraPosition * _worldScale;
     return position - winSize * 0.5F;
 }
 
@@ -631,7 +635,14 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
         }
         else
         {
-            _animatedEntitiesNode->addChild(entity);
+            if (entity->isHuman())
+            {
+                _animatedCharactersNode->addChild(entity);
+            }
+            else
+            {
+                _animatedEntitiesNode->addChild(entity);
+            }
         }
     }
     else if (entity->getTexture() == _entitiesNode->getTexture())

@@ -103,6 +103,9 @@ public:
     /* FUNC: WorldRenderer::frontAccentsNode @ 0x100086E6F */
     WorldLayerRenderer* getFronterAccentsNode() const { return _fronterAccentsNode; }
 
+    /* FUNC: WorldRenderer::animatedCharactersNode @ 0x100086EA2 */
+    ax::Node* getAnimatedCharactersNode() const { return _animatedCharactersNode; }
+
     /* FUNC: WorldRenderer::physicsDebugNode @ 0x100086F4C */
     ax::Node* getPhysicsDebugNode() const { return _physicsDebugNode; }
 
@@ -138,6 +141,7 @@ private:
     WorldLayerRenderer* _fronterAccentsNode;      // WorldRenderer::frontAccentsNode @ 0x100311EE0
     ax::SpriteBatchNode* _entitiesNode;           // WorldRenderer::entitiesNode @ 0100311EA0
     ax::Node* _animatedEntitiesNode;              // WorldRenderer::animatedEntitiesNode @ 0x100311EA8
+    ax::Node* _animatedCharactersNode;            // WorldRenderer::animatedCharactersNode @ 0x100311EB8
     ax::Node* _animatedGhostlyEntitiesNode;       // WorldRenderer::animatedGhostlyEntitiesNode @ 0x100311EE8
     ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
     ax::Node* _physicsDebugNode;                  // WorldRenderer::physicsDebugNode @ 0x100311F20

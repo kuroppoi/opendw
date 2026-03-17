@@ -104,6 +104,9 @@ public:
     /* FUNC: Entity::isBlock @ 0x1000BE520 */
     bool isBlock() const;
 
+    /* FUNC: Entity::setIsPlayerAvatar: @ 0x1000C1104 */
+    void setIsPlayerAvatar(bool value) { _playerAvatar = value; }
+
     Physical* getPhysical() const { return _physical; }
 
 protected:

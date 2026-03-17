@@ -17,7 +17,8 @@ class ChipmunkSpace;
 enum class CollisionType : cpCollisionType
 {
     NONE,
-    ENTITY
+    ENTITY,
+    PLAYER
 };
 
 /*

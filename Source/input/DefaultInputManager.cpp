@@ -79,8 +79,8 @@ void DefaultInputManager::checkInput(float deltaTime)
     }
 
     // Move player
-    moveDirection  = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE).getNormalized();
-    auto& position = _player->getPosition();
+    moveDirection  = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE).getNormalized() * BLOCK_SIZE;
+    auto position  = _player->getPosition();
     auto speed     = _keysPressed.contains(KeyCode::KEY_LEFT_SHIFT) ? 14.0F : 7.0F;
     _player->setPosition(position + moveDirection * speed * deltaTime);
 
@@ -140,6 +140,11 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         auto physicsNode = worldRenderer->getPhysicsDebugNode();
         physicsNode->setVisible(!physicsNode->isVisible());
         break;
+    }
+    case KeyCode::KEY_LEFT_BRACKET:
+    {
+        auto player = Player::getMain();
+        player->setClip(!player->getClip());
     }
     }
 
