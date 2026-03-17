@@ -6,7 +6,9 @@
 namespace opendw
 {
 
+class BaseBlock;
 class ChipmunkShape;
+class Entity;
 class EntityAnimatedAvatar;
 class GameManager;
 class Physical;
@@ -52,6 +54,21 @@ public:
     /* FUNC: Player::sendMoveCommand @ 0x1000232BC */
     void sendMoveMessage();
 
+    /* FUNC: Player::didFeetCollideWithBlock: @ 0x10002A33C */
+    void onFeetCollideWithBlock(BaseBlock* block);
+
+    /* FUNC: Player::didFeetCollideWithEntity: @ 0x10002A481 */
+    void onFeetCollideWithEntity(Entity* entity);
+
+    /* FUNC: Player::didCollideWithEntity: @ 0x10002A5A3 */
+    void onCollideWithEntity(Entity* entity);
+
+    /* FUNC: Player::runningSpeed @ 0x10002C89B */
+    float getRunningSpeed() const;
+
+    /* FUNC: Player::jumpingPower @ 0x10002C94C */
+    float getJumpingPower() const;
+
     /* FUNC: Player::setEntityId: @ 0x1000C0DD5 */
     void setEntityId(int32_t entityId) { _entityId = entityId; }
 
@@ -67,6 +84,9 @@ public:
     /* FUNC: Player::avatar @ 0x10002DFAC */
     EntityAnimatedAvatar* getAvatar() const { return _avatar; }
 
+    /* FUNC: Player::setDestination: @ 0x10002DAEB */
+    void setDestination(const ax::Point& destination) { _destination = destination; }
+
     /* FUNC: Player::physical @ 0x10002DF57 */
     Physical* getPhysical() const { return _physical; }
 
@@ -75,6 +95,12 @@ public:
 
     /* FUNC: Player::headShape @ 0x10002DF79 */
     ChipmunkShape* getHeadShape() const { return _headShape; }
+
+    /* FUNC: Player::setLookDirection: @ 0x100028A78 */
+    void setLookDirection(int8_t direction);
+
+    /* FUNC: Player::lookDirection @ 0x10002DCB4 */
+    int8_t getLookDirection() const { return _lookDirection; }
 
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
@@ -97,13 +123,21 @@ private:
     GameManager* _game;             // Player::game @ 0x100310630
     int32_t _entityId;              // Player::entityId @ 0x100310638
     EntityAnimatedAvatar* _avatar;  // Player::avatar @ 0x100310718
+    ax::Point _destination;         // Player::destination @ 0x100310760
     Physical* _physical;            // Player::physical @ 0x100310768
     ChipmunkShape* _feetShape;      // Player::feetShape @ 0x1003109A0
     ChipmunkShape* _headShape;      // Player::headShape @ 0x1003109A8
+    int8_t _lookDirection;          // Player::lookDirection @ 0x100310720
+    uint8_t _currentLiquidLevel;    // Player::currentLiquidLevel @ 0x100310740
     double _nextMoveMessageTime;    // Player::nextMoveMessageTime @ 0x1003108C8
+    double _startedRunningAt;       // Player::startedRunningAt @ 0x100310788
+    double _lastPropelledUpwardAt;  // Player::lastPropelledUpwardAt @ 0x1003107A0
+    double _lastJumpedAt;           // Player::lastJumpedAt @ 0x1003107A8
+    float _flyAccessoryPower;       // Player::flyAccessoryPower @ 0x100310798
     bool _zoneTeleporting;          // Player::isZoneTeleporting @ 0x1003106F8
     bool _admin;                    // Player::admin @ 0x100310958
     bool _clip;                     // Player::clip @ 0x100310660
+    bool _running;
 };
 
 }  // namespace opendw

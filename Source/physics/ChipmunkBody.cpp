@@ -35,6 +35,11 @@ void ChipmunkBody::removeFromSpace(ChipmunkSpace* space)
     space->removeBody(this);
 }
 
+void ChipmunkBody::applyImpulseAtLocalPoint(const Vec2& impulse, const Point& point)
+{
+    cpBodyApplyImpulseAtLocalPoint(&_body, cpv(impulse.x, impulse.y), cpv(point.x, point.y));
+}
+
 void ChipmunkBody::setType(cpBodyType type)
 {
     cpBodySetType(&_body, type);

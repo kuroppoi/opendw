@@ -59,6 +59,7 @@ void DefaultInputManager::checkInput(float deltaTime)
             break;
         case KeyCode::KEY_A:
         case KeyCode::KEY_LEFT_ARROW:
+            _player->setLookDirection(-1);
             moveDirection.x -= 1.0F;
             break;
         case KeyCode::KEY_S:
@@ -67,6 +68,7 @@ void DefaultInputManager::checkInput(float deltaTime)
             break;
         case KeyCode::KEY_D:
         case KeyCode::KEY_RIGHT_ARROW:
+            _player->setLookDirection(1);
             moveDirection.x += 1.0F;
             break;
         case KeyCode::KEY_MINUS:
@@ -79,10 +81,19 @@ void DefaultInputManager::checkInput(float deltaTime)
     }
 
     // Move player
-    moveDirection  = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE).getNormalized() * BLOCK_SIZE;
-    auto position  = _player->getPosition();
-    auto speed     = _keysPressed.contains(KeyCode::KEY_LEFT_SHIFT) ? 14.0F : 7.0F;
-    _player->setPosition(position + moveDirection * speed * deltaTime);
+    auto position = _player->getPosition();
+
+    if (_player->getClip())
+    {
+        _player->setDestination(position + moveDirection * BLOCK_SIZE);
+    }
+    else
+    {
+        moveDirection = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE).getNormalized() * BLOCK_SIZE;
+        auto speed    = _keysPressed.contains(KeyCode::KEY_LEFT_SHIFT) ? 14.0F : 7.0F;
+        _player->setPosition(position + moveDirection * speed * deltaTime);
+        _player->setDestination(_player->getPosition());  // Prevent shenanigans when we switch back into clip mode
+    }
 
     // Update world scale
     auto zoomSpeed    = _keysPressed.contains(KeyCode::KEY_ALT) ? 0.25F : 1.0F;

@@ -234,6 +234,12 @@ void Entity::update(float deltaTime)
         auto rotation = MathUtil::lerp(getRotation(), _realRotation, fminf(1.0F, deltaTime * 10.0F));
         setRotation(rotation);
     }
+
+    // NOTE: Originally done in EntityAnimatedHuman::step:
+    if (_alive && _grounded)
+    {
+        _lastGroundedAt = utils::gettime();
+    }
 }
 
 void Entity::updateOnscreen(float deltaTime, bool onscreen)
@@ -354,6 +360,11 @@ void Entity::setRealPosition(const Point& position)
         setPosition(position);
         _positioned = true;
     }
+}
+
+bool Entity::wasGroundedRecently() const
+{
+    return utils::gettime() < _lastGroundedAt + 0.1;
 }
 
 bool Entity::isBlock() const

@@ -30,6 +30,9 @@ public:
     /* FUNC: ChipmunkBody::removeFromSpace: @ 0x10006FE97 */
     void removeFromSpace(ChipmunkSpace* space) override;
 
+    /* FUNC: ChipmunkBody::applyImpulse:atLocalPoint: @ 0x10006FDA0 */
+    void applyImpulseAtLocalPoint(const ax::Vec2& impulse, const ax::Point& point = ax::Point::ZERO);
+
     /* FUNC: ChipmunkBody::setType: @ 0x10006FBC1 */
     void setType(cpBodyType type);
 

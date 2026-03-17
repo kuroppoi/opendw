@@ -60,9 +60,6 @@ public:
     /* FUNC: WorldRenderer::updateViewport: @ 0x100082DE3 */
     void updateViewport(float deltaTime);
 
-    /* FUNC: WorldRenderer::viewportPosition @ 0x100082EC5 */
-    ax::Point getViewportPosition() const;
-
     /* FUNC: WorldRenderer::layerRenderer:withLayer:texture:z: @ 0x10007E28D */
     WorldLayerRenderer* createLayerRenderer(const std::string& name,
                                             BlockLayer layer,
@@ -86,7 +83,7 @@ public:
     Entity* addEntity(int32_t code, const std::string& name, const ax::ValueMap& details);
 
     /* FUNC: WorldRenderer::setWorldScale: @ 0x100082B33 */
-    void setWorldScale(float scale);
+    void setWorldScale(float scale) { _worldScale = scale; }
 
     /* FUNC: WorldRenderer::worldScale @ 0x100086DD9 */
     float getWorldScale() const { return _worldScale; }
@@ -156,6 +153,7 @@ private:
     size_t _fxFrame;                              // WorldRenderer::fxFrame @ 0x100311F50
     double _nextLiquidCycle;                      // WorldRenderer::nextLiquidCycle @ 0x100311F98
     size_t _liquidFrame;                          // 0x100320BC0
+    ax::Point _cameraPosition;
 };
 
 }  // namespace opendw

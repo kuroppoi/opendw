@@ -12,6 +12,11 @@ ChipmunkSpace::~ChipmunkSpace()
 {
     freeSpace();
     AX_SAFE_RELEASE(_staticBody);
+
+    for (auto handler : _collisionHandlers)
+    {
+        AX_SAFE_DELETE(handler);
+    }
 }
 
 bool ChipmunkSpace::initWithSpace(cpSpace* space)
@@ -46,6 +51,64 @@ void ChipmunkSpace::freeSpace()
 void ChipmunkSpace::setGravity(const Vec2& gravity)
 {
     cpSpaceSetGravity(_space, cpv(gravity.x, gravity.y));
+}
+
+/* FUNC: 0x100098F73 */
+static bool onCollisionBegin(cpArbiter* arbiter, cpSpace* /*space*/, ChipmunkSpace::CollisionHandler* handler)
+{
+    return handler->beginFunc(arbiter, handler->space);
+}
+
+/* FUNC: 0x100098F95 */
+static bool onCollisionPreSolve(cpArbiter* arbiter, cpSpace* /*space*/, ChipmunkSpace::CollisionHandler* handler)
+{
+    return handler->preSolveFunc(arbiter, handler->space);
+}
+
+/* FUNC: 0x100098FB7 */
+static void onCollisionPostSolve(cpArbiter* arbiter, cpSpace* /*space*/, ChipmunkSpace::CollisionHandler* handler)
+{
+    handler->postSolveFunc(arbiter, handler->space);
+}
+
+/* FUNC: 0x100098FD3 */
+static void onCollisionSeparate(cpArbiter* arbiter, cpSpace* /*space*/, ChipmunkSpace::CollisionHandler* handler)
+{
+    handler->separateFunc(arbiter, handler->space);
+}
+
+void ChipmunkSpace::addCollisionHandler(cpCollisionType typeA,
+                                        cpCollisionType typeB,
+                                        CollisionBegin begin,
+                                        CollisionPreSolve preSolve,
+                                        CollisionPostSolve postSolve,
+                                        CollisionSeparate separate)
+{
+    auto handler = cpSpaceAddCollisionHandler(_space, typeA, typeB);
+
+    if (begin)
+    {
+        handler->beginFunc = (cpCollisionBeginFunc)onCollisionBegin;
+    }
+
+    if (preSolve)
+    {
+        handler->preSolveFunc = (cpCollisionPreSolveFunc)onCollisionPreSolve;
+    }
+
+    if (postSolve)
+    {
+        handler->postSolveFunc = (cpCollisionPostSolveFunc)onCollisionPostSolve;
+    }
+
+    if (separate)
+    {
+        handler->separateFunc = (cpCollisionSeparateFunc)onCollisionSeparate;
+    }
+
+    auto data = new CollisionHandler{this, begin, preSolve, postSolve, separate};
+    _collisionHandlers.push_back(data);
+    handler->userData = data;
 }
 
 void ChipmunkSpace::add(ChipmunkObject* object)

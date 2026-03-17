@@ -17,6 +17,20 @@ class ChipmunkShape;
 class ChipmunkSpace : public ax::Object
 {
 public:
+    typedef std::function<bool(cpArbiter*, ChipmunkSpace*)> CollisionBegin;
+    typedef std::function<bool(cpArbiter*, ChipmunkSpace*)> CollisionPreSolve;
+    typedef std::function<void(cpArbiter*, ChipmunkSpace*)> CollisionPostSolve;
+    typedef std::function<void(cpArbiter*, ChipmunkSpace*)> CollisionSeparate;
+
+    struct CollisionHandler
+    {
+        ChipmunkSpace* space;
+        CollisionBegin beginFunc;
+        CollisionPreSolve preSolveFunc;
+        CollisionPostSolve postSolveFunc;
+        CollisionSeparate separateFunc;
+    };
+
     /* FUNC: ChipmunkSpace::dealloc @ 0x*/
     virtual ~ChipmunkSpace() override;
 
@@ -36,6 +50,14 @@ public:
 
     /* FUNC: ChipmunkSpace::setGravity: @ 0x100098D19 */
     void setGravity(const ax::Vec2& gravity);
+
+     /* FUNC: ChipmunkSpace::addCollisionHandler:typeA:typeB:begin:preSolve:postSolve:separate: @ 0x100098FEF */
+    void addCollisionHandler(cpCollisionType typeA,
+                             cpCollisionType typeB,
+                             CollisionBegin begin,
+                             CollisionPreSolve preSolve,
+                             CollisionPostSolve postSolve,
+                             CollisionSeparate separate);
 
     /* FUNC: ChipmunkSpace::add: @ 0x1000990FA */
     void add(ChipmunkObject* object);
@@ -68,6 +90,7 @@ private:
     cpSpace* _space;                        // ChipmunkSpace::_space @ 0x1003124F8
     ChipmunkBody* _staticBody;              // ChipmunkSpace::_staticBody @ 0x100312500
     ax::Vector<ChipmunkObject*> _children;  // ChipmunkSpace::_children @ 0x1003124E8
+    std::vector<CollisionHandler*> _collisionHandlers;
 };
 
 }  // namespace opendw

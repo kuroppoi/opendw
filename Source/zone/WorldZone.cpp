@@ -6,6 +6,7 @@
 #include "graphics/WorldRenderer.h"
 #include "input/InputManager.h"
 #include "network/tcp/MessageIdent.h"
+#include "physics/ChipmunkShape.h"
 #include "physics/ChipmunkSpace.h"
 #include "physics/Physical.h"
 #include "util/ArrayUtil.h"
@@ -152,6 +153,13 @@ void WorldZone::configure(const ValueMap& data)
     _space->setGravity(Vec2(0.0F, -gravity) * BLOCK_SIZE);
     Physical::setSpace(_space);
     _fixedTimeStep = 0.011111111F;
+
+    // 0x100040D78: Add collision handlers
+    // FIXME: It would be nicer if we didn't have to cast collision type
+    auto playerType = static_cast<cpCollisionType>(CollisionType::PLAYER);
+    _space->addCollisionHandler(playerType, NULL, AX_CALLBACK_2(WorldZone::beginAvatarCollision, this), nullptr,
+                                AX_CALLBACK_2(WorldZone::postSolveAvatarCollision, this),
+                                AX_CALLBACK_2(WorldZone::separateAvatarCollision, this));
 }
 
 void WorldZone::update(float deltaTime)
@@ -804,6 +812,103 @@ bool WorldZone::hasPhysickedAllPlacedBlocks() const
     }
 
     return true;
+}
+
+bool WorldZone::beginAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
+{
+    cpShape *cpShapeA, *cpShapeB;
+    cpArbiterGetShapes(arbiter, &cpShapeA, &cpShapeB);
+    auto source = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeA));  // Player
+    auto target = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeB));
+
+    if (target->getFriction() == 0.0F)
+    {
+        return true;
+    }
+
+    auto player = Player::getMain();
+    auto avatar = player->getAvatar();
+
+    // FIXME: Collision events can still occur after the avatar is destroyed
+    if (!avatar)
+    {
+        return true;
+    }
+
+    AX_ASSERT(avatar == source->getUserData());
+
+    if (auto entity = dynamic_cast<Entity*>(target->getUserData()))
+    {
+        // Collision with entity
+        if (source == player->getFeetShape())
+        {
+            player->onFeetCollideWithEntity(entity);
+        }
+        else
+        {
+            player->onCollideWithEntity(entity);
+        }
+    }
+    else
+    {
+        // Collision with block (most likely)
+        if (source == player->getFeetShape())
+        {
+            avatar->setFootColliderCount(avatar->getFootColliderCount() + 1);
+
+            if (auto block = dynamic_cast<BaseBlock*>(target->getUserData()))
+            {
+                player->onFeetCollideWithBlock(block);
+            }
+        }
+        else if (source == player->getHeadShape())
+        {
+            avatar->setHeadColliderCount(avatar->getHeadColliderCount() + 1);
+        }
+    }
+
+    return true;
+}
+
+void WorldZone::postSolveAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
+{
+    // TODO: implement
+}
+
+void WorldZone::separateAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
+{
+    cpShape *cpShapeA, *cpShapeB;
+    cpArbiterGetShapes(arbiter, &cpShapeA, &cpShapeB);
+    auto source = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeA));  // Player
+    auto target = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeB));
+
+    if (target->getFriction() == 0.0F)
+    {
+        return;
+    }
+
+    auto player = Player::getMain();
+    auto avatar = player->getAvatar();
+
+    // FIXME: Collision events can still occur after the avatar is destroyed
+    if (!avatar)
+    {
+        return;
+    }
+
+    AX_ASSERT(avatar == source->getUserData());
+
+    if (!dynamic_cast<Entity*>(target->getUserData()))
+    {
+        if (source == player->getFeetShape())
+        {
+            avatar->setFootColliderCount(avatar->getFootColliderCount() - 1);
+        }
+        else if (source == player->getHeadShape())
+        {
+            avatar->setHeadColliderCount(avatar->getHeadColliderCount() - 1);
+        }
+    }
 }
 
 Biome WorldZone::getBiomeForName(const std::string& name)

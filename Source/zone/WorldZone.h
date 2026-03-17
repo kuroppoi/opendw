@@ -1,6 +1,7 @@
 #ifndef __WORLD_ZONE_H__
 #define __WORLD_ZONE_H__
 
+#include "chipmunk/chipmunk_structs.h"  // cpArbiter
 #include "axmol.h"
 
 namespace opendw
@@ -140,6 +141,15 @@ public:
 
     /* FUNC: WorldZone::hasPhysickedAllPlacedBlocks @ 0x1000472F4 */
     bool hasPhysickedAllPlacedBlocks() const;
+
+    /* FUNC: WorldZone::beginAvatarCollision:space: @ 0x100048E3D */
+    bool beginAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space);
+
+    /* FUNC: WorldZone::postSolveAvatarCollision:space: @ 0x1000491E0 */
+    void postSolveAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space);
+
+    /* FUNC: WorldZone::separateAvatarCollision:space: @ 0x100049085 */
+    void separateAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space);
 
     /* FUNC: WorldZone::documentId @ 0x100049FC3 */
     const std::string& getDocumentId() const { return _documentId; }

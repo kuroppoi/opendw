@@ -526,12 +526,25 @@ void WorldRenderer::updateLiquidInBlock(BaseBlock* block)
 
 void WorldRenderer::updateViewport(float deltaTime)
 {
-    auto viewport = getViewportPosition();
+    auto player    = Player::getMain();
+    Point position = player->getPosition();
+    position.y += BLOCK_SIZE * 0.8F;
+    auto distance = math_util::getDistance(position.x, position.y, _cameraPosition.x, _cameraPosition.y);
 
-    // TODO: clean up
-    auto player   = Player::getMain();
-    auto position = player->getPosition();
-    Point cameraPosition(position.x, position.y + BLOCK_SIZE * 0.8F);
+    if (deltaTime < 1.0F && distance < BLOCK_SIZE * 5.0F)
+    {
+        MathUtil::smooth(&_cameraPosition.x, position.x, deltaTime, 0.01F);
+        MathUtil::smooth(&_cameraPosition.y, position.y, deltaTime, 0.01F);
+    }
+    else
+    {
+        _cameraPosition = position;
+    }
+
+    // TODO: clamp viewport to world bounds
+    // TODO: use visible blocks to determine cavern/sky visibility
+    auto& winSize      = _director->getWinSize();
+    auto viewport      = _cameraPosition * _worldScale - winSize * 0.5F;
     auto biome         = _zone->getBiomeType();
     bool cavernVisible = biome == Biome::DEEP ||
                          (biome != Biome::SPACE && player->getBlockPosition().y > _zone->getSurfaceBottom() + 20);
@@ -539,20 +552,10 @@ void WorldRenderer::updateViewport(float deltaTime)
     _cavern->setVisible(cavernVisible);
     _foreground->setPosition(-viewport);
     _foreground->setScale(_worldScale);
-    _sky->setViewPosition(cameraPosition);
+    _sky->setViewPosition(_cameraPosition);
     _sky->setViewScale(_worldScale);
-    _cavern->setViewPosition(cameraPosition);
+    _cavern->setViewPosition(_cameraPosition);
     _cavern->setViewScale(_worldScale);
-}
-
-Point WorldRenderer::getViewportPosition() const
-{
-    // TODO: finish
-    auto& winSize       = _director->getWinSize();
-    auto playerPosition = Player::getMain()->getPosition();
-    Point cameraPosition(playerPosition.x, playerPosition.y + BLOCK_SIZE * 0.8F);
-    auto position = cameraPosition * _worldScale;
-    return position - winSize * 0.5F;
 }
 
 WorldLayerRenderer* WorldRenderer::createLayerRenderer(const std::string& name,
@@ -651,15 +654,6 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
     }
 
     return entity;
-}
-
-void WorldRenderer::setWorldScale(float scale)
-{
-    if (_worldScale != scale)
-    {
-        _worldScale = scale;
-        updateViewport(1.0F);
-    }
 }
 
 ax::Point WorldRenderer::getNodePointForScreenPoint(const ax::Point& point) const

@@ -101,11 +101,23 @@ public:
     /* FUNC: Entity::realRotation @ 0x1000C0FDB */
     float getRealRotation() const { return _realRotation; }
 
-    /* FUNC: Entity::isBlock @ 0x1000BE520 */
-    bool isBlock() const;
-
     /* FUNC: Entity::setIsPlayerAvatar: @ 0x1000C1104 */
     void setIsPlayerAvatar(bool value) { _playerAvatar = value; }
+    
+    /* FUNC: Entity::setGrounded: @ 0x1000C0ECC */
+    void setGrounded(bool grounded) { _grounded = grounded; }
+
+    /* FUNC: Entity::grounded @ 0x1000C0EBB */
+    bool isGrounded() const { return _grounded; }
+
+    /* FUNC: Entity::groundedRecently @ 0x1000BC2C8 */
+    bool wasGroundedRecently() const;
+
+    /* FUNC: Entity::lastGroundedAt @ 0x1000C0EEE */
+    double getLastGroundedAt() const { return _lastGroundedAt; }
+
+    /* FUNC: Entity::isBlock @ 0x1000BE520 */
+    bool isBlock() const;
 
     Physical* getPhysical() const { return _physical; }
 
@@ -125,6 +137,8 @@ protected:
     bool _positioned;                        // Entity::hasBeenPositioned @ 0x100312900
     bool _alive;                             // Entity::alive @ 0x1003128F0
     bool _playerAvatar;                      // Entity::isPlayerAvatar @ 0x100312930
+    bool _grounded;                          // Entity::grounded @ 0x100312948
+    double _lastGroundedAt;                  // Entity::lastGroundedAt @ 0x100312950
     Physical* _physical;                     // NOTE: Originally inherited from GameObject
 };
 
