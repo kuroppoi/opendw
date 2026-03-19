@@ -85,4 +85,9 @@ float getDistance(float x, float y, float x2, float y2)
     return hypotf(x - x2, y - y2);
 }
 
+float lerp(float from, float to, float alpha)
+{
+    return MathUtil::lerp(from, to, clampf(alpha, 0.0F, 1.0F));
+}
+
 }  // namespace opendw::math_util

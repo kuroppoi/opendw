@@ -15,6 +15,7 @@
 #include "CommonDefs.h"
 #include "GameConfig.h"
 #include "GameManager.h"
+#include "Item.h"
 
 #define MOVE_MESSAGE_INTERVAL 0.2
 
@@ -171,13 +172,13 @@ void Player::update(float deltaTime)
 
         if (speedX < 1.0F)
         {
-            speedX = 0.0F;
+            speedX     = 0.0F;
             movement.x = speedX;
         }
 
         if (speedY < 1.0F)
         {
-            speedY = 0.0F;
+            speedY     = 0.0F;
             movement.y = speedY;
         }
 
@@ -191,8 +192,8 @@ void Player::update(float deltaTime)
                 {
                     auto now = utils::gettime();
 
-                    if (now <= _avatar->getLastGroundedAt() + 3.0 || now <= _lastPropelledUpwardAt + 3.333 ||
-                        isHover || _currentLiquidLevel > 4)
+                    if (now <= _avatar->getLastGroundedAt() + 3.0 || now <= _lastPropelledUpwardAt + 3.333 || isHover ||
+                        _currentLiquidLevel > 4)
                     {
                         animation = "falling-1";
                     }
@@ -219,7 +220,7 @@ void Player::update(float deltaTime)
                 if (!_running)
                 {
                     _startedRunningAt = utils::gettime();
-                    _running = true;
+                    _running          = true;
                 }
 
                 // TODO: implement horizontal overlap check
@@ -316,7 +317,31 @@ void Player::update(float deltaTime)
             }
             else
             {
-                // TODO: climbing
+                // 0x10001D021: Handle climbing
+                // BUGFIX: Added support for climable blocks larger than 1x1
+                auto blockPos = getBlockPosition();
+                auto climbing = false;
+
+                for (auto x = 0; x < 2; x++)
+                {
+                    for (auto y = 0; y < 4; y++)
+                    {
+                        auto block = zone->getBlockAt(blockPos.x - x, blockPos.y + y);
+
+                        if (block)
+                        {
+                            auto item = block->getFrontItem();
+
+                            if (item->getWidth() >= x + 1 && item->getHeight() >= y + 1 && climbBlock(block, deltaTime))
+                            {
+                                animation = "climb";
+                                climbing  = true;
+                                goto end;
+                            }
+                        }
+                    }
+                }
+            end:  // Nested loop break
 
                 if (_avatar->isGrounded() && utils::gettime() > _lastJumpedAt + 0.3)
                 {
@@ -357,6 +382,25 @@ void Player::update(float deltaTime)
     _avatar->animate(animation);
     _avatar->update(deltaTime);
     sendMoveMessage();
+}
+
+bool Player::climbBlock(BaseBlock* block, float deltaTime)
+{
+    if (!block || !block->getFrontItem()->isClimbable())
+    {
+        return false;
+    }
+
+    auto position = _physical->getPosition();
+    auto velocity = _physical->getVelocity();
+    auto offset   = Point::UNIT_X * (block->getFrontItem()->getWidth() - 1) * BLOCK_SIZE * 0.5F;
+    auto target   = block->getWorldPosition() + offset;
+    position.x    = math_util::lerp(position.x, target.x, deltaTime * 3.0F);
+    velocity.x    = math_util::lerp(velocity.x, 0.0F, deltaTime * 10.0F);
+    velocity.y    = math_util::lerp(velocity.y, getClimbingSpeed() * BLOCK_SIZE * 5.0F, deltaTime * 10.0F);
+    _physical->setPosition(position);
+    _physical->setVelocity(velocity);
+    return true;
 }
 
 void Player::teleportToZone(const std::string& id)
@@ -411,6 +455,12 @@ float Player::getRunningSpeed() const
 {
     auto agility = 5;  // TODO
     return MathUtil::lerp(1.0F, 1.65F, (float)agility / 15.0F);
+}
+
+float Player::getClimbingSpeed() const
+{
+    auto agility = 5;  // TODO
+    return MathUtil::lerp(1.2F, 2.2F, (float)agility / 15.0F);
 }
 
 float Player::getJumpingPower() const

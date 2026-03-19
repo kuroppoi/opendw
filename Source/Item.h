@@ -52,6 +52,15 @@ enum class DamageType : uint8_t
     STINK
 };
 
+enum class UseType : uint8_t
+{
+    NONE,
+    CLIMB = 2,
+    FLY = 13,
+    PROPEL,
+    HOVER
+};
+
 /*
  * CLASS: Item : NSObject @ 0x100316E78
  */
@@ -153,6 +162,18 @@ public:
 
     /* FUNC: Item::light @ 0x10004E0EE */
     float getLight() const { return _light; }
+
+    /* FUNC: Item::isUsable @ 0x10004D7C9 */
+    bool isUsable() const { return _useMask != 0; }
+
+    /* FUNC: Item::isUsableType: @ 0x10004D7E0 */
+    bool isUsableType(UseType use) const;
+
+    /* FUNC: Item::isClimbable @ 0x10004D7FA */
+    bool isClimbable() const;
+
+    /* FUNC: Item::useMask @ 0x10004E3E0 */
+    uint64_t getUseMask() const { return _useMask; }
 
     /* FUNC: Item::shape @ 0x10004DDBF */
     Shape getShape() const { return _shape; }
@@ -275,6 +296,9 @@ private:
     /* FUNC: 0x10005322D */
     static DamageType getDamageTypeForName(const std::string& name);
 
+    /* FUNC: 0x100052F09 */
+    static UseType getUseTypeForName(const std::string& name);
+
     GameConfig* _config;                             // Item::manager @ 0x1003111C8
     ax::ValueMap _data;                              // Item::config @ 0x1003111C0
     std::string _name;                               // Item::name @ 0x1003111E8
@@ -295,6 +319,7 @@ private:
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8
+    uint64_t _useMask;                               // Item::useMask @ 0x100311428
     Shape _shape;                                    // Item::shape @ 0x100311218
     std::string _shapeDefinition;                    // Item::shapeDefinition @ 0x100311220
     int32_t _field;                                  // Item::field @ 0x1003112B8

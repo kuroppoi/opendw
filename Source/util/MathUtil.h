@@ -26,6 +26,9 @@ float getScaledHeight(ax::Node* node);
 /* @return The distance between 2 points. */
 float getDistance(float x, float y, float x2, float y2);
 
+/* Linear interpolation function that automatically clamps alpha between 0 and 1. */
+float lerp(float from, float to, float alpha);
+
 }  // namespace opendw::math_util
 
 #endif  // __MATH_UTIL_H__

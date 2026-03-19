@@ -100,6 +100,19 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
         _lightPosition.set(x, y);
     }
 
+    // 0x10004B9DA: Configure use mask
+    auto& use = map_util::getMap(data, "use");
+
+    for (auto& entry : use)
+    {
+        auto type = getUseTypeForName(entry.first);
+
+        if (type != UseType::NONE)
+        {
+            _useMask |= 1ui64 << (static_cast<uint8_t>(type) & 0x3F);
+        }
+    }
+
     return true;
 }
 
@@ -272,6 +285,16 @@ bool Item::isContinuousFor(Item* item) const
     return item->getContinuity() == _continuity;
 }
 
+bool Item::isUsableType(UseType type) const
+{
+    return (_useMask >> (static_cast<uint8_t>(type) & 0x3F) & 1) != 0;
+}
+
+bool Item::isClimbable() const
+{
+    return isUsableType(UseType::CLIMB);
+}
+
 Item::SpriteList Item::createSequentialSpriteList(const std::string& name, size_t count, size_t step) const
 {
     auto total = count * step;
@@ -413,6 +436,20 @@ DamageType Item::getDamageTypeForName(const std::string& name)
         return DamageType::STINK;
 
     return DamageType::NONE;
+}
+
+UseType Item::getUseTypeForName(const std::string& name)
+{
+    if (name == "climb")
+        return UseType::CLIMB;
+    else if (name == "fly")
+        return UseType::FLY;
+    else if (name == "propel")
+        return UseType::PROPEL;
+    else if (name == "hover")
+        return UseType::HOVER;
+
+    return UseType::NONE;
 }
 
 }  // namespace opendw

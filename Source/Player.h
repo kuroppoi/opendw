@@ -48,6 +48,9 @@ public:
     /* FUNC: Player::step: @ 0x10001C351 */
     void update(float deltaTime);
 
+    /* FUNC: Player::climbBlock:delta: @ 0x100020A28 */
+    bool climbBlock(BaseBlock* block, float deltaTime);
+
     /* FUNC: Player::teleportToZone: @ 0x100029DE0 */
     void teleportToZone(const std::string& id);
 
@@ -65,6 +68,9 @@ public:
 
     /* FUNC: Player::runningSpeed @ 0x10002C89B */
     float getRunningSpeed() const;
+    
+    /* FUNC: Player::climbingSpeed @ 0x10002C8D6 */
+    float getClimbingSpeed() const;
 
     /* FUNC: Player::jumpingPower @ 0x10002C94C */
     float getJumpingPower() const;
