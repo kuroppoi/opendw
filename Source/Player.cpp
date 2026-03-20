@@ -185,10 +185,12 @@ void Player::update(float deltaTime)
     auto speedX    = abs(movement.x);
     auto speedY    = abs(movement.y);
     auto hover     = _flyAccessory && _flyAccessory->isUsableType(UseType::HOVER);
+    auto grounded  = _avatar->isGrounded();
 
     if (_currentLiquidLevel < 5)
     {
-        if (!_avatar->wasGroundedRecently())
+        // TODO: is checking wasGroundedRecently() redundant?
+        if (!_avatar->wasGroundedRecently() && !grounded)
         {
             // We're mid-air
             _running = false;
@@ -259,7 +261,6 @@ void Player::update(float deltaTime)
     // 0x10001D002: Apply movement
     auto flying     = false;
     auto body       = _physical->getBody();
-    auto grounded   = _avatar->isGrounded();
     auto propulsion = BLOCK_SIZE * (grounded ? 0.5F : 0.2F);  // Upward motion required to fly
 
     if (!_clip)
