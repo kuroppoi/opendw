@@ -399,6 +399,24 @@ void Player::update(float deltaTime)
             }
         }
 
+        // 0x10001D8DB: Move player towards block center if moving directly upwards
+        if (movement.y > BLOCK_SIZE * 0.5F && speedX < BLOCK_SIZE * 0.345F && _avatar->getHeadColliderCount() < 1)
+        {
+            auto velocity = _physical->getVelocity();
+            velocity.x    = 0.0F;
+            _physical->setVelocity(velocity);
+            auto blockPos = getBlockPosition();
+            auto block    = zone->getBlockAt(blockPos.x, blockPos.y);
+
+            if (block)
+            {
+                auto position = _physical->getPosition();
+                auto target   = block->getWorldPosition();
+                position.x    = math_util::lerp(position.x, target.x, deltaTime * 3.0F);
+                _physical->setPosition(position);
+            }
+        }
+
         // 0x10001DBB2: Limit velocity
         // TODO: calculation is a bit more complex for liquids
         auto velLimit = _currentLiquidLevel == 0 ? BLOCK_SIZE * 12.0F : BLOCK_SIZE * 4.0F;
