@@ -62,6 +62,14 @@ public:
                              CollisionPostSolve postSolve,
                              CollisionSeparate separate);
 
+    /* FUNC: ChipmunkSpace::addBounds:thickness:elasticity:friction:filter:collisionType: @ 0x10009A219 */
+    void addBounds(const ax::Rect& bounds,
+                   float thickness,
+                   float elasticity,
+                   float friction,
+                   cpShapeFilter filter,
+                   cpCollisionType type);
+
     /* FUNC: ChipmunkSpace::add: @ 0x1000990FA */
     void add(ChipmunkObject* object);
 

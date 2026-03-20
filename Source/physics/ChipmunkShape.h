@@ -64,7 +64,7 @@ protected:
 };
 
 /*
- * CLASS: ChipmunkCircleShape : ChipmunkShape @ 0x10031C1E8 
+ * CLASS: ChipmunkCircleShape : ChipmunkShape @ 0x10031C1E8
  */
 class ChipmunkCircleShape : public ChipmunkShape
 {
@@ -85,6 +85,30 @@ public:
 
 private:
     cpCircleShape _shape;  // ChipmunkCircleShape::_shape @ 0x1003145B8
+};
+
+/*
+ * CLASS: ChipmunkSegmentShape : ChipmunkShape @ 0x10031C238
+ */
+class ChipmunkSegmentShape : public ChipmunkShape
+{
+public:
+    virtual ~ChipmunkSegmentShape() override;
+
+    /* FUNC: ChipmunkSegmentShape::segmentWithBody:from:to:radius: @ 0x10013DDF2 */
+    static ChipmunkSegmentShape* createWithBody(ChipmunkBody* body,
+                                                const ax::Point& from,
+                                                const ax::Point& to,
+                                                float radius);
+
+    /* FUNC: ChipmunkSegmentShape::initWithBody:from:to:radius: @ 0x10013DE7A */
+    bool initWithBody(ChipmunkBody* body, const ax::Point& from, const ax::Point& to, float radius);
+
+    /* FUNC: ChipmunkSegmentShape::shape @ 0x10013DE6A */
+    cpShape* getShape() const override { return (cpShape*)&_shape; }
+
+private:
+    cpSegmentShape _shape;  // ChipmunkSegmentShape::_shape @ 0x1003145C0
 };
 
 /*

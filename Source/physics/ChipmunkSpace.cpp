@@ -117,6 +117,41 @@ void ChipmunkSpace::addCollisionHandler(cpCollisionType typeA,
     handler->userData = data;
 }
 
+/* FUNC: 0x10009A3FF */
+static ChipmunkSegmentShape* createSegment(ChipmunkBody* body,
+                                           const ax::Point& from,
+                                           const ax::Point& to,
+                                           float radius,
+                                           float elasticity,
+                                           float friction,
+                                           cpShapeFilter filter,
+                                           cpCollisionType type)
+{
+    auto shape = ChipmunkSegmentShape::createWithBody(body, from, to, radius);
+    shape->setElasticity(elasticity);
+    shape->setFriction(friction);
+    shape->setFilter(filter);
+    shape->setCollisionType(type);
+    return shape;
+}
+
+void ChipmunkSpace::addBounds(const Rect& bounds,
+                              float thickness,
+                              float elasticity,
+                              float friction,
+                              cpShapeFilter filter,
+                              cpCollisionType type)
+{
+    auto minX = bounds.getMinX() - thickness;
+    auto minY = bounds.getMinY() - thickness;
+    auto maxX = bounds.getMaxX() + thickness;
+    auto maxY = bounds.getMaxY() + thickness;
+    add(createSegment(_staticBody, {minX, minY}, {minX, maxY}, thickness, elasticity, friction, filter, type));
+    add(createSegment(_staticBody, {minX, maxY}, {maxX, maxY}, thickness, elasticity, friction, filter, type));
+    add(createSegment(_staticBody, {maxX, maxY}, {maxX, minY}, thickness, elasticity, friction, filter, type));
+    add(createSegment(_staticBody, {maxX, minY}, {minX, minY}, thickness, elasticity, friction, filter, type));
+}
+
 void ChipmunkSpace::add(ChipmunkObject* object)
 {
     if (auto base = dynamic_cast<ChipmunkBaseObject*>(object))

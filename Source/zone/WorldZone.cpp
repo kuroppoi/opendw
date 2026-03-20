@@ -153,6 +153,8 @@ void WorldZone::configure(const ValueMap& data)
     _space->setGravity(Vec2(0.0F, -gravity) * BLOCK_SIZE);
     Physical::setSpace(_space);
     _fixedTimeStep = 0.011111111F;
+    _space->addBounds(Rect(Point(0.0F, _blocksHeight * -BLOCK_SIZE), Size(_blocksWidth, _blocksHeight) * BLOCK_SIZE),
+                      0.0F, 0.0F, 0.0F, CP_SHAPE_FILTER_ALL, NULL);
 
     // 0x100040D78: Add collision handlers
     // FIXME: It would be nicer if we didn't have to cast collision type

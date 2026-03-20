@@ -59,6 +59,10 @@ cpShapeFilter ChipmunkShape::getFilter() const
     return cpShapeGetFilter(getShape());
 }
 
+//
+// ChipmunkCircleShape
+//
+
 ChipmunkCircleShape::~ChipmunkCircleShape()
 {
     cpShapeDestroy(getShape());
@@ -80,6 +84,34 @@ float ChipmunkCircleShape::getRadius() const
 {
     return cpCircleShapeGetRadius(getShape());
 }
+
+//
+// ChipmunkSegmentShape
+//
+
+ChipmunkSegmentShape::~ChipmunkSegmentShape()
+{
+    cpShapeDestroy(getShape());
+}
+
+ChipmunkSegmentShape* ChipmunkSegmentShape::createWithBody(ChipmunkBody* body,
+                                                           const Point& from,
+                                                           const Point& to,
+                                                           float radius)
+{
+    CREATE_INIT(ChipmunkSegmentShape, initWithBody, body, from, to, radius);
+}
+
+bool ChipmunkSegmentShape::initWithBody(ChipmunkBody* body, const Point& from, const Point& to, float radius)
+{
+    cpSegmentShapeInit(&_shape, body->getBody(), cpv(from.x, from.y), cpv(to.x, to.y), radius);
+    cpShapeSetUserData(getShape(), this);
+    return true;
+}
+
+//
+// ChipmunkPolyShape
+//
 
 ChipmunkPolyShape::~ChipmunkPolyShape()
 {

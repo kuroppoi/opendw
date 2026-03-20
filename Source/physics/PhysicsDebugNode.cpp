@@ -32,6 +32,14 @@ static void drawShape(cpShape* shape, DrawNode* drawNode)
         drawNode->drawCircle({position.x, position.y}, radius, angle, 20, false, Color4F::WHITE);
         break;
     }
+    case CP_SEGMENT_SHAPE:
+    {
+        auto from   = cpSegmentShapeGetA(shape);
+        auto to     = cpSegmentShapeGetB(shape);
+        auto radius = cpSegmentShapeGetRadius(shape) * 2.0F + 1.0F;
+        drawNode->drawLine({from.x, from.y}, {to.x, to.y}, Color4F::WHITE, radius);
+        break;
+    }
     case CP_POLY_SHAPE:
     {
         auto count  = cpPolyShapeGetCount(shape);
