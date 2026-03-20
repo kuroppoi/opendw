@@ -31,11 +31,15 @@ public:
     /* FUNC: InputManager::screenPointerPosition @ 0x1000E9677 */
     const ax::Point& getCursorPosition() const { return _cursorPosition; }
 
+    /* FUNC: InputManager::lastInputAt @ 0x1000E96A7 */
+    double getLastInputAt() const { return _lastInputAt; }
+
 protected:
     GameManager* _game;         // InputManager::game @ 0x100313178
     Player* _player;            // InputManager::player @ 0x100313180
     GameGui* _gameGui;          // InputManager::gameGui @ 0x100313188
     ax::Point _cursorPosition;  // InputManager::screenPointerPosition @ 0x100313190
+    double _lastInputAt;        // InputManager::lastInputAt @ 0x1003131A0
 };
 
 }  // namespace opendw

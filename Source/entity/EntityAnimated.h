@@ -49,6 +49,9 @@ public:
     /* FUNC: EntityAnimated::getSlot: @ 0x1001717AC */
     spine::Slot* getSlot(const std::string& name) const;
 
+    /* FUNC: EntityAnimated::mainSkeleton @ 0x100171C87 */
+    spine::SkeletonAnimation* getMainSkeleton() const { return _mainSkeleton; }
+
 protected:
     spine::SkeletonAnimation* _mainSkeleton;  // EntityAnimated::mainSkeleton @ 0x100314F70
 };

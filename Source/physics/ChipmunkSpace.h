@@ -51,6 +51,9 @@ public:
     /* FUNC: ChipmunkSpace::setGravity: @ 0x100098D19 */
     void setGravity(const ax::Vec2& gravity);
 
+    /* FUNC: ChipmunkSpace::gravity @ 0x100098D04 */
+    ax::Vec2 getGravity() const;
+
      /* FUNC: ChipmunkSpace::addCollisionHandler:typeA:typeB:begin:preSolve:postSolve:separate: @ 0x100098FEF */
     void addCollisionHandler(cpCollisionType typeA,
                              cpCollisionType typeB,

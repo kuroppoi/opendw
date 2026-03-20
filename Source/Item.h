@@ -56,7 +56,7 @@ enum class UseType : uint8_t
 {
     NONE,
     CLIMB = 2,
-    FLY = 13,
+    FLY   = 13,
     PROPEL,
     HOVER
 };
@@ -153,6 +153,9 @@ public:
 
     /* FUNC: Item::borderShadow @ 0x10004E497 */
     bool hasBorderShadow() const { return _borderShadow; }
+
+    /* FUNC: Item::power @ 0x10004DECB */
+    float getPower() const { return _power; }
 
     /* FUNC: Item::jiggle @ 0x10004E301 */
     float getJiggle() const { return _jiggle; }
@@ -316,6 +319,7 @@ private:
     bool _center;                                    // Item::center @ 0x100311270
     bool _shadow;                                    // Item::shadow @ 0x100311258
     bool _borderShadow;                              // Item::borderShadow @ 0x1003112B0
+    float _power;                                    // Item::power @ 0x100311288
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8

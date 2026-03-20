@@ -86,6 +86,7 @@ void DefaultInputManager::checkInput(float deltaTime)
     if (_player->getClip())
     {
         _player->setDestination(position + moveDirection * BLOCK_SIZE);
+        _player->setTravelingHorizontally(moveDirection.x != 0.0F);
     }
     else
     {
@@ -101,6 +102,13 @@ void DefaultInputManager::checkInput(float deltaTime)
     auto currentScale = renderer->getWorldScale();
     auto worldScale   = currentScale + zoomDirection * zoomSpeed * deltaTime * currentScale;
     renderer->setWorldScale(MAX(0.3F, MIN(1.2F, worldScale)));
+
+    // Update last input time
+    // TODO: also check mouse input
+    if (!_keysPressed.empty())
+    {
+        _lastInputAt = utils::gettime();
+    }
 }
 
 void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)

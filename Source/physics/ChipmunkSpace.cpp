@@ -53,6 +53,12 @@ void ChipmunkSpace::setGravity(const Vec2& gravity)
     cpSpaceSetGravity(_space, cpv(gravity.x, gravity.y));
 }
 
+Vec2 ChipmunkSpace::getGravity() const
+{
+    auto gravity = cpSpaceGetGravity(_space);
+    return Vec2(gravity.x, gravity.y);
+}
+
 /* FUNC: 0x100098F73 */
 static bool onCollisionBegin(cpArbiter* arbiter, cpSpace* /*space*/, ChipmunkSpace::CollisionHandler* handler)
 {

@@ -46,6 +46,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _center           = map_util::getBool(data, "center");
     _shadow           = map_util::getBool(data, "shadow");
     _borderShadow     = map_util::getBool(data, "border_shadow");
+    _power            = map_util::getFloat(data, "power");
     _jiggle           = map_util::getFloat(data, "jiggle");
     _glow             = map_util::getFloat(data, "glow");
     _light            = map_util::getFloat(data, "light");

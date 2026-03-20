@@ -3,9 +3,11 @@
 #include "entity/EntityAnimatedAvatar.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
+#include "input/InputManager.h"
 #include "network/tcp/MessageIdent.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/ChipmunkShape.h"
+#include "physics/ChipmunkSpace.h"
 #include "physics/Physical.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -18,6 +20,9 @@
 #include "Item.h"
 
 #define MOVE_MESSAGE_INTERVAL 0.2
+#define JUMP_COOLDOWN         0.3
+#define AGILITY_LEVEL         10  // TODO: skills
+#define ENGINEERING_LEVEL     10  // TODO: skills
 
 USING_NS_AX;
 
@@ -123,6 +128,8 @@ void Player::begin()
 {
     // TODO: finish
     _zoneTeleporting = false;
+    _flyAccessory    = GameConfig::getMain()->getItemForCode(1060);  // TODO: get from inventory
+    _changeIdleAt    = utils::gettime() + random(8.0F, 15.0F);
     setLookDirection(1);
 }
 
@@ -136,233 +143,280 @@ void Player::reset()
 void Player::update(float deltaTime)
 {
     // TODO: finish
-
     // 0x10001C37E: Determine current liquid level
-    auto zone         = _game->getZone();
-    auto blockPos     = getBlockPosition();
-    auto block        = zone->getBlockAt(blockPos.x, blockPos.y);
-    auto flyAccessory = GameConfig::getMain()->getItemForCode(1061);  // Onyx Jetpack
-    auto isFly        = true;                                         // TODO: fly accessory
-    auto isHover      = false;                                        // TODO: fly accessory
-    auto isPropel     = false;                                        // TODO: fly accessory
+    auto zone     = _game->getZone();
+    auto blockPos = getBlockPosition();
+    auto block    = zone->getBlockAt(blockPos.x, blockPos.y);
 
     if (block)
     {
         _currentLiquidLevel = block->getLiquidMod();
     }
 
-    // TODO: idle animation routine
-
-    auto animation = "falling-1";  // No-clip animation
-
-    if (_clip)
+    // 0x10001C47A: Change idle animation if it is time
+    if (utils::gettime() >= _changeIdleAt)
     {
-        animation = "idle-1";
-
-        if (_currentLiquidLevel > 3)
+        if (_idleAnimation.empty())
         {
-            animation = "swim-idle";
+            auto next      = _currentLiquidLevel > 4 ? std::format("swim-idle-flourish-{}", random(1, 4))
+                                                     : std::format("idle-{}", random(2, 5));
+            auto animation = _avatar->getMainSkeleton()->findAnimation(next);
+            auto duration  = animation ? animation->getDuration() : 5.0F;
+            _changeIdleAt  = utils::gettime() + duration;
+            _idleAnimation = next;
         }
-
-        //
-
-        auto movement = _destination - _physical->getPosition();
-        auto speedX   = abs(movement.x);
-        auto speedY   = abs(movement.y);
-
-        if (speedX < 1.0F)
+        else
         {
-            speedX     = 0.0F;
-            movement.x = speedX;
+            _changeIdleAt  = utils::gettime() + random(10.0, 15.0);
+            _idleAnimation = "";
         }
+    }
 
-        if (speedY < 1.0F)
+    // 0x10001C60D: Reset idle animation if we've moved recently
+    if (utils::gettime() < _game->getInputManager()->getLastInputAt() + 0.5)
+    {
+        _changeIdleAt  = utils::gettime() + random(8.0, 10.0);
+        _idleAnimation = "";
+    }
+
+    // 0x10001C6DD: Determine current animation
+    auto animation = _idleAnimation.empty() ? (_currentLiquidLevel > 3 ? "swim-idle" : "idle-1") : _idleAnimation;
+    auto movement  = _destination - _physical->getPosition();
+    auto speedX    = abs(movement.x);
+    auto speedY    = abs(movement.y);
+    auto hover     = _flyAccessory && _flyAccessory->isUsableType(UseType::HOVER);
+
+    if (_currentLiquidLevel < 5)
+    {
+        if (!_avatar->wasGroundedRecently())
         {
-            speedY     = 0.0F;
-            movement.y = speedY;
-        }
+            // We're mid-air
+            _running = false;
 
-        auto travelingHorizontally = movement.x != 0.0F;
-
-        if (_currentLiquidLevel < 5)
-        {
-            if (!_avatar->wasGroundedRecently())
+            if (_flyAccessoryPower <= 0.5F)
             {
-                if (_flyAccessoryPower <= 0.5F)
+                // We're not using our jetpack
+                if (hover || utils::gettime() <= _avatar->getLastGroundedAt() + 3.0 ||
+                    utils::gettime() <= _lastPropelledUpwardAt + 3.333)
                 {
-                    auto now = utils::gettime();
-
-                    if (now <= _avatar->getLastGroundedAt() + 3.0 || now <= _lastPropelledUpwardAt + 3.333 || isHover ||
-                        _currentLiquidLevel > 4)
-                    {
-                        animation = "falling-1";
-                    }
-                    else
-                    {
-                        animation = "flail";
-                    }
+                    animation = "falling-1";
                 }
                 else
                 {
-                    animation = "fly";
+                    animation = "flail";
                 }
             }
-            else if (!travelingHorizontally)
+            else
             {
-                auto velocity = _physical->getVelocity();
-                velocity.x *= 0.6F;
-                _physical->setVelocity(velocity);
+                animation = "fly";
+            }
+        }
+        else if (!_travelingHorizontally)
+        {
+            // We're standing still on solid ground
+            auto velocity = _physical->getVelocity();
+            velocity.x *= 0.6F;
+            _physical->setVelocity(velocity);
+            _running = false;
+        }
+        else
+        {
+            // We're walking on solid ground
+            if (!_running)
+            {
+                _startedRunningAt = utils::gettime();
+                _running          = true;
+            }
+
+            // TODO: implement horizontal overlap check
+            auto velocity = abs(_physical->getVelocity().x);
+
+            if (velocity >= BLOCK_SIZE * 4.0F && utils::gettime() >= _startedRunningAt + 0.25)
+            {
+                animation = "run";
             }
             else
             {
                 animation = "walk";
-
-                if (!_running)
-                {
-                    _startedRunningAt = utils::gettime();
-                    _running          = true;
-                }
-
-                // TODO: implement horizontal overlap check
-                auto velocity = abs(_physical->getVelocity().x);
-
-                if (velocity > BLOCK_SIZE * 4.0F && utils::gettime() > _startedRunningAt + 0.25)
-                {
-                    animation = "run";
-                }
             }
         }
-        else if (isPropel && !travelingHorizontally)
-        {
-            auto velocity = abs(_physical->getVelocity().y);
+    }
+    else
+    {
+        // We're swimming in liquid
+        _running = false;
 
-            if (velocity > BLOCK_SIZE)
+        if (_travelingHorizontally)
+        {
+            animation = "swim-1";
+        }
+        else if (_flyAccessoryPower > 0.5F)
+        {
+            animation = "fly";
+        }
+    }
+
+    // 0x10001D002: Apply movement
+    auto flying     = false;
+    auto body       = _physical->getBody();
+    auto grounded   = _avatar->isGrounded();
+    auto propulsion = BLOCK_SIZE * (grounded ? 0.5F : 0.2F);  // Upward motion required to fly
+
+    if (!_clip)
+    {
+        animation = "falling-1";
+    }
+    else
+    {
+        if (movement.y > propulsion)
+        {
+            _lastPropelledUpwardAt = utils::gettime();
+            flying                 = _flyAccessory != nullptr;
+        }
+
+        // 0x10001CCE6: Apply horizontal movement
+        if (speedX > BLOCK_SIZE * 0.05F)
+        {
+            auto impulse = BLOCK_SIZE * 5.0F;
+
+            if (grounded)
             {
-                animation = "swim-1";
+                impulse *= getRunningSpeed();
+            }
+            else if (!flying && hover)
+            {
+                impulse *= 0.25F;  // We're hovering; slow horizontal movement
+            }
+
+            // TODO: awesome mode speed multiplier
+
+            if (utils::gettime() < _startedRunningAt + 0.25)
+            {
+                impulse *= 0.8F;  // Running warmup
+            }
+
+            if (movement.x < 0.0F)
+            {
+                impulse *= -1.0F;
+            }
+
+            // Apply impulse if it doesn't exceed our current horizontal velocity
+            auto velocity = _physical->getVelocity();
+
+            if ((impulse > 0.0F && impulse > velocity.x) || (impulse < 0.0F && impulse < velocity.x))
+            {
+                body->applyImpulseAtLocalPoint(Vec2::UNIT_X * impulse * deltaTime * 15.0F);
+            }
+        }
+
+        // 0x10001D002: Apply vertical movement
+        if (movement.y <= propulsion)
+        {
+            // We're not propelling upwards
+            if (!grounded && hover)
+            {
+                // We're mid-air with a zeppelin
+                auto counterforce = 0.85F;
+                auto mass         = body->getMass();
+
+                if (movement.y > -10.0F)
+                {
+                    // TODO: steam
+                    // TODO: emitter
+                    auto impulse = mass * deltaTime * -3.0F;
+                    body->applyImpulseAtLocalPoint(_physical->getVelocity() * impulse);
+                    counterforce = 0.95F;
+                }
+
+                // Apply counterforce against gravity
+                auto gravity = zone->getSpace()->getGravity();
+                auto impulse = mass * deltaTime * counterforce;
+                body->applyImpulseAtLocalPoint(-(gravity * impulse));
+            }
+            else
+            {
+                // TODO: implement stomping
             }
         }
         else
         {
-            // TODO: make sense of this dumb nonsense
-            animation     = "fly";
-            auto velocity = abs(_physical->getVelocity().x);
+            // 0x10001D021: Handle climbing
+            // BUGFIX: Added support for climable blocks larger than 1x1
+            auto blockPos = getBlockPosition();
+            auto climbing = false;
 
-            if (velocity <= BLOCK_SIZE && !travelingHorizontally)
+            for (auto x = 0; x < 2; x++)
             {
-                animation = "swim-1";
-            }
-        }
-
-        // 0x10001D002: Apply movement
-        if (!movement.isZero())
-        {
-            auto propulsion = BLOCK_SIZE * (_avatar->isGrounded() ? 0.5F : 0.2F);
-            auto flight     = false;
-
-            if (movement.y > propulsion)
-            {
-                _lastPropelledUpwardAt = utils::gettime();
-
-                if (flyAccessory)
+                for (auto y = 0; y < 4; y++)
                 {
-                    // TODO: check for steam or afterburner
-                    flight = true;
-                }
-            }
+                    auto block = zone->getBlockAt(blockPos.x - x, blockPos.y + y);
 
-            if (speedX > BLOCK_SIZE * 0.05F)
-            {
-                auto impulse = BLOCK_SIZE * 5.0F;
-
-                if (_avatar->isGrounded())
-                {
-                    impulse *= getRunningSpeed();
-                }
-                else if (!flight && isHover)
-                {
-                    impulse *= 0.25F;
-                }
-
-                // TODO: awesome mode speed multiplier
-
-                // Running warmup
-                if (utils::gettime() < _startedRunningAt + 0.25)
-                {
-                    impulse *= 0.8F;
-                }
-
-                // Only apply impulse if it exceeds our current horizontal velocity
-                auto velocity = _physical->getVelocity();
-
-                if ((movement.x > 0.0F && impulse > velocity.x) || (movement.x < 0.0F && -impulse < velocity.x))
-                {
-                    impulse = movement.x > 0.0F ? impulse : -impulse;
-                    _physical->getBody()->applyImpulseAtLocalPoint(Vec2::UNIT_X * impulse * deltaTime * 15.0F);
-                }
-            }
-
-            if (movement.y <= propulsion)
-            {
-                if (!_avatar->isGrounded())
-                {
-                    if (isHover)
+                    if (block)
                     {
-                        // TODO: implement
-                    }
-                    else
-                    {
-                        // TODO: stomp
-                    }
-                }
-            }
-            else
-            {
-                // 0x10001D021: Handle climbing
-                // BUGFIX: Added support for climable blocks larger than 1x1
-                auto blockPos = getBlockPosition();
-                auto climbing = false;
+                        auto item = block->getFrontItem();
 
-                for (auto x = 0; x < 2; x++)
-                {
-                    for (auto y = 0; y < 4; y++)
-                    {
-                        auto block = zone->getBlockAt(blockPos.x - x, blockPos.y + y);
-
-                        if (block)
+                        if (item->getWidth() >= x + 1 && item->getHeight() >= y + 1 && climbBlock(block, deltaTime))
                         {
-                            auto item = block->getFrontItem();
-
-                            if (item->getWidth() >= x + 1 && item->getHeight() >= y + 1 && climbBlock(block, deltaTime))
-                            {
-                                animation = "climb";
-                                climbing  = true;
-                                goto end;
-                            }
+                            animation = "climb";
+                            climbing  = true;
+                            goto end;
                         }
                     }
                 }
-            end:  // Nested loop break
+            }
+        end:  // Nested loop break
 
-                if (_avatar->isGrounded() && utils::gettime() > _lastJumpedAt + 0.3)
+            if (_currentLiquidLevel < 4)
+            {
+                if (!climbing)
                 {
-                    _physical->getBody()->applyImpulseAtLocalPoint(Point::UNIT_Y * getJumpingPower() * BLOCK_SIZE * 8.0F);
-                    animation              = "fly";
-                    _lastJumpedAt          = utils::gettime();
-                    _lastPropelledUpwardAt = _lastJumpedAt;
+                    if (!grounded)
+                    {
+                        if (flying && utils::gettime() > _lastJumpedAt + 0.5)
+                        {
+                            useFlyAccessory(_flyAccessory, deltaTime);
+                        }
+                    }
+                    else if (utils::gettime() > _lastJumpedAt + JUMP_COOLDOWN)
+                    {
+                        // We're jumping
+                        body->applyImpulseAtLocalPoint(Vec2::UNIT_Y * getJumpingPower() * BLOCK_SIZE * 8.0F);
+                        _lastJumpedAt          = utils::gettime();
+                        _lastPropelledUpwardAt = _lastJumpedAt;
+                        animation              = "fly";
+                    }
                 }
+            }
+            else if (!flying)
+            {
+                // We're swimming
+                body->applyImpulseAtLocalPoint(Vec2::UNIT_Y * getSwimmingSpeed() * BLOCK_SIZE * deltaTime * 15.0F);
+                animation = "swim-1";
+            }
+            else
+            {
+                useFlyAccessory(_flyAccessory, deltaTime);
             }
         }
 
-        // TODO: figure out how terminal velocity is achieved
-        auto fallSpeed = BLOCK_SIZE * -10.0F;
-        auto velocity  = _physical->getVelocity();
+        // 0x10001DBB2: Limit velocity
+        // TODO: calculation is a bit more complex for liquids
+        auto velLimit = _currentLiquidLevel == 0 ? BLOCK_SIZE * 12.0F : BLOCK_SIZE * 4.0F;
+        auto velocity = _physical->getVelocity();
 
-        if (velocity.y < fallSpeed)
+        if (velocity.lengthSquared() > velLimit * velLimit)
         {
-            _physical->setVelocity({velocity.x, fallSpeed});
+            _physical->setVelocity(velocity.getNormalized() * velLimit);
         }
     }
 
+    body->setAngle(0.0F);
+    _flyAccessoryPower = math_util::lerp(_flyAccessoryPower, 0.0F, deltaTime);
+    _avatar->update(deltaTime);
+    _avatar->setRotation(math_util::lerp(_avatar->getRotation(), 0.0F, deltaTime * 2.3125F));
+    _avatar->animate(animation);
+
+    // Update avatar position
     auto target    = _physical->getPosition() + Point::UNIT_Y * BLOCK_SIZE * 1.6F * 0.06F;
     Point position = _avatar->getPosition();
     auto distance  = math_util::getDistance(target.x, target.y, position.x, position.y);
@@ -377,11 +431,24 @@ void Player::update(float deltaTime)
         position = target;
     }
 
-    _physical->getBody()->setAngle(0.0F);
     _avatar->setPosition(position);
-    _avatar->animate(animation);
-    _avatar->update(deltaTime);
     sendMoveMessage();
+}
+
+void Player::useFlyAccessory(Item* item, float deltaTime)
+{
+    // TODO: flight suppression
+    // TODO: emit particles
+    // TODO: track steam
+
+    auto speedX    = _destination.x - _physical->getPosition().x;
+    auto flySpeed  = getFlyingSpeed() * BLOCK_SIZE * deltaTime;
+    auto direction = abs(speedX) < FLT_EPSILON ? 0.0F : speedX > 0.0F ? 1.0F : -1.0F;
+    _physical->getBody()->applyImpulseAtLocalPoint({flySpeed * direction, flySpeed * 21.5F});
+    auto tilt     = speedX / BLOCK_SIZE * 42.0F;
+    auto rotation = math_util::lerp(_avatar->getRotation(), tilt, deltaTime * 1.75F);
+    _avatar->setRotation(rotation);
+    _flyAccessoryPower = math_util::lerp(_flyAccessoryPower, 1.0F, deltaTime * 2.0F);
 }
 
 bool Player::climbBlock(BaseBlock* block, float deltaTime)
@@ -453,20 +520,30 @@ void Player::onCollideWithEntity(Entity* entity)
 
 float Player::getRunningSpeed() const
 {
-    auto agility = 5;  // TODO
-    return MathUtil::lerp(1.0F, 1.65F, (float)agility / 15.0F);
+    return MathUtil::lerp(1.0F, 1.65F, (float)AGILITY_LEVEL / 15.0F);
 }
 
 float Player::getClimbingSpeed() const
 {
-    auto agility = 5;  // TODO
-    return MathUtil::lerp(1.2F, 2.2F, (float)agility / 15.0F);
+    return MathUtil::lerp(1.2F, 2.2F, (float)AGILITY_LEVEL / 15.0F);
+}
+
+float Player::getSwimmingSpeed() const
+{
+    return MathUtil::lerp(1.0F, 1.7F, (float)AGILITY_LEVEL / 15.0F);
 }
 
 float Player::getJumpingPower() const
 {
-    auto agility = 5;  // TODO
-    return MathUtil::lerp(1.0F, 1.4F, (float)agility / 15.0F);
+    return MathUtil::lerp(1.0F, 1.4F, (float)AGILITY_LEVEL / 15.0F);
+}
+
+float Player::getFlyingSpeed() const
+{
+    // TODO: check for afterburner
+    auto power = _flyAccessory->getPower();
+    auto speed = MathUtil::lerp(1.0F, 1.65F, (float)ENGINEERING_LEVEL / 15.0F);
+    return speed * power;
 }
 
 void Player::setPosition(const Point& position)
