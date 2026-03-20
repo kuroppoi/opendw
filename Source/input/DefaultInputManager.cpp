@@ -82,6 +82,7 @@ void DefaultInputManager::checkInput(float deltaTime)
 
     // Move player
     auto position = _player->getPosition();
+    moveDirection = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE);
 
     if (_player->getClip())
     {
@@ -90,7 +91,7 @@ void DefaultInputManager::checkInput(float deltaTime)
     }
     else
     {
-        moveDirection = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE).getNormalized() * BLOCK_SIZE;
+        moveDirection = moveDirection.getNormalized() * BLOCK_SIZE;
         auto speed    = _keysPressed.contains(KeyCode::KEY_LEFT_SHIFT) ? 14.0F : 7.0F;
         _player->setPosition(position + moveDirection * speed * deltaTime);
         _player->setDestination(_player->getPosition());  // Prevent shenanigans when we switch back into clip mode
