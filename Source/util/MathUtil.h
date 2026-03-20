@@ -8,6 +8,9 @@ namespace opendw::math_util
 
 ax::Vec2 rotateVector(const ax::Vec2& vector, float rotation);
 
+/* Grows a rect by the specified size while maintaining its center and returns the result. */
+ax::Rect growRect(const ax::Rect& rectB, const ax::Size& size);
+
 /* Clamps rect A to rect B and returns the result. */
 ax::Rect clampRect(const ax::Rect& rectA, const ax::Rect& rectB, ax::Vec2* offset = nullptr);
 
@@ -23,6 +26,9 @@ float getScaledHeight(ax::Node* node);
 /* @return The distance between 2 points. */
 float getDistance(float x, float y, float x2, float y2);
 
+/* Linear interpolation function that automatically clamps alpha between 0 and 1. */
+float lerp(float from, float to, float alpha);
+
 }  // namespace opendw::math_util
 
-#endif // __MATH_UTIL_H__
+#endif  // __MATH_UTIL_H__

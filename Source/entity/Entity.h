@@ -7,6 +7,7 @@ namespace opendw
 {
 
 class EntityConfig;
+class Physical;
 
 /*
  * CLASS: Entity : BaseGameObject @ 0x100318638
@@ -28,11 +29,17 @@ public:
     /* FUNC: Entity::step: @ 0x1000BCE54 */
     virtual void update(float deltaTime) override;
 
+    /* FUNC: Entity::step:onscreen: @ 0x1000BD0BA */
+    virtual void updateOnscreen(float deltaTime, bool onscreen);
+
     /* FUNC: Entity::buildGraphics: @ 0x1000BE7DA */
     virtual void buildGraphics() {}
 
     /* FUNC: Entity::finishGraphics @ 0x1000BE7E0 */
     virtual void finishGraphics() {}
+
+    /* FUNC: Entity::buildPhysicalFromConfig @ 0x1000BFBD3 */
+    virtual void buildPhysical();
 
     /* FUNC: Entity::change: @ 0x1000BCB73 */
     virtual void change(const ax::ValueMap& data);
@@ -49,6 +56,15 @@ public:
     /* FUNC: Entity::isAvatar @ 0x1000BE59F */
     virtual bool isAvatar() const { return false; }
 
+    /* FUNC: Entity::physicalSize @ 0x1000C0484 */
+    virtual ax::Size getPhysicalSize() const { return _contentSize; }
+
+    /* FUNC: Entity::physicalOffset @ 0x1000C049F */
+    virtual ax::Point getPhysicalOffset() const { return ax::Point::ZERO; }
+
+    /* FUNC: Entity::config @ 0x1000C0F2E */
+    EntityConfig* getConfig() const { return _config; }
+
     /* FUNC: Entity::setName: @ 0x1000C0E19 */
     void setEntityName(const std::string& name) { _name = name; }
 
@@ -60,6 +76,9 @@ public:
 
     /* FUNC: Entity::entityId @ 0x1000C0DC4 */
     int32_t getEntityId() const { return _entityId; }
+
+    /* FUNC: Entity::currentAnimation @ 0x1000C1086 */
+    int32_t getCurrentAnimation() const { return _currentAnimation; }
 
     /* FUNC: Entity::clientDirected @ 0x1000C0F72 */
     bool isClientDirected() const { return _clientDirected; }
@@ -76,14 +95,31 @@ public:
     /* FUNC: Entity::realPosition @ 0x1000C0F93 */
     const ax::Point& getRealPosition() const { return _realPosition; }
 
-    /* FUNC: Entity::setRealRotation: @ 0x1000cCFED */
+    /* FUNC: Entity::setRealRotation: @ 0x1000CCFED */
     void setRealRotation(float rotation) { _realRotation = rotation; }
 
     /* FUNC: Entity::realRotation @ 0x1000C0FDB */
     float getRealRotation() const { return _realRotation; }
 
+    /* FUNC: Entity::setIsPlayerAvatar: @ 0x1000C1104 */
+    void setIsPlayerAvatar(bool value) { _playerAvatar = value; }
+    
+    /* FUNC: Entity::setGrounded: @ 0x1000C0ECC */
+    void setGrounded(bool grounded) { _grounded = grounded; }
+
+    /* FUNC: Entity::grounded @ 0x1000C0EBB */
+    bool isGrounded() const { return _grounded; }
+
+    /* FUNC: Entity::groundedRecently @ 0x1000BC2C8 */
+    bool wasGroundedRecently() const;
+
+    /* FUNC: Entity::lastGroundedAt @ 0x1000C0EEE */
+    double getLastGroundedAt() const { return _lastGroundedAt; }
+
     /* FUNC: Entity::isBlock @ 0x1000BE520 */
     bool isBlock() const;
+
+    Physical* getPhysical() const { return _physical; }
 
 protected:
     EntityConfig* _config;                   // Entity::config @ 0x1003128A0
@@ -100,6 +136,10 @@ protected:
     float _realRotation;                     // Entity::realRotation @ 0x100312990
     bool _positioned;                        // Entity::hasBeenPositioned @ 0x100312900
     bool _alive;                             // Entity::alive @ 0x1003128F0
+    bool _playerAvatar;                      // Entity::isPlayerAvatar @ 0x100312930
+    bool _grounded;                          // Entity::grounded @ 0x100312948
+    double _lastGroundedAt;                  // Entity::lastGroundedAt @ 0x100312950
+    Physical* _physical;                     // NOTE: Originally inherited from GameObject
 };
 
 }  // namespace opendw

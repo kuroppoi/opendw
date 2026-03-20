@@ -9,6 +9,9 @@
 #include "graphics/Lightmapper.h"
 #include "graphics/SkyRenderer.h"
 #include "graphics/WorldLayerRenderer.h"
+#include "physics/ChipmunkBody.h"
+#include "physics/ChipmunkSpace.h"
+#include "physics/PhysicsDebugNode.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
@@ -95,9 +98,11 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     // 0x10007D566: Create entity nodes
     _entitiesNode = SpriteBatchNode::create("entities+hd2.png");
     _foreground->addChild(_entitiesNode, getNextZIndex());
-    auto& winSize = _director->getWinSize();
+    auto& winSize         = _director->getWinSize();
     _animatedEntitiesNode = Node::create();
     _foreground->addChild(_animatedEntitiesNode, getNextZIndex());
+    _animatedCharactersNode = Node::create();
+    _foreground->addChild(_animatedCharactersNode, getNextZIndex());
 
     // 0x10007D7F2: Create liquid layer renderer
     _liquidBlocksNode = createLayerRenderer("liquid", BlockLayer::LIQUID, "liquid+hd2.png");
@@ -118,6 +123,9 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     // Create misc nodes
     _textNode = Node::create();  // Originally SpriteBatchNode but we cannot add labels to those
     _foreground->addChild(_textNode, getNextZIndex());
+    _physicsDebugNode = PhysicsDebugNode::create();
+    _physicsDebugNode->setVisible(false);
+    _foreground->addChild(_physicsDebugNode, getNextZIndex());
 
     // 0x10007DE0F: Precompute corner masks
     _wholenessCornerMasks.reserve(256);
@@ -274,12 +282,33 @@ void WorldRenderer::update(float deltaTime)
         _nextLiquidCycle = utils::gettime() + LIQUID_CYCLE_INTERVAL;
     }
 
+    // 0x10007EFE8: Update game objects
+    for (auto body : _zone->getSpace()->getBodies())
+    {
+        if (body->getType() == CP_BODY_TYPE_STATIC)
+        {
+            continue;
+        }
+
+        if (auto entity = dynamic_cast<Entity*>(body->getUserData()))
+        {
+            auto& contentSize = entity->getContentSize();
+            auto size         = MAX(contentSize.x, contentSize.y) * 2.0F;  // HACK: Overcompensate for rotation
+            auto rect         = math_util::growRect(_visibleRect, {size, size});
+            auto onscreen     = rect.containsPoint(body->getPosition());
+            entity->updateOnscreen(deltaTime, onscreen);
+        }
+    }
+
     _lightmapper->update(deltaTime);
 }
 
 void WorldRenderer::updateBlocks()
 {
-    // TODO
+    auto& winSize = _director->getWinSize();
+    auto origin   = getNodePointForScreenPoint(Point::ZERO);
+    auto size     = winSize / _worldScale;
+    _visibleRect  = Rect(origin, size);
     arrangeBlockSprites();
     renderBlockSprites();
 }
@@ -497,31 +526,36 @@ void WorldRenderer::updateLiquidInBlock(BaseBlock* block)
 
 void WorldRenderer::updateViewport(float deltaTime)
 {
-    auto viewport = getViewportPosition();
+    auto player    = Player::getMain();
+    Point position = player->getPosition();
+    position.y += BLOCK_SIZE * 0.8F;
+    auto distance = math_util::getDistance(position.x, position.y, _cameraPosition.x, _cameraPosition.y);
 
-    // TODO: clean up
-    auto player        = GameManager::getInstance()->getPlayer();
+    if (deltaTime < 1.0F && distance < BLOCK_SIZE * 5.0F)
+    {
+        MathUtil::smooth(&_cameraPosition.x, position.x, deltaTime, 0.01F);
+        MathUtil::smooth(&_cameraPosition.y, position.y, deltaTime, 0.01F);
+    }
+    else
+    {
+        _cameraPosition = position;
+    }
+
+    // TODO: clamp viewport to world bounds
+    // TODO: use visible blocks to determine cavern/sky visibility
+    auto& winSize      = _director->getWinSize();
+    auto viewport      = _cameraPosition * _worldScale - winSize * 0.5F;
     auto biome         = _zone->getBiomeType();
-    auto cameraPos     = player->getPosition() * BLOCK_SIZE;
     bool cavernVisible = biome == Biome::DEEP ||
                          (biome != Biome::SPACE && player->getBlockPosition().y > _zone->getSurfaceBottom() + 20);
     _sky->setVisible(!cavernVisible);
     _cavern->setVisible(cavernVisible);
     _foreground->setPosition(-viewport);
     _foreground->setScale(_worldScale);
-    _sky->setViewPosition(cameraPos);
+    _sky->setViewPosition(_cameraPosition);
     _sky->setViewScale(_worldScale);
-    _cavern->setViewPosition(cameraPos);
+    _cavern->setViewPosition(_cameraPosition);
     _cavern->setViewScale(_worldScale);
-}
-
-Point WorldRenderer::getViewportPosition() const
-{
-    // TODO: finish
-    auto& winSize   = _director->getWinSize();
-    auto& cameraPos = GameManager::getInstance()->getPlayer()->getPosition();
-    auto position   = cameraPos * BLOCK_SIZE * _worldScale;
-    return position - winSize * 0.5F;
 }
 
 WorldLayerRenderer* WorldRenderer::createLayerRenderer(const std::string& name,
@@ -562,7 +596,7 @@ void WorldRenderer::queueBlockForRendering(BaseBlock* block)
     _renderQueue.pushBack(block);
 }
 
-bool WorldRenderer::hasRenderedAllPlacedBlocks()
+bool WorldRenderer::hasRenderedAllPlacedBlocks() const
 {
     if (!_renderQueue.empty())
     {
@@ -604,7 +638,14 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
         }
         else
         {
-            _animatedEntitiesNode->addChild(entity);
+            if (entity->isHuman())
+            {
+                _animatedCharactersNode->addChild(entity);
+            }
+            else
+            {
+                _animatedEntitiesNode->addChild(entity);
+            }
         }
     }
     else if (entity->getTexture() == _entitiesNode->getTexture())
@@ -613,15 +654,6 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
     }
 
     return entity;
-}
-
-void WorldRenderer::setWorldScale(float scale)
-{
-    if (_worldScale != scale)
-    {
-        _worldScale = scale;
-        updateViewport(1.0F);
-    }
 }
 
 ax::Point WorldRenderer::getNodePointForScreenPoint(const ax::Point& point) const

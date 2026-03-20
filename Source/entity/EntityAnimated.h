@@ -34,6 +34,9 @@ public:
     /* FUNC: EntityAnimated::computeContentSize @ 0x1001702FC */
     virtual ax::Size computeContentSize();
 
+    /* FUNC: EntityAnimated::animate: @ 0x1001703A3 */
+    void animate(const std::string& name);
+
     /* FUNC: EntityAnimated::setSlot:attachment: @ 0x100171955 */
     void setSlot(const std::string& name, const std::string& attachment);
 
@@ -45,6 +48,9 @@ public:
 
     /* FUNC: EntityAnimated::getSlot: @ 0x1001717AC */
     spine::Slot* getSlot(const std::string& name) const;
+
+    /* FUNC: EntityAnimated::mainSkeleton @ 0x100171C87 */
+    spine::SkeletonAnimation* getMainSkeleton() const { return _mainSkeleton; }
 
 protected:
     spine::SkeletonAnimation* _mainSkeleton;  // EntityAnimated::mainSkeleton @ 0x100314F70

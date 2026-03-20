@@ -6,6 +6,9 @@
 #include "graphics/WorldRenderer.h"
 #include "input/InputManager.h"
 #include "network/tcp/MessageIdent.h"
+#include "physics/ChipmunkShape.h"
+#include "physics/ChipmunkSpace.h"
+#include "physics/Physical.h"
 #include "util/ArrayUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -25,6 +28,7 @@
 #define CHUNK_REQUEST_INTERVAL 0.5
 #define BLOCKS_IGNORE_INTERVAL 0.666
 #define MAX_CHUNK_PENDING_TIME 10.0
+#define MAX_BLOCK_PHYSICS_TIME 0.005
 
 USING_NS_AX;
 
@@ -140,6 +144,24 @@ void WorldZone::configure(const ValueMap& data)
 
         _depthGraphics[key] = frames;
     }
+
+    // 0x100040554: Configure physics space
+    AX_SAFE_RELEASE(_space);
+    _space = ChipmunkSpace::create();
+    _space->retain();
+    auto gravity = _biomeType == Biome::SPACE ? 8.0F : 15.0F;
+    _space->setGravity(Vec2(0.0F, -gravity) * BLOCK_SIZE);
+    Physical::setSpace(_space);
+    _fixedTimeStep = 0.011111111F;
+    _space->addBounds(Rect(Point(0.0F, _blocksHeight * -BLOCK_SIZE), Size(_blocksWidth, _blocksHeight) * BLOCK_SIZE),
+                      0.0F, 0.0F, 0.0F, CP_SHAPE_FILTER_ALL, NULL);
+
+    // 0x100040D78: Add collision handlers
+    // FIXME: It would be nicer if we didn't have to cast collision type
+    auto playerType = static_cast<cpCollisionType>(CollisionType::PLAYER);
+    _space->addCollisionHandler(playerType, NULL, AX_CALLBACK_2(WorldZone::beginAvatarCollision, this), nullptr,
+                                AX_CALLBACK_2(WorldZone::postSolveAvatarCollision, this),
+                                AX_CALLBACK_2(WorldZone::separateAvatarCollision, this));
 }
 
 void WorldZone::update(float deltaTime)
@@ -289,6 +311,25 @@ void WorldZone::update(float deltaTime)
         _cleanedChunks.clear();
         _lastBlocksIgnoreAt = utils::gettime();
     }
+
+    // 0x10004232E: Process block physics queue
+    if (!_physicsBlockQueue.empty())
+    {
+        auto startTime = utils::gettime();
+
+        while (!_physicsBlockQueue.empty())
+        {
+            // NOTE: Redundant pause check?
+            if (!_paused && utils::gettime() >= startTime + MAX_BLOCK_PHYSICS_TIME)
+            {
+                break;
+            }
+
+            auto block = _physicsBlockQueue.back();
+            block->processPhysical();
+            _physicsBlockQueue.popBack();
+        }
+    }
     
     // 0x100042896: Find closest field damage block
     // BUGFIX: Do this *before* updating subcomponents because _fieldDamageBlock might be deleted
@@ -326,6 +367,18 @@ void WorldZone::update(float deltaTime)
     _game->getInputManager()->checkInput(deltaTime);
     player->update(deltaTime);
     _sceneRenderer->update(deltaTime);
+
+    // 0x10004257C: Update physics space
+    auto fixedTime = sFixedTime + deltaTime;
+
+    while (fixedTime >= _fixedTimeStep)
+    {
+        _space->update(_fixedTimeStep);
+        // TODO: player->stopIfHorizontalOverlap();
+        fixedTime -= _fixedTimeStep;
+    }
+
+    sFixedTime = fixedTime;
 
     // 0x100042714: Update timed status
     if (_timedStatus.size() >= WEATHER_STATUS_LENGTH)
@@ -504,10 +557,10 @@ Entity* WorldZone::registerEntity(int32_t id, int32_t code, const std::string& n
         _entities.insert(id, entity);
     }
 
-    // TODO: add collision
     // TODO: something with slot
     // TODO: burst
 
+    _space->add(entity->getPhysical());
     return entity;
 }
 
@@ -535,6 +588,8 @@ void WorldZone::removeEntity(int32_t id, bool violent)
         _peers.erase(id);
         // TODO: post notifications
     }
+
+    _space->remove(entity->getPhysical());
 
     // IMPORTANT: Do last to keep refcount
     entity->removeFromParent();  // Removes it from its respective WorldRenderer entity node
@@ -575,7 +630,11 @@ void WorldZone::leave()
     AX_SAFE_DELETE_ARRAY(_sunlight);
     _entities.clear();
     _peers.clear();
-    // TODO: clear other containers as we add them
+    _physicsBlockQueue.clear();
+
+    // 0x100049A02: Release physics space
+    Physical::setSpace(nullptr);
+    AX_SAFE_RELEASE_NULL(_space);
 }
 
 BaseBlock* WorldZone::getBlockAt(int16_t x, int16_t y, bool allowChunkAlloc)
@@ -734,6 +793,124 @@ MetaBlock* WorldZone::getMetaBlockAt(int16_t x, int16_t y) const
     auto index = y * _blocksWidth + x;
     auto it    = _metaBlocks.find(index);
     return it == _metaBlocks.end() ? nullptr : (*it).second;
+}
+
+void WorldZone::queueBlockForPhysics(BaseBlock* block)
+{
+    _physicsBlockQueue.pushBack(block);
+}
+
+bool WorldZone::hasPhysickedAllPlacedBlocks() const
+{
+    if (!_physicsBlockQueue.empty())
+    {
+        for (auto block : _physicsBlockQueue)
+        {
+            if (block->getQueuedAt() < _doneWaitingForBlocksAt)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool WorldZone::beginAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
+{
+    cpShape *cpShapeA, *cpShapeB;
+    cpArbiterGetShapes(arbiter, &cpShapeA, &cpShapeB);
+    auto source = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeA));  // Player
+    auto target = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeB));
+
+    if (target->getFriction() == 0.0F)
+    {
+        return true;
+    }
+
+    auto player = Player::getMain();
+    auto avatar = player->getAvatar();
+
+    // FIXME: Collision events can still occur after the avatar is destroyed
+    if (!avatar)
+    {
+        return true;
+    }
+
+    AX_ASSERT(avatar == source->getUserData());
+
+    if (auto entity = dynamic_cast<Entity*>(target->getUserData()))
+    {
+        // Collision with entity
+        if (source == player->getFeetShape())
+        {
+            player->onFeetCollideWithEntity(entity);
+        }
+        else
+        {
+            player->onCollideWithEntity(entity);
+        }
+    }
+    else
+    {
+        // Collision with block (most likely)
+        if (source == player->getFeetShape())
+        {
+            avatar->setFootColliderCount(avatar->getFootColliderCount() + 1);
+
+            if (auto block = dynamic_cast<BaseBlock*>(target->getUserData()))
+            {
+                player->onFeetCollideWithBlock(block);
+            }
+        }
+        else if (source == player->getHeadShape())
+        {
+            avatar->setHeadColliderCount(avatar->getHeadColliderCount() + 1);
+        }
+    }
+
+    return true;
+}
+
+void WorldZone::postSolveAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
+{
+    // TODO: implement
+}
+
+void WorldZone::separateAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
+{
+    cpShape *cpShapeA, *cpShapeB;
+    cpArbiterGetShapes(arbiter, &cpShapeA, &cpShapeB);
+    auto source = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeA));  // Player
+    auto target = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeB));
+
+    if (target->getFriction() == 0.0F)
+    {
+        return;
+    }
+
+    auto player = Player::getMain();
+    auto avatar = player->getAvatar();
+
+    // FIXME: Collision events can still occur after the avatar is destroyed
+    if (!avatar)
+    {
+        return;
+    }
+
+    AX_ASSERT(avatar == source->getUserData());
+
+    if (!dynamic_cast<Entity*>(target->getUserData()))
+    {
+        if (source == player->getFeetShape())
+        {
+            avatar->setFootColliderCount(avatar->getFootColliderCount() - 1);
+        }
+        else if (source == player->getHeadShape())
+        {
+            avatar->setHeadColliderCount(avatar->getHeadColliderCount() - 1);
+        }
+    }
 }
 
 Biome WorldZone::getBiomeForName(const std::string& name)

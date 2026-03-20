@@ -46,6 +46,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _center           = map_util::getBool(data, "center");
     _shadow           = map_util::getBool(data, "shadow");
     _borderShadow     = map_util::getBool(data, "border_shadow");
+    _power            = map_util::getFloat(data, "power");
     _jiggle           = map_util::getFloat(data, "jiggle");
     _glow             = map_util::getFloat(data, "glow");
     _light            = map_util::getFloat(data, "light");
@@ -54,6 +55,23 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _mirrorable       = map_util::getString(data, "rotation") == "mirror";
     _field            = map_util::getInt32(data, "field");
     _spriteZ          = map_util::getInt32(data, "sprite_z");
+
+    // 0x10004A98C: Configure physics shape
+    auto shape = map_util::getString(data, "shape");
+
+    if (shape == "box")
+    {
+        _shape = Shape::BOX;
+    }
+    else if (shape == "polygonal")
+    {
+        _shape           = Shape::POLYGONAL;
+        _shapeDefinition = map_util::getString(data, "shape_definition", _name);
+    }
+    else
+    {
+        _shape = Shape::NONE;
+    }
 
     // 0x10004AE79: Configure field damage
     auto& fieldDamage = map_util::getArray(data, "field_damage");
@@ -81,6 +99,19 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
         auto x = lightPosition[0].asFloat();
         auto y = lightPosition[1].asFloat();
         _lightPosition.set(x, y);
+    }
+
+    // 0x10004B9DA: Configure use mask
+    auto& use = map_util::getMap(data, "use");
+
+    for (auto& entry : use)
+    {
+        auto type = getUseTypeForName(entry.first);
+
+        if (type != UseType::NONE)
+        {
+            _useMask |= 1ui64 << (static_cast<uint8_t>(type) & 0x3F);
+        }
     }
 
     return true;
@@ -255,6 +286,16 @@ bool Item::isContinuousFor(Item* item) const
     return item->getContinuity() == _continuity;
 }
 
+bool Item::isUsableType(UseType type) const
+{
+    return (_useMask >> (static_cast<uint8_t>(type) & 0x3F) & 1) != 0;
+}
+
+bool Item::isClimbable() const
+{
+    return isUsableType(UseType::CLIMB);
+}
+
 Item::SpriteList Item::createSequentialSpriteList(const std::string& name, size_t count, size_t step) const
 {
     auto total = count * step;
@@ -396,6 +437,20 @@ DamageType Item::getDamageTypeForName(const std::string& name)
         return DamageType::STINK;
 
     return DamageType::NONE;
+}
+
+UseType Item::getUseTypeForName(const std::string& name)
+{
+    if (name == "climb")
+        return UseType::CLIMB;
+    else if (name == "fly")
+        return UseType::FLY;
+    else if (name == "propel")
+        return UseType::PROPEL;
+    else if (name == "hover")
+        return UseType::HOVER;
+
+    return UseType::NONE;
 }
 
 }  // namespace opendw

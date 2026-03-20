@@ -15,6 +15,11 @@ Vec2 rotateVector(const Vec2& vector, float rotation)
     return Vec2(x, y);
 }
 
+Rect growRect(const Rect& rect, const Size& size)
+{
+    return Rect(rect.origin - size * 0.5F, rect.size + size);
+}
+
 Rect clampRect(const Rect& rectA, const Rect& rectB, Vec2* offset)
 {
     auto minX   = fmaxf(rectA.getMinX(), rectB.getMinX());
@@ -78,6 +83,11 @@ float getScaledHeight(Node* node)
 float getDistance(float x, float y, float x2, float y2)
 {
     return hypotf(x - x2, y - y2);
+}
+
+float lerp(float from, float to, float alpha)
+{
+    return MathUtil::lerp(from, to, clampf(alpha, 0.0F, 1.0F));
 }
 
 }  // namespace opendw::math_util

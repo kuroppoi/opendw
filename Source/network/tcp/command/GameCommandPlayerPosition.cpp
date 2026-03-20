@@ -2,6 +2,7 @@
 
 #include "graphics/WorldRenderer.h"
 #include "zone/WorldZone.h"
+#include "CommonDefs.h"
 #include "GameManager.h"
 #include "Player.h"
 
@@ -15,7 +16,7 @@ void GameCommandPlayerPosition::run()
     auto player = game->getPlayer();
     auto x = _data[0].asFloat();
     auto y = _data[1].asFloat();
-    player->setPosition({x, -y});  // TODO: use collider position
+    player->setPosition({(x + 0.5F) * BLOCK_SIZE, (y + 0.5F) * -BLOCK_SIZE});
     game->getZone()->getWorldRenderer()->updateViewport(1.0F);
 }
 

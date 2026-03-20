@@ -8,6 +8,7 @@ namespace opendw
 
 class Item;
 class MaskedSprite;
+class Physical;
 class WorldZone;
 
 enum class BlockLayer : uint8_t
@@ -73,6 +74,9 @@ public:
     /* FUNC: BaseBlock::liquidity @ 0x100033456 */
     uint16_t getLiquidity() const { return _liquidity; }
 
+    /* FUNC: BaseBlock::worldPosition @ 0x10002E60A */
+    ax::Point getWorldPosition() const;
+
     /* FUNC: BaseBlock::setBase: @ 0x10002EE2A */
     void setBase(uint8_t base);
 
@@ -111,6 +115,15 @@ public:
 
     /* FUNC: BaseBlock::clearFromWorld @ 0x10003086F */
     void clearFromWorld();
+    
+    /* FUNC: BaseBlock::clearPhysical @ 0x100030D75 */
+    void clearPhysical();
+
+    /* FUNC: BaseBlock::updatePhysical @ 0x10003089D */
+    void updatePhysical();
+
+    /* FUNC: BaseBlock::processPhysical @ 0x1000308D9 */
+    void processPhysical();
 
     /* FUNC: BaseBlock::pushSprite:accessory: @ 0x100032381 */
     void pushSprite(MaskedSprite* sprite);
@@ -273,6 +286,7 @@ private:
     uint8_t _frontContinuity;            // BaseBlock::frontContinuity @ 0x100310AE0
     uint8_t _frontModContinuity;         // BaseBlock::frontModContinuity @ 0x100310B28
     uint16_t _liquidity;                 // BaseBlock::liquidity @ 0x100310B30
+    Physical* _physical;                 // BaseBlock::physical @ 0x100310B38
     float _currentLightR;                // BaseBlock::currentLightR @ 0x100310B88
     float _currentLightG;                // BaseBlock::currentLightG @ 0x100310B90
     float _currentLightB;                // BaseBlock::currentLightB @ 0x100310B98

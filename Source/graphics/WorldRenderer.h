@@ -60,9 +60,6 @@ public:
     /* FUNC: WorldRenderer::updateViewport: @ 0x100082DE3 */
     void updateViewport(float deltaTime);
 
-    /* FUNC: WorldRenderer::viewportPosition @ 0x100082EC5 */
-    ax::Point getViewportPosition() const;
-
     /* FUNC: WorldRenderer::layerRenderer:withLayer:texture:z: @ 0x10007E28D */
     WorldLayerRenderer* createLayerRenderer(const std::string& name,
                                             BlockLayer layer,
@@ -80,13 +77,13 @@ public:
     void queueBlockForRendering(BaseBlock* block);
 
     /* FUNC: WorldRenderer::hasRenderedAllPlacedBlocks @ 0x100081DAD */
-    bool hasRenderedAllPlacedBlocks();
+    bool hasRenderedAllPlacedBlocks() const;
 
     /* FUNC: WorldRenderer::addEntity:name:details: @ 0x1000825E0 */
     Entity* addEntity(int32_t code, const std::string& name, const ax::ValueMap& details);
 
     /* FUNC: WorldRenderer::setWorldScale: @ 0x100082B33 */
-    void setWorldScale(float scale);
+    void setWorldScale(float scale) { _worldScale = scale; }
 
     /* FUNC: WorldRenderer::worldScale @ 0x100086DD9 */
     float getWorldScale() const { return _worldScale; }
@@ -102,6 +99,12 @@ public:
 
     /* FUNC: WorldRenderer::frontAccentsNode @ 0x100086E6F */
     WorldLayerRenderer* getFronterAccentsNode() const { return _fronterAccentsNode; }
+
+    /* FUNC: WorldRenderer::animatedCharactersNode @ 0x100086EA2 */
+    ax::Node* getAnimatedCharactersNode() const { return _animatedCharactersNode; }
+
+    /* FUNC: WorldRenderer::physicsDebugNode @ 0x100086F4C */
+    ax::Node* getPhysicsDebugNode() const { return _physicsDebugNode; }
 
     /* FUNC: WorldRenderer::wholenessCornerMasks @ 0x100086F19 */
     const CornerMasks& getWholenessCornerMasks() const { return _wholenessCornerMasks; }
@@ -135,9 +138,12 @@ private:
     WorldLayerRenderer* _fronterAccentsNode;      // WorldRenderer::frontAccentsNode @ 0x100311EE0
     ax::SpriteBatchNode* _entitiesNode;           // WorldRenderer::entitiesNode @ 0100311EA0
     ax::Node* _animatedEntitiesNode;              // WorldRenderer::animatedEntitiesNode @ 0x100311EA8
+    ax::Node* _animatedCharactersNode;            // WorldRenderer::animatedCharactersNode @ 0x100311EB8
     ax::Node* _animatedGhostlyEntitiesNode;       // WorldRenderer::animatedGhostlyEntitiesNode @ 0x100311EE8
     ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
+    ax::Node* _physicsDebugNode;                  // WorldRenderer::physicsDebugNode @ 0x100311F20
     ax::Vector<BaseBlock*> _renderQueue;          // WorldRenderer::renderQueue @ 0x100311DF8
+    ax::Rect _visibleRect;                        // WorldRenderer::visibleRect @ 0x100311FA0
     ax::Rect _lastArrangeRect;                    // WorldRenderer::lastArrangeRect @ 0x100311FF8
     ax::Rect _blockRect;                          // WorldRenderer::blockRect @ 0x100312008
     float _worldScale;                            // WorldRenderer::worldScale @ 0x100311E20
@@ -147,6 +153,7 @@ private:
     size_t _fxFrame;                              // WorldRenderer::fxFrame @ 0x100311F50
     double _nextLiquidCycle;                      // WorldRenderer::nextLiquidCycle @ 0x100311F98
     size_t _liquidFrame;                          // 0x100320BC0
+    ax::Point _cameraPosition;
 };
 
 }  // namespace opendw

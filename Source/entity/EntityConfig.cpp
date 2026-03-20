@@ -21,6 +21,7 @@ bool EntityConfig::initWithData(const ValueMap& data)
     _flips       = map_util::getBool(data, "flips", true);
     _ghostly     = map_util::getBool(data, "ghostly");
     _block       = map_util::getBool(data, "block");
+    _shape       = map_util::getString(data, "shape") == "circle" ? Shape::CIRCLE : Shape::BOX;
     _spine       = map_util::getString(data, "spine");
     _spineSkin   = map_util::getString(data, "spine_skin");
     _sprites     = map_util::getArray(data, "sprites");
@@ -49,6 +50,8 @@ bool EntityConfig::initWithData(const ValueMap& data)
 
     if (animations != ValueVectorNull)
     {
+        int32_t id = 0;
+
         for (auto& animation : animations)
         {
             auto& map     = animation.asValueMap();
@@ -57,6 +60,7 @@ bool EntityConfig::initWithData(const ValueMap& data)
             auto after    = map_util::getString(map, "after");
             auto rotation = map_util::getFloat(map, "rotation");
             _animations.push_back(Animation(name, sequence, after, rotation));
+            _animationsByName[name] = id++;
         }
     }
 
@@ -83,6 +87,18 @@ bool EntityConfig::initWithData(const ValueMap& data)
     }
 
     return true;
+}
+
+int32_t EntityConfig::getAnimationByName(const std::string& name) const
+{
+    auto it = _animationsByName.find(name);
+
+    if (it != _animationsByName.end())
+    {
+        return (*it).second;
+    }
+
+    return -1;
 }
 
 }  // namespace opendw
