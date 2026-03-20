@@ -84,14 +84,12 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     auto frontAltNode        = createLayerRenderer("front-1", BlockLayer::FRONT, "front-1+hd2.png");
     _frontBlocksNode         = createLayerRenderer("front-0a", BlockLayer::FRONT, "front-0+hd2.png");
     _frontBiomeBlocksNode    = createLayerRenderer("frontBiome", BlockLayer::FRONT, "front-0+hd2.png", true);
-    auto frontAltWholeNode   = createLayerRenderer("front-alt-whole", BlockLayer::FRONT, "front-whole+hd2.png");
     _signsNode               = createLayerRenderer("signs", BlockLayer::FRONT, "signs+hd2.png");
     _frontQualityBlocksNode  = createLayerRenderer("frontQuality", BlockLayer::FRONT, "front-quality+hd2.png");
     _frontBlocksNode->setPlaceBackgroundsInAlt(true);
     _frontBlocksNode->addAltRenderer(frontBackgroundNode);
     _frontBlocksNode->addAltRenderer(frontAltNode);
     _frontBlocksNode->addAltRenderer(_frontBiomeBlocksNode);
-    _frontBlocksNode->addAltRenderer(frontAltWholeNode);
     _frontBlocksNode->addAltRenderer(_signsNode);
     _frontBlocksNode->addAltRenderer(_frontQualityBlocksNode);
 
@@ -110,11 +108,13 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     // 0x10007D824: Create fronter layer renderers
     _fronterBiomeBlocksNode = createLayerRenderer("fronterBiome", BlockLayer::FRONT, "front-whole+hd2.png", true);
     _fronterBlocksNode      = createLayerRenderer("fronter", BlockLayer::FRONT, "front-whole+hd2.png");
+    auto frontAltWholeNode  = createLayerRenderer("front-alt-whole", BlockLayer::FRONT, "front-whole+hd2.png");
     auto fronterBaseNode    = createLayerRenderer("fronterBase", BlockLayer::FRONT, "base+hd2.png");
     _fronterAccentsNode     = createLayerRenderer("fronterAccents", BlockLayer::FRONT, "accents+hd2.png");
     _fronterBlocksNode->addAltRenderer(_fronterBiomeBlocksNode);
     _fronterBlocksNode->addAltRenderer(fronterBaseNode);
     _fronterBlocksNode->addAltRenderer(_fronterAccentsNode);
+    _frontBlocksNode->addAltRenderer(frontAltWholeNode);
 
     // 0x10007D8FC: Create fronter entity nodes
     _animatedGhostlyEntitiesNode = Node::create();
