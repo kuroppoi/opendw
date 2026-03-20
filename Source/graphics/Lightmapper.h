@@ -46,6 +46,7 @@ public:
 
 private:
     WorldZone* _zone;              // Lightmapper::zone @ 0x100311610
+    ax::Sprite* _torchLight;       // Lightmapper::torchLight @ 0x100311650
     int8_t* _lightRings;           // Lightmapper::lightRings @ 0x100311670
     ax::RenderTexture* _lightmap;  // Lightmapper::lightmap @ 0x100311690
     float _flash;                  // Lightmapper::flash @ 0x100311748

@@ -91,6 +91,9 @@ public:
     /* FUNC: WorldRenderer::nodePointForScreenPoint: @ 0x1000830CB */
     ax::Point getNodePointForScreenPoint(const ax::Point& point) const;
 
+    /* FUNC: WorldRenderer::screenPointForNodePoint: @ 0x1000830E8 */
+    ax::Point getScreenPointForNodePoint(const ax::Point& point) const;
+
     /* FUNC: WorldLayerRenderer::baseAccentsNode @ 0x100086E4D */
     WorldLayerRenderer* getBaseAccentsNode() const { return _baseAccentsNode; }
 

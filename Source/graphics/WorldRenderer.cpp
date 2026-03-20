@@ -661,4 +661,9 @@ ax::Point WorldRenderer::getNodePointForScreenPoint(const ax::Point& point) cons
     return _foreground->convertToNodeSpace(point);
 }
 
+ax::Point WorldRenderer::getScreenPointForNodePoint(const ax::Point& point) const
+{
+    return _foreground->convertToWorldSpace(point);
+}
+
 }  // namespace opendw

@@ -1,12 +1,15 @@
 #include "Lightmapper.h"
 
 #include "graphics/WorldRenderer.h"
+#include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/MetaBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
+#include "GameConfig.h"
 #include "Item.h"
+#include "Player.h"
 
 #define LIGHT_RING_ITERATIONS      8
 #define LIGHTMAP_SCALE             0.5
@@ -14,6 +17,7 @@
 #define TEXTURE_PADDING            LIGHT_RING_ITERATIONS
 #define DEFAULT_BASE_LIGHT         200.0
 #define RESTRICT_FIELD_DAMAGE_AURA 0  // Whether or not field damage aura should only display in hell biomes
+#define MOOD_MODE_TORCH_LIGHT      1  // Whether or not flashlight should emit light when mood mode is enabled
 
 USING_NS_AX;
 
@@ -24,6 +28,7 @@ Lightmapper::~Lightmapper()
 {
     AX_SAFE_DELETE_ARRAY(_lightRings);
     AX_SAFE_DELETE_ARRAY(_textureData);
+    AX_SAFE_RELEASE(_torchLight);
     AX_SAFE_RELEASE(_texture);
     AX_SAFE_RELEASE(_sprite);
     AX_SAFE_RELEASE(_programState);
@@ -67,6 +72,11 @@ bool Lightmapper::initWithZone(WorldZone* zone)
     _lightmap     = RenderTexture::create(winSize.width * LIGHTMAP_SCALE, winSize.height * LIGHTMAP_SCALE);
     _lightmap->setScale(1.0F / LIGHTMAP_SCALE);
     addChild(_lightmap);
+
+    // Create torch light
+    _torchLight = Sprite::create("gradient-radial-alpha.png");
+    _torchLight->setBlendFunc({backend::BlendFactor::ZERO, backend::BlendFactor::ONE_MINUS_SRC_ALPHA});
+    AX_SAFE_RETAIN(_torchLight);
 
     // 0x10005597A: Compute light ring data
     ssize_t lightRingBytes = 0;
@@ -156,6 +166,30 @@ void Lightmapper::update(float deltaTime)
     _lightmap->beginWithClear(0.0F, 0.0F, 0.0F, 0.0F);
     illuminateBlocks(deltaTime);
     _sprite->visit();
+
+    // 0x100056C6F: Draw torch light
+    // TODO: use flashlight from accessory bar
+    // TODO: take overlay into account
+#if !MOOD_MODE_TORCH_LIGHT
+    if (!_moodLighting)
+#endif
+    {
+        auto light = map_util::getFloat(GameConfig::getMain()->getData(), "lighting.player", 4.0F);
+        auto size  = light * 1.3F * LIGHTMAP_SCALE;
+
+        if (size > 0.01F)
+        {
+            auto position = worldRenderer->getScreenPointForNodePoint(Player::getMain()->getPosition() +
+                                                                      Vec2::UNIT_Y * BLOCK_SIZE * 0.8F);
+            auto scale    = Vec2::ONE * BLOCK_SIZE / _torchLight->getContentSize();
+            _torchLight->setOpacity(200);
+            _torchLight->setScaleX((size + random(-0.1F, 0.1F)) * scale.width * worldScale * 2.0F);
+            _torchLight->setScaleY((size + random(-0.1F, 0.1F)) * scale.height * worldScale * 2.0F);
+            _torchLight->setPosition(position * LIGHTMAP_SCALE);
+            _torchLight->visit();
+        }
+    }
+
     _lightmap->end();
 }
 
