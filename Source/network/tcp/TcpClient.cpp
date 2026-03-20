@@ -122,7 +122,7 @@ void TcpClient::processPacket(uint8_t ident, uint8_t* payload, uint32_t length)
 
     if (!command)
     {
-        AXLOGW("[TcpClient] Received unknown command: {}", static_cast<int>(ident));
+        AXLOGD("[TcpClient] Received unknown command: {}", static_cast<int>(ident));
         return;
     }
 
