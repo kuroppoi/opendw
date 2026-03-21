@@ -346,6 +346,9 @@ void GameManager::configure(const ValueMap& data)
         _zone->setup();
         addChild(_zone);
     }
+
+    auto& audio = map_util::getMap(data, "audio");
+    AudioManager::getInstance()->configure(audio);
 }
 
 void GameManager::notify(NotificationType type, const Value& data)

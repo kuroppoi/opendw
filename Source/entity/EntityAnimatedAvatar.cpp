@@ -1,7 +1,31 @@
 #include "EntityAnimatedAvatar.h"
 
+#include "zone/BaseBlock.h"
+#include "AudioManager.h"
+#include "Item.h"
+
+#define WALK_SFX_INTERVAL 0.15
+
+USING_NS_AX;
+
 namespace opendw
 {
+
+void EntityAnimatedAvatar::walkOnBlock(BaseBlock* block)
+{
+    _feetItem = block->getFrontItem();
+    _feetMod  = block->getFrontMod();
+    playWalkSfx();
+}
+
+void EntityAnimatedAvatar::playWalkSfx(bool force)
+{
+    if (_feetItem && (force || utils::gettime() > _lastFootstepSoundAt + WALK_SFX_INTERVAL))
+    {
+        AudioManager::getInstance()->playSfx("footsteps", _feetItem->getMaterial(), 0.3F, 0.15F);
+        _lastFootstepSoundAt = utils::gettime();
+    }
+}
 
 void EntityAnimatedAvatar::setFootColliderCount(int64_t count)
 {

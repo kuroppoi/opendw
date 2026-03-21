@@ -181,87 +181,7 @@ void Player::update(float deltaTime)
 
     // 0x10001C6DD: Determine current animation
     auto animation = _idleAnimation.empty() ? (_currentLiquidLevel > 3 ? "swim-idle" : "idle-1") : _idleAnimation;
-    auto movement  = _destination - _physical->getPosition();
-    auto speedX    = abs(movement.x);
-    auto speedY    = abs(movement.y);
-    auto hover     = _flyAccessory && _flyAccessory->isUsableType(UseType::HOVER);
-    auto grounded  = _avatar->isGrounded();
-
-    if (_currentLiquidLevel < 5)
-    {
-        // TODO: is checking wasGroundedRecently() redundant?
-        if (!_avatar->wasGroundedRecently() && !grounded)
-        {
-            // We're mid-air
-            _running = false;
-
-            if (_flyAccessoryPower <= 0.5F)
-            {
-                // We're not using our jetpack
-                if (hover || utils::gettime() <= _avatar->getLastGroundedAt() + 3.0 ||
-                    utils::gettime() <= _lastPropelledUpwardAt + 3.333)
-                {
-                    animation = "falling-1";
-                }
-                else
-                {
-                    animation = "flail";
-                }
-            }
-            else
-            {
-                animation = "fly";
-            }
-        }
-        else if (!_travelingHorizontally)
-        {
-            // We're standing still on solid ground
-            auto velocity = _physical->getVelocity();
-            velocity.x *= 0.6F;
-            _physical->setVelocity(velocity);
-            _running = false;
-        }
-        else
-        {
-            // We're walking on solid ground
-            if (!_running)
-            {
-                _startedRunningAt = utils::gettime();
-                _running          = true;
-            }
-
-            // TODO: implement horizontal overlap check
-            auto velocity = abs(_physical->getVelocity().x);
-
-            if (velocity >= BLOCK_SIZE * 4.0F && utils::gettime() >= _startedRunningAt + 0.25)
-            {
-                animation = "run";
-            }
-            else
-            {
-                animation = "walk";
-            }
-        }
-    }
-    else
-    {
-        // We're swimming in liquid
-        _running = false;
-
-        if (_travelingHorizontally)
-        {
-            animation = "swim-1";
-        }
-        else if (_flyAccessoryPower > 0.5F)
-        {
-            animation = "fly";
-        }
-    }
-
-    // 0x10001D002: Apply movement
-    auto flying     = false;
-    auto body       = _physical->getBody();
-    auto propulsion = BLOCK_SIZE * (grounded ? 0.5F : 0.2F);  // Upward motion required to fly
+    auto body      = _physical->getBody();
 
     if (!_clip)
     {
@@ -269,6 +189,92 @@ void Player::update(float deltaTime)
     }
     else
     {
+        auto movement = _destination - _physical->getPosition();
+        auto speedX   = abs(movement.x);
+        auto speedY   = abs(movement.y);
+        auto hover    = _flyAccessory && _flyAccessory->isUsableType(UseType::HOVER);
+        auto grounded = _avatar->isGrounded();
+
+        if (_currentLiquidLevel < 5)
+        {
+            // TODO: is checking wasGroundedRecently() redundant?
+            if (!_avatar->wasGroundedRecently() && !grounded)
+            {
+                // We're mid-air
+                _running = false;
+
+                if (_flyAccessoryPower <= 0.5F)
+                {
+                    // We're not using our jetpack
+                    if (hover || utils::gettime() <= _avatar->getLastGroundedAt() + 3.0 ||
+                        utils::gettime() <= _lastPropelledUpwardAt + 3.333)
+                    {
+                        animation = "falling-1";
+                    }
+                    else
+                    {
+                        animation = "flail";
+                    }
+                }
+                else
+                {
+                    animation = "fly";
+                }
+            }
+            else if (!_travelingHorizontally)
+            {
+                // We're standing still on solid ground
+                auto velocity = _physical->getVelocity();
+                velocity.x *= 0.6F;
+                _physical->setVelocity(velocity);
+                _running = false;
+            }
+            else
+            {
+                // We're walking on solid ground
+                if (!_running)
+                {
+                    _startedRunningAt = utils::gettime();
+                    _running          = true;
+                }
+
+                if (utils::gettime() > _avatar->getLastFootstepSoundAt() + 0.3)
+                {
+                    _avatar->playWalkSfx(true);
+                }
+
+                // TODO: implement horizontal overlap check
+                auto velocity = abs(_physical->getVelocity().x);
+
+                if (velocity >= BLOCK_SIZE * 4.0F && utils::gettime() >= _startedRunningAt + 0.25)
+                {
+                    animation = "run";
+                }
+                else
+                {
+                    animation = "walk";
+                }
+            }
+        }
+        else
+        {
+            // We're swimming in liquid
+            _running = false;
+
+            if (_travelingHorizontally)
+            {
+                animation = "swim-1";
+            }
+            else if (_flyAccessoryPower > 0.5F)
+            {
+                animation = "fly";
+            }
+        }
+
+        // 0x10001D002: Apply movement
+        auto flying     = false;
+        auto propulsion = BLOCK_SIZE * (grounded ? 0.5F : 0.2F);  // Upward motion required to fly
+
         if (movement.y > propulsion)
         {
             _lastPropelledUpwardAt = utils::gettime();
@@ -524,7 +530,12 @@ void Player::sendMoveMessage()
 
 void Player::onFeetCollideWithBlock(BaseBlock* block)
 {
-    // TODO: implement
+    // TODO: finish
+
+    if (_clip)
+    {
+        _avatar->walkOnBlock(block);
+    }
 }
 
 void Player::onFeetCollideWithEntity(Entity* entity)

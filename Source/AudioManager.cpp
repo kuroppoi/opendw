@@ -1,5 +1,7 @@
 #include "AudioManager.h"
 
+#include "util/MapUtil.h"
+
 #define MUSIC_VOLUME_KEY "musicVolume"
 #define BUTTON_SFX       "click.ogg"
 #define THEME_MUSIC      "theme-v1-loop.ogg"
@@ -44,6 +46,11 @@ bool AudioManager::init()
     return true;
 }
 
+void AudioManager::configure(const ValueMap& config)
+{
+    _config = config;  // Create copy
+}
+
 void AudioManager::updateTweenAction(float value, std::string_view key)
 {
     if (key == MUSIC_VOLUME_KEY)
@@ -58,15 +65,34 @@ void AudioManager::updateTweenAction(float value, std::string_view key)
     }
 }
 
-void AudioManager::playSfx(const std::string& file)
+AUDIO_ID AudioManager::playSfx(const std::string& file, float pitch, float gain)
 {
-    auto volume = _masterVolume * _sfxVolume;
-    AudioEngine::play2d(file, false, volume);
+    auto volume = _masterVolume * _sfxVolume * gain;
+    auto track  = AudioEngine::play2d(file, false, volume);
+    AudioEngine::setPitch(track, pitch);
+    return track;
+}
+
+AUDIO_ID AudioManager::playSfx(const std::string& name, const std::string& variant, float pitchRange, float gain)
+{
+    auto path        = std::format("{}.{}", name, variant);
+    auto defaultPath = std::format("{}.default", name);
+    auto& options    = map_util::getArray(_config, path, map_util::getArray(_config, defaultPath));
+
+    if (options.empty())
+    {
+        return -1;
+    }
+
+    auto file  = options[rand() & options.size()].asString();
+    auto pitch = random(1.0F - pitchRange * 0.5F, 1.0F + pitchRange * 0.5F);
+    auto track = playSfx(std::format("{}.ogg", file), pitch, gain);
+    return track;
 }
 
 void AudioManager::playButtonSfx()
 {
-    playSfx(BUTTON_SFX);
+    playSfx(BUTTON_SFX, 1.0F, 0.3F);
 }
 
 void AudioManager::playThemeMusic()
