@@ -424,6 +424,20 @@ void Player::update(float deltaTime)
             }
         }
 
+        // 0x10001EEB6: Apply conveyor belt movement
+        // NOTE: Normally done after limiting velocity, but that creates issues for us...
+        if (grounded)
+        {
+            auto item = _avatar->getFeetItem();
+
+            if (item && item->isUsableType(UseType::MOVE))
+            {
+                auto direction = _avatar->getFeetMod() == 0 ? 1.0F : -1.0F;
+                auto impulse   = BLOCK_SIZE * item->getPower() * 20.0F * deltaTime * direction;
+                body->applyImpulseAtLocalPoint(Vec2::UNIT_X * impulse);
+            }
+        }
+
         // 0x10001DBB2: Limit velocity
         // TODO: calculation is a bit more complex for liquids
         auto velLimit = _currentLiquidLevel == 0 ? BLOCK_SIZE * 12.0F : BLOCK_SIZE * 4.0F;

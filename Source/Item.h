@@ -58,7 +58,8 @@ enum class UseType : uint8_t
     CLIMB = 2,
     FLY   = 13,
     PROPEL,
-    HOVER
+    HOVER,
+    MOVE = 25
 };
 
 /*

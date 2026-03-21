@@ -449,6 +449,8 @@ UseType Item::getUseTypeForName(const std::string& name)
         return UseType::PROPEL;
     else if (name == "hover")
         return UseType::HOVER;
+    else if (name == "move")
+        return UseType::MOVE;
 
     return UseType::NONE;
 }
