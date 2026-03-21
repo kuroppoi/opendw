@@ -446,6 +446,11 @@ void Lightmapper::illuminateBlocks(float deltaTime)
     _flash = clampf(_flash - deltaTime * (255.0F / 0.0167F), 0.0F, 255.0F);  // HACK: consistent flash duration
     _texture->updateWithData(_textureData, _textureSizeBytes, backend::PixelFormat::RGBA8, backend::PixelFormat::RGBA8,
                              _textureWidth, _textureHeight, false);
+
+    // 0x100058C87: Update sky coverage
+    // FIXME: There's somewhat of an inaccuracy caused by the padding used by the lightmapper
+    auto skyCoverage = clampf((float)_skyBlocksVisible / _screenBlocks.size(), 0.0F, 1.0F);
+    _zone->setSkyCoverage(skyCoverage);
 }
 
 float Lightmapper::getBaseLight() const

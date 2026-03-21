@@ -211,6 +211,12 @@ public:
     /* FUNC: WorldZone::acidty @ 0x10004A304 */
     float getAcidity() const { return _acidity; }
 
+    /* FUNC: WorldZone::setSkyCoverage: @ 0x10004A23C */
+    void setSkyCoverage(float skyCoverage) { _skyCoverage = skyCoverage; }
+
+    /* FUNC: WorldZone::skyCoverage @ 0x10004A22A */
+    float getSkyCoverage() const { return _skyCoverage; }
+
     /* FUNC: WorldZone::cloudCover @ 0x10004A1D1 */
     float getCloudCover() const { return _cloudCover; }
 
@@ -269,6 +275,7 @@ private:
     float _dayPercent;                               // WorldZone::dayPercent @ 0x1003110E8
     float _dayTime;                                  // WorldZone::daytime @ 0x1003110E0
     float _acidity;                                  // WorldZone::acidity @ 0x100311138
+    float _skyCoverage;                              // WorldZone::skyCoverage @ 0x100311140
     float _cloudCover;                               // WorldZone::cloudCover @ 0x100311160
     double _lastBlocksRequestAt;                     // WorldZone::lastBlocksRequestAt @ 0x100311100
     double _lastBlocksIgnoreAt;                      // WorldZone::lastBlocksIgnoreAt @ 0x100311108

@@ -386,6 +386,12 @@ void WorldZone::update(float deltaTime)
         updateTimedStatus(deltaTime);
         _receivedInitialStatus = true;
     }
+
+    // 0x100043178: Update ambient noise
+    // TODO: ambient noise setting
+    // TODO: rain
+    auto wind = math_util::lerp(0.0F, 1.0F, _skyCoverage * 3.0F);
+    AudioManager::getInstance()->setAutoLoopLayer("wind", wind, 1.0F);
 }
 
 void WorldZone::updateTimedStatus(float deltaTime)
