@@ -150,6 +150,8 @@ void GameManager::update(float deltaTime)
     {
         _zone->update(deltaTime);
     }
+
+    AudioManager::getInstance()->update(deltaTime);
 }
 
 void GameManager::snapshotScreenAsSpinner(bool snapshotZone)
@@ -425,6 +427,7 @@ void GameManager::reset()
 
     _inputManager->exitGame();
     _tcpClient->stop();
+    AudioManager::getInstance()->clearLoopLayers();
 }
 
 void GameManager::runCommands()

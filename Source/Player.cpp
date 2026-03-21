@@ -127,9 +127,10 @@ void Player::configureAvatar(const ValueMap& data)
 void Player::begin()
 {
     // TODO: finish
-    _zoneTeleporting = false;
-    _flyAccessory    = GameConfig::getMain()->getItemForCode(1060);  // TODO: get from inventory
-    _changeIdleAt    = utils::gettime() + random(8.0F, 15.0F);
+    _zoneTeleporting   = false;
+    _flyAccessory      = GameConfig::getMain()->getItemForCode(1060);  // TODO: get from inventory
+    _flyAccessoryPower = 0.0F;
+    _changeIdleAt      = utils::gettime() + random(8.0F, 15.0F);
     setLookDirection(1);
 }
 
@@ -450,7 +451,6 @@ void Player::update(float deltaTime)
     }
 
     body->setAngle(0.0F);
-    _flyAccessoryPower = math_util::lerp(_flyAccessoryPower, 0.0F, deltaTime);
     _avatar->update(deltaTime);
     _avatar->setRotation(math_util::lerp(_avatar->getRotation(), 0.0F, deltaTime * 2.3125F));
     _avatar->animate(animation);
@@ -472,6 +472,10 @@ void Player::update(float deltaTime)
 
     _avatar->setPosition(position);
     sendMoveMessage();
+
+    // Update fly accessory power & play sound effect
+    _flyAccessoryPower = _flyAccessoryPower < 0.01F ? 0.0F : math_util::lerp(_flyAccessoryPower, 0.0F, deltaTime);
+    AudioManager::getInstance()->setAutoLoopLayer("jetpack", _flyAccessoryPower, _flyAccessoryPower);
 }
 
 void Player::useFlyAccessory(Item* item, float deltaTime)
@@ -479,7 +483,6 @@ void Player::useFlyAccessory(Item* item, float deltaTime)
     // TODO: flight suppression
     // TODO: emit particles
     // TODO: track steam
-
     auto speedX    = _destination.x - _physical->getPosition().x;
     auto flySpeed  = getFlyingSpeed() * BLOCK_SIZE * deltaTime;
     auto direction = abs(speedX) < FLT_EPSILON ? 0.0F : speedX > 0.0F ? 1.0F : -1.0F;
@@ -511,7 +514,8 @@ bool Player::climbBlock(BaseBlock* block, float deltaTime)
 
 void Player::teleportToZone(const std::string& id)
 {
-    AudioManager::getInstance()->playSfx("teleport.ogg");
+    AudioManager::getInstance()->clearLoopLayers();
+    AudioManager::getInstance()->playSfx("teleport");
     // TODO: _usedZoneTeleporter = true;
     _zoneTeleporting = true;
     _game->snapshotScreenAsSpinner(true);
