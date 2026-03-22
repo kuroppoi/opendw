@@ -1,12 +1,15 @@
 <h1 align="center">OpenDW</h1>
 <p align="center">An open source reimplementation of Deepworld</p>
+<p align="center">
+    <kbd><img width="1536" height="864" alt="image" src="https://github.com/user-attachments/assets/309f7c82-48ac-4d02-942f-a2af50606efb"/></kbd>
+</p>
 
 > [!NOTE]
 > Deepworld was originally developed for MacOS and iOS using an older version of Cocos2d.\
 > Due to engine and platform differences, this project doesn't aim to be a 100% accurate recreation.
 
 > [!IMPORTANT]
-> Deepworld is an online game and requires a [server](https://github.com/kuroppoi/brainwine) in order to be playable.
+> Deepworld is an online game and requires a compatible [server](https://github.com/kuroppoi/brainwine) in order to be playable.
 
 ## Building
 
