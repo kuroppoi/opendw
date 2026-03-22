@@ -515,7 +515,7 @@ bool Player::climbBlock(BaseBlock* block, float deltaTime)
 void Player::teleportToZone(const std::string& id)
 {
     AudioManager::getInstance()->clearLoopLayers();
-    AudioManager::getInstance()->playSfx("teleport");
+    AudioManager::getInstance()->playSfx("teleport", 1.0F, 0.5F);
     // TODO: _usedZoneTeleporter = true;
     _zoneTeleporting = true;
     _game->snapshotScreenAsSpinner(true);
