@@ -1,6 +1,11 @@
 <h1 align="center">OpenDW</h1>
 <p align="center">An open source reimplementation of Deepworld</p>
 <p align="center">
+  <a href="https://github.com/kuroppoi/opendw/actions"><img src="https://img.shields.io/github/actions/workflow/status/kuroppoi/opendw/build-win32.yml?labelColor=333A41&logoColor=959DA5&logo=github&style=plastic"/></a>
+  <a href="https://github.com/kuroppoi/opendw/releases/latest"><img src="https://img.shields.io/github/v/release/kuroppoi/opendw?labelColor=333A41&logoColor=959DA5&logo=github&style=plastic"/></a>
+  <a href="https://github.com/kuroppoi/opendw/tree/master/Source"><img src="https://img.shields.io/github/languages/code-size/kuroppoi/opendw?labelColor=333A41&style=plastic"/></a>
+</p>
+<p align="center">
     <kbd><img width="1536" height="864" alt="image" src="https://github.com/user-attachments/assets/309f7c82-48ac-4d02-942f-a2af50606efb"/></kbd>
 </p>
 
