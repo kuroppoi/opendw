@@ -1,8 +1,8 @@
 #include "EntityAnimatedAvatar.h"
 
+#include "base/Item.h"
 #include "zone/BaseBlock.h"
 #include "AudioManager.h"
-#include "Item.h"
 
 #define WALK_SFX_INTERVAL 0.15
 

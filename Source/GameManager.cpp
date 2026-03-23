@@ -1,7 +1,10 @@
 #include "GameManager.h"
 
+#include "base/GameConfig.h"
+#include "base/Player.h"
 #include "entity/SpineManager.h"
 #include "graphics/WorldRenderer.h"
+#include "gui/MainMenu.h"
 #include "input/DefaultInputManager.h"
 #include "network/http/HttpFetcher.h"
 #include "network/tcp/command/GameCommand.h"
@@ -11,9 +14,6 @@
 #include "zone/WorldZone.h"
 #include "AssetManager.h"
 #include "AudioManager.h"
-#include "GameConfig.h"
-#include "MainMenu.h"
-#include "Player.h"
 
 USING_NS_AX;
 

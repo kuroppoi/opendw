@@ -1,13 +1,13 @@
 #include "TeleportIcon.h"
 
+#include "base/GameConfig.h"
+#include "base/Player.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
 #include "GameManager.h"
-#include "Player.h"
 
 #define MAX_PEER_ICONS 9
 

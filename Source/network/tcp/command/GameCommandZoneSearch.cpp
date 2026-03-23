@@ -1,7 +1,7 @@
 #include "GameCommandZoneSearch.h"
 
+#include "gui/widget/TeleportIcon.h"  // ZoneSearchInfo
 #include "gui/GameGui.h"
-#include "gui/TeleportIcon.h"  // ZoneSearchInfo
 #include "util/Validation.h"
 
 #define SEARCH_INFO_DESCRIPTOR "SSNNANNS[Sx]SN[Sx]"

@@ -1,5 +1,7 @@
 #include "WorldLayerRenderer.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/backend/MaskedSpriteBatchNode.h"
 #include "graphics/WorldRenderer.h"
@@ -8,7 +10,6 @@
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
 #include "GameManager.h"
 
 #define BASE_EARTH          2

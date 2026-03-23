@@ -1,8 +1,9 @@
 #include "TeleportPanel.h"
 
+#include "base/GameConfig.h"
+#include "gui/widget/SpriteButton.h"
+#include "gui/widget/TeleportIcon.h"
 #include "gui/GameGui.h"
-#include "gui/SpriteButton.h"
-#include "gui/TeleportIcon.h"
 #include "input/InputManager.h"
 #include "network/tcp/MessageIdent.h"
 #include "util/AxUtil.h"
@@ -10,7 +11,6 @@
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
-#include "GameConfig.h"
 #include "GameManager.h"
 
 #define MAX_HIGHLIGHT_DISTANCE 75.0F  // Originally 50

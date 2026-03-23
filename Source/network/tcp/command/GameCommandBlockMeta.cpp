@@ -1,9 +1,9 @@
 #include "GameCommandBlockMeta.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
 #include "util/MapUtil.h"
 #include "zone/WorldZone.h"
-#include "GameConfig.h"
-#include "Item.h"
 
 USING_NS_AX;
 

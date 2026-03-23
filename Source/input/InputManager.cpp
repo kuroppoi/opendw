@@ -1,8 +1,8 @@
 #include "InputManager.h"
 
+#include "base/Player.h"
 #include "gui/GameGui.h"
 #include "GameManager.h"
-#include "Player.h"
 
 USING_NS_AX;
 

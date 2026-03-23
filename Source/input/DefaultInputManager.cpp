@@ -1,5 +1,6 @@
 #include "DefaultInputManager.h"
 
+#include "base/Player.h"
 #include "graphics/Lightmapper.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
@@ -7,7 +8,6 @@
 #include "AudioManager.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
-#include "Player.h"
 
 USING_NS_AX;
 

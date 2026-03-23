@@ -1,5 +1,8 @@
 #include "Lightmapper.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
+#include "base/Player.h"
 #include "graphics/WorldRenderer.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -7,9 +10,6 @@
 #include "zone/MetaBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
-#include "Item.h"
-#include "Player.h"
 
 #define LIGHT_RING_ITERATIONS      8
 #define LIGHTMAP_SCALE             0.5

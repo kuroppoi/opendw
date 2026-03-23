@@ -1,7 +1,7 @@
 #include "GameGui.h"
 
-#include "gui/Panel.h"
-#include "gui/SpriteButton.h"
+#include "gui/widget/Panel.h"
+#include "gui/widget/SpriteButton.h"
 #include "gui/TeleportPanel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"

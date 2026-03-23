@@ -1,5 +1,7 @@
 #include "BaseBlock.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/WorldLayerRenderer.h"
 #include "graphics/WorldRenderer.h"
@@ -7,9 +9,7 @@
 #include "physics/Physical.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
 #include "GameManager.h"
-#include "Item.h"
 
 #define GLASS                    599
 #define BALLOON                  607
