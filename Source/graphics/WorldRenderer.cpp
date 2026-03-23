@@ -106,9 +106,9 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _liquidBlocksNode = createLayerRenderer("liquid", BlockLayer::LIQUID, "liquid+hd2.png");
 
     // 0x10007D824: Create fronter layer renderers
+    auto frontAltWholeNode  = createLayerRenderer("front-alt-whole", BlockLayer::FRONT, "front-whole+hd2.png");
     _fronterBiomeBlocksNode = createLayerRenderer("fronterBiome", BlockLayer::FRONT, "front-whole+hd2.png", true);
     _fronterBlocksNode      = createLayerRenderer("fronter", BlockLayer::FRONT, "front-whole+hd2.png");
-    auto frontAltWholeNode  = createLayerRenderer("front-alt-whole", BlockLayer::FRONT, "front-whole+hd2.png");
     auto fronterBaseNode    = createLayerRenderer("fronterBase", BlockLayer::FRONT, "base+hd2.png");
     _fronterAccentsNode     = createLayerRenderer("fronterAccents", BlockLayer::FRONT, "accents+hd2.png");
     _fronterBlocksNode->addAltRenderer(_fronterBiomeBlocksNode);

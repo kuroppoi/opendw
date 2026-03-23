@@ -225,8 +225,9 @@ void Player::update(float deltaTime)
             else if (!_travelingHorizontally)
             {
                 // We're standing still on solid ground
+                // NOTE: This is an approximation and isn't going to be 100% accurate
                 auto velocity = _physical->getVelocity();
-                velocity.x *= 0.6F;
+                velocity.x    = math_util::lerp(velocity.x, 0.0F, deltaTime * 24.0F);
                 _physical->setVelocity(velocity);
                 _running = false;
             }
@@ -474,7 +475,7 @@ void Player::update(float deltaTime)
     sendMoveMessage();
 
     // Update fly accessory power & play sound effect
-    _flyAccessoryPower = _flyAccessoryPower < 0.01F ? 0.0F : math_util::lerp(_flyAccessoryPower, 0.0F, deltaTime);
+    MathUtil::smooth(&_flyAccessoryPower, 0.0F, deltaTime, 1.0F);
     AudioManager::getInstance()->setAutoLoopLayer("jetpack", _flyAccessoryPower, _flyAccessoryPower);
 }
 
