@@ -43,7 +43,25 @@ bool AudioManager::init()
     _sfxVolume          = 1.0F;
     _musicVolume        = 1.0F;
     _fadeOutMusicAction = nullptr;
-    AudioEngine::preload(std::format("{}.{}", THEME_MUSIC, AUDIO_FORMAT));
+
+    // If you've got any heavy audio files you should add them here for preloading
+    const auto preloadList = {THEME_MUSIC, "jetpack", "wind_desert_01_30"};
+
+    for (auto& name : preloadList)
+    {
+        auto file = std::format("{}.{}", name, AUDIO_FORMAT);
+        AudioEngine::preload(file, [=](bool success) {
+            if (success)
+            {
+                AXLOGI("[AudioManager] Preloaded audio file {}", file);
+            }
+            else
+            {
+                AXLOGW("[AudioManager] Failed to preload audio file {}", file);
+            }
+        });
+    }
+
     return true;
 }
 
