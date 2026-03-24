@@ -1,8 +1,8 @@
 #include "GameCommandEntityChange.h"
 
+#include "base/Player.h"
 #include "entity/Entity.h"
 #include "zone/WorldZone.h"
-#include "Player.h"
 
 namespace opendw
 {

@@ -1,5 +1,7 @@
 #include "Player.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
@@ -15,9 +17,7 @@
 #include "zone/WorldZone.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
 #include "GameManager.h"
-#include "Item.h"
 
 #define MOVE_MESSAGE_INTERVAL 0.2
 #define JUMP_COOLDOWN         0.3

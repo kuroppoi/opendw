@@ -3,7 +3,7 @@
 
 #include "axmol.h"
 
-#include "gui/Panel.h"
+#include "gui/widget/Panel.h"
 
 namespace opendw
 {

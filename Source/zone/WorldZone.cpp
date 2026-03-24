@@ -1,5 +1,8 @@
 #include "WorldZone.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
+#include "base/Player.h"
 #include "entity/Entity.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "graphics/SceneRenderer.h"
@@ -18,10 +21,7 @@
 #include "zone/WorldChunk.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
 #include "GameManager.h"
-#include "Item.h"
-#include "Player.h"
 
 #define CHUNK_PREALLOC_COUNT   60
 #define WEATHER_STATUS_LENGTH  6

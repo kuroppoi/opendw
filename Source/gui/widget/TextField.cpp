@@ -1,6 +1,6 @@
 #include "TextField.h"
 
-#include "gui/Panel.h"
+#include "gui/widget/Panel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"
 #include "util/MathUtil.h"

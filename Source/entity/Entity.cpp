@@ -1,5 +1,6 @@
 #include "Entity.h"
 
+#include "base/GameConfig.h"
 #include "entity/EntityAnimated.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "entity/EntityAnimatedGhost.h"
@@ -11,7 +12,6 @@
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
 
 USING_NS_AX;
 

@@ -1,10 +1,10 @@
 #include "Item.h"
 
+#include "base/GameConfig.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "zone/BaseBlock.h"  // BlockLayer
 #include "CommonDefs.h"
-#include "GameConfig.h"
 #include "GameManager.h"
 
 #define BASE_EARTH        2

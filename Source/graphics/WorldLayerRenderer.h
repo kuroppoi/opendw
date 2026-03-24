@@ -3,7 +3,7 @@
 
 #include "axmol.h"
 
-#include "Item.h"  // ContinuitySpriteList
+#include "base/Item.h"  // ContinuitySpriteList
 
 namespace opendw
 {

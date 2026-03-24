@@ -1,10 +1,10 @@
 #include "GameConfig.h"
 
+#include "base/Item.h"
 #include "entity/EntityConfig.h"
 #include "util/ArrayUtil.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
-#include "Item.h"
 
 USING_NS_AX;
 

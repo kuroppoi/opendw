@@ -1,10 +1,10 @@
 #include "GameCommandPlayerPosition.h"
 
+#include "base/Player.h"
 #include "graphics/WorldRenderer.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
-#include "Player.h"
 
 namespace opendw
 {

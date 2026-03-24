@@ -1,5 +1,8 @@
 #include "WorldRenderer.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
+#include "base/Player.h"
 #include "entity/Entity.h"
 #include "entity/EntityAnimated.h"
 #include "entity/EntityConfig.h"
@@ -16,10 +19,7 @@
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
 #include "GameManager.h"
-#include "Item.h"
-#include "Player.h"
 
 #define MAX_BLOCK_RENDER_FRAME 0.1
 #define FX_PROCESS_INTERVAL    0.2

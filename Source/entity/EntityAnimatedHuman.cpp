@@ -1,10 +1,10 @@
 #include "EntityAnimatedHuman.h"
 
+#include "base/GameConfig.h"
+#include "base/Item.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
-#include "GameConfig.h"
-#include "Item.h"
 
 #define SLOT_EMPTY ""
 

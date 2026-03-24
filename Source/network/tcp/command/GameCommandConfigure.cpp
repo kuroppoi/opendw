@@ -1,8 +1,8 @@
 #include "GameCommandConfigure.h"
 
+#include "base/Player.h"
 #include "zone/WorldZone.h"
 #include "GameManager.h"
-#include "Player.h"
 
 USING_NS_AX;
 
