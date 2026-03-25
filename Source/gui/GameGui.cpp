@@ -12,6 +12,8 @@
 #include "CommonDefs.h"
 #include "GameManager.h"
 
+#define MIN_ALERT_INTERVAL 1.5
+
 USING_NS_AX;
 
 namespace opendw
@@ -63,6 +65,10 @@ void GameGui::onEnter()
     Node::onEnter();
     _eventListeners.push_back(_eventDispatcher->addCustomEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED,
                                                                        AX_CALLBACK_0(GameGui::onWindowResized, this)));
+    _eventListeners.push_back(_eventDispatcher->addCustomEventListener("alert", [=](EventCustom* event) {
+        auto& data = *static_cast<Value*>(event->getUserData());
+        showAlert(data);
+    }));
     _eventListeners.push_back(_eventDispatcher->addCustomEventListener("bigAlert", [=](EventCustom* event) {
         auto& data = *static_cast<Value*>(event->getUserData());
         showBigAlert(data);
@@ -81,9 +87,27 @@ void GameGui::onExit()
     Node::onExit();
 }
 
+void GameGui::update(float deltaTime)
+{
+    Node::update(deltaTime);
+
+    // 0x10005D0B2: Show next pending alert if it is time
+    if (!_pendingAlerts.empty() && utils::gettime() > _lastAlertShownAt + MIN_ALERT_INTERVAL)
+    {
+        auto it = _pendingAlerts.begin();
+        showAlert(*it);
+        _pendingAlerts.erase(it);
+    }
+}
+
 void GameGui::ready()
 {
     // TODO: implement
+}
+
+void GameGui::clear()
+{
+    _pendingAlerts.clear();
 }
 
 void GameGui::toggleGameMenu()
@@ -147,6 +171,48 @@ void GameGui::showTeleportZones(const std::string& type, const std::vector<ZoneS
     _teleportPanel->showZones(type, data);
 }
 
+void GameGui::showAlert(const std::string& text)
+{
+    // Add to pending alerts if not enough time has passed since the previous alert
+    if (utils::gettime() <= _lastAlertShownAt + MIN_ALERT_INTERVAL)
+    {
+        if (text != _lastAlertShown)
+        {
+            _pendingAlerts.push_back(text);
+        }
+
+        return;
+    }
+    
+    // Create and display alert label
+    auto label = Label::createWithBMFont("console-shadow.fnt", text);
+    label->setMaxLineWidth(label->getBMFontSize() * 50.0F);  // 30 for small screen
+    auto& winSize = _director->getWinSize();
+    label->setPosition(winSize.width * 0.5F, winSize.height * 0.4F);
+    label->setOpacity(0);
+    auto duration = text.length() > 50 ? 7.0F : 4.0F;
+    auto moveUp   = MoveBy::create(duration, Vec2::UNIT_Y * 40.0F);
+    auto fadeIn   = FadeIn::create(duration * 0.333F);
+    auto delay    = DelayTime::create(duration * 0.333F);
+    auto fadeOut  = FadeOut::create(duration * 0.333F);
+    auto cleanup  = CallFuncN::create(&Node::removeFromParent);
+    auto sequence = Sequence::create({fadeIn, delay, fadeOut, cleanup});
+    label->runAction(Spawn::createWithTwoActions(moveUp, sequence));
+    addChild(label, 9);
+    AudioManager::getInstance()->playSfx("notification", 1.0F, 0.21F);
+    _lastAlertShown   = text;
+    _lastAlertShownAt = utils::gettime();
+}
+
+void GameGui::showAlert(const Value& data)
+{
+    // TODO: finish
+    if (data.getType() == Value::Type::STRING)
+    {
+        showAlert(data.asString());
+    }
+}
+
 void GameGui::showBigAlert(const std::string& title, const std::string& subtitle)
 {
     // TODO: finish
@@ -177,11 +243,11 @@ void GameGui::showBigAlert(const std::string& title, const std::string& subtitle
     }
 }
 
-void GameGui::showBigAlert(const Value& value)
+void GameGui::showBigAlert(const Value& data)
 {
-    if (value.getType() == Value::Type::MAP)
+    if (data.getType() == Value::Type::MAP)
     {
-        auto& map     = value.asValueMap();
+        auto& map     = data.asValueMap();
         auto title    = map_util::getString(map, "t");
         auto subtitle = map_util::getString(map, "t2");
         showBigAlert(title, subtitle);
@@ -189,7 +255,7 @@ void GameGui::showBigAlert(const Value& value)
     else
     {
         // Assume string
-        showBigAlert(value.asString());
+        showBigAlert(data.asString());
     }
 }
 

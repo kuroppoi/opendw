@@ -32,7 +32,7 @@ bool SceneRenderer::initWithZone(WorldZone* zone)
 void SceneRenderer::update(float deltaTime)
 {
     _worldRenderer->update(deltaTime);
-    // TODO: _gameGui->update(deltaTime);
+    _gameGui->update(deltaTime);
 }
 
 void SceneRenderer::ready()
@@ -44,7 +44,7 @@ void SceneRenderer::ready()
 void SceneRenderer::clear()
 {
     _worldRenderer->clear();
-    // TODO: _gameGui->clear();
+    _gameGui->clear();
 }
 
 void SceneRenderer::showSpinner()

@@ -355,13 +355,28 @@ void GameManager::configure(const ValueMap& data)
 
 void GameManager::notify(NotificationType type, const Value& data)
 {
+    std::string event;
+
     switch (type)
     {
+    case NotificationType::ALERT:
+        event = "alert";
+        break;
+    case NotificationType::BIG_ALERT:
+        event = "bigAlert";
+        break;
     case NotificationType::WELCOME:
         enterGame(data.asString());
         break;
     default:
         break;
+    }
+
+    // Dispatch event if necessary
+    if (!event.empty())
+    {
+        Value copy = data;  // Can't pass const
+        _eventDispatcher->dispatchCustomEvent(event, &copy);
     }
 }
 

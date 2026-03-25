@@ -34,8 +34,14 @@ public:
     /* FUNC: GameGui::onExit @ 0x10006A31A */
     void onExit() override;
 
+    /* FUNC: GameGui::step: @ 0x10005CED1 */
+    void update(float deltaTime) override;
+
     /* FUNC: GameGui::ready @ 0x10005CB86 */
     void ready();
+
+    /* FUNC: GameGui::clear @ 0x10006A126 */
+    void clear();
 
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
@@ -49,6 +55,10 @@ public:
     /* FUNC: GameGui::showTeleportZones: @ 0x10006962D */
     void showTeleportZones(const std::string& type, const std::vector<ZoneSearchInfo>& data);
 
+    /* FUNC: GameGui::alert: @ 0x10006264C */
+    void showAlert(const std::string& text);
+    void showAlert(const ax::Value& data);
+
     /* FUNC: GameGui::showBigAlert:direction:sound: @ 0x1000614EC */
     void showBigAlert(const std::string& title, const std::string& subtitle = "");
     void showBigAlert(const ax::Value& data);
@@ -59,12 +69,15 @@ public:
 private:
     inline static GameGui* sMain;  // 0x10032EAD0
 
-    WorldZone* _zone;               // GameGui::zone @ 0x100311788
-    ax::Node* _announcementsNode;   // GameGui::announcementsNode @ 0x100311948
-    ax::Node* _gameMenu;            // GameGui::gameMenu @ 0x100311A30
-    ax::Node* _hudButtonsNode;      // GameGui::hudButtonsNode @ 0x100311848
-    SpriteButton* _worldButton;     // GameGui::worldButton @ 0x100311900
-    TeleportPanel* _teleportPanel;  // GameGui::teleportPanel @ 0x100311A58
+    WorldZone* _zone;                         // GameGui::zone @ 0x100311788
+    ax::Node* _announcementsNode;             // GameGui::announcementsNode @ 0x100311948
+    ax::Node* _gameMenu;                      // GameGui::gameMenu @ 0x100311A30
+    ax::Node* _hudButtonsNode;                // GameGui::hudButtonsNode @ 0x100311848
+    SpriteButton* _worldButton;               // GameGui::worldButton @ 0x100311900
+    TeleportPanel* _teleportPanel;            // GameGui::teleportPanel @ 0x100311A58
+    double _lastAlertShownAt;                 // GameGui::lastAlertShownAt @ 0x100311978
+    std::string _lastAlertShown;              // GameGui::lastAlertShown @ 0x100311A10
+    std::vector<std::string> _pendingAlerts;  // GameGui::pendingAlerts @ 0x1003117A8
     std::vector<ax::EventListener*> _eventListeners;
 };
 
