@@ -45,6 +45,13 @@ bool BaseBlock::initWithZone(WorldZone* zone, int16_t x, int16_t y)
     return true;
 }
 
+std::string BaseBlock::getDescription() const
+{
+    return std::format("<Block {}x{}: Base {}:{}, Back {}:{}:{}, Front {}:{}:{}:{}, Liquid {}:{}:{}>", _x, _y, _base,
+                       _baseItem->getName(), _back, _backItem->getName(), _backMod, _front, _frontItem->getName(),
+                       _frontMod, _frontNatural ? "natural" : "user", _liquid, _liquidItem->getName(), _liquidMod);
+}
+
 void BaseBlock::setData(const ValueVector& data, uint32_t index)
 {
     auto base     = data[(size_t)index * 3].asUint();

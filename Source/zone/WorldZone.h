@@ -122,6 +122,12 @@ public:
     /* FUNC: WorldZone::blockIndexAtNodePoint: 0x100046549 */
     ax::Point getBlockPointAtNodePoint(const ax::Point& point) const;
 
+    /* FUNC: WorldZone::blockAtNodePoint: @ 0x1000465D5 */
+    BaseBlock* getBlockAtNodePoint(const ax::Point& point);
+
+    /* FUNC: WorldZone::blockAtScreenPoint: @ 0x100046611 */
+    BaseBlock* getBlockAtScreenPoint(const ax::Point& point);
+
     /* FUNC: WorldZone::upperLeftScreenBlockIndex @ 0x10004685F */
     ax::Point getUpperLeftScreenBlockPoint() const;
 
@@ -136,6 +142,9 @@ public:
 
     /* FUNC: WorldZone::metaBlockAtX:y: @ 0x10004717A */
     MetaBlock* getMetaBlockAt(int16_t x, int16_t y) const;
+
+    /* FUNC: WorldZone::showBlockInfo: @ 0x100048CFB */
+    void showBlockInfo(BaseBlock* block) const;
 
     void queueBlockForPhysics(BaseBlock* block);
 

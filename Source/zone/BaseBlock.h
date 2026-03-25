@@ -38,6 +38,9 @@ public:
     /* FUNC: BaseBlock::initWithWorldZone:x:y: @ 0x10002E322 */
     bool initWithZone(WorldZone* zone, int16_t x, int16_t y);
 
+    /* FUNC: BaseBlock::description @ 0x10002E3ED */
+    std::string getDescription() const;
+
     /* FUNC: BaseBlock::setData:idx: @ 0x10002E798 */
     void setData(const ax::ValueVector& data, uint32_t index);
 

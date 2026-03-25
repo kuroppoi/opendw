@@ -704,6 +704,17 @@ Point WorldZone::getBlockPointAtNodePoint(const Point& point) const
     return Point(floorf(point.x / BLOCK_SIZE), floorf(-point.y / BLOCK_SIZE));
 }
 
+BaseBlock* WorldZone::getBlockAtNodePoint(const Point& point)
+{
+    auto blockPoint = getBlockPointAtNodePoint(point);
+    return getBlockAt((int16_t)blockPoint.x, (int16_t)blockPoint.y);
+}
+
+BaseBlock* WorldZone::getBlockAtScreenPoint(const Point& point)
+{
+    return getBlockAtNodePoint(_worldRenderer->getNodePointForScreenPoint(point));
+}
+
 Point WorldZone::getUpperLeftScreenBlockPoint() const
 {
     auto& winSize = _director->getWinSize();
@@ -799,6 +810,21 @@ MetaBlock* WorldZone::getMetaBlockAt(int16_t x, int16_t y) const
     auto index = y * _blocksWidth + x;
     auto it    = _metaBlocks.find(index);
     return it == _metaBlocks.end() ? nullptr : (*it).second;
+}
+
+void WorldZone::showBlockInfo(BaseBlock* block) const
+{
+    std::string text = block->getDescription();
+    auto metablock   = getMetaBlockAt(block->getX(), block->getY());
+
+    if (metablock)
+    {
+        Value metadata(metablock->getMetadata());
+        text += std::format("\n[Meta] Player: {}, Data: {}", metablock->getPlayerId(), metadata.getDescription());
+    }
+
+    Value alert(text);
+    _eventDispatcher->dispatchCustomEvent("alert", &alert);
 }
 
 void WorldZone::queueBlockForPhysics(BaseBlock* block)

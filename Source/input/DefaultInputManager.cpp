@@ -120,7 +120,8 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         return;
     }
 
-    auto worldRenderer = _game->getZone()->getWorldRenderer();
+    auto zone          = WorldZone::getMain();
+    auto worldRenderer = zone->getWorldRenderer();
     auto lightmapper   = worldRenderer->getLightmapper();
 
     switch (keyCode)
@@ -165,6 +166,18 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
     {
         auto player = Player::getMain();
         player->setClip(!player->getClip());
+        break;
+    }
+    case KeyCode::KEY_RIGHT_BRACKET:
+    {
+        auto block = zone->getBlockAtScreenPoint(_cursorPosition);
+
+        if (block)
+        {
+            zone->showBlockInfo(block);
+        }
+
+        break;
     }
     }
 
