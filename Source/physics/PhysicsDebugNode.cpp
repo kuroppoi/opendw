@@ -62,9 +62,17 @@ static void drawShape(cpShape* shape, DrawNode* drawNode)
 void PhysicsDebugNode::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 {
     clear();
-    auto space = WorldZone::getMain()->getSpace();
-    cpSpaceEachBody(space->getSpace(), (cpSpaceBodyIteratorFunc)drawBody, this);
-    cpSpaceEachShape(space->getSpace(), (cpSpaceShapeIteratorFunc)drawShape, this);
+    auto zone = WorldZone::getMain();
+
+    if (zone->getState() != WorldZone::State::ACTIVE)
+    {
+        AXLOGW("[PhysicsDebugNode] Warning - zone state isn't active");
+        return;
+    }
+
+    auto space = zone->getSpace()->getSpace();  // cpSpace
+    cpSpaceEachBody(space, (cpSpaceBodyIteratorFunc)drawBody, this);
+    cpSpaceEachShape(space, (cpSpaceShapeIteratorFunc)drawShape, this);
     DrawNode::draw(renderer, transform, flags);
 }
 
