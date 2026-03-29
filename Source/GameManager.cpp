@@ -547,6 +547,7 @@ void GameManager::clearCurrentUser()
 
 void GameManager::setCurrentUser(const std::string& username, const std::string& token)
 {
+    _player->setUsername(username);
     _default->setStringForKey("currentUser.username", username);
     _default->setStringForKey("currentUser.token", token);
 }

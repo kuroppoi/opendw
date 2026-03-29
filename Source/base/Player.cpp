@@ -42,6 +42,7 @@ Player* Player::createWithGame(GameManager* game)
 bool Player::initWithGame(GameManager* game)
 {
     _game            = game;
+    _username        = "Unknown player";
     _entityId        = -1;
     _zoneTeleporting = false;
     _clip            = true;
@@ -309,7 +310,7 @@ void Player::update(float deltaTime)
                 impulse *= -1.0F;
             }
 
-            // Apply impulse if it doesn't exceed our current horizontal velocity
+            // Apply impulse if it exceeds our current horizontal velocity
             auto velocity = _physical->getVelocity();
 
             if ((impulse > 0.0F && impulse > velocity.x) || (impulse < 0.0F && impulse < velocity.x))

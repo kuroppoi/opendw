@@ -85,6 +85,12 @@ public:
     /* FUNC: Player::flyingSpeed @ 0x10002C987 */
     float getFlyingSpeed() const;
 
+    /* FUNC: Player::setUsername: @ 0x10002D958 */
+    void setUsername(const std::string& username) { _username = username; }
+
+    /* FUNC: Player::username @ 0x10002D947 */
+    const std::string& getUsername() const { return _username; }
+
     /* FUNC: Player::setEntityId: @ 0x1000C0DD5 */
     void setEntityId(int32_t entityId) { _entityId = entityId; }
 
@@ -140,6 +146,7 @@ private:
     inline static Player* sMain;  // 10032EA98
 
     GameManager* _game;                 // Player::game @ 0x100310630
+    std::string _username;              // Player::username @ 0x100310998
     int32_t _entityId;                  // Player::entityId @ 0x100310638
     EntityAnimatedAvatar* _avatar;      // Player::avatar @ 0x100310718
     ax::Point _destination;             // Player::destination @ 0x100310760
