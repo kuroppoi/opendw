@@ -47,6 +47,9 @@ public:
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
 
+    /* FUNC: GameGui::toggleHud: @ 0x1000693DF */
+    void setHudVisible(bool visible);
+
     /* FUNC: GameGui::showTeleportInterface:fromBlock: @ 0x100069557 */
     void showTeleportInterface(BaseBlock* block);
 

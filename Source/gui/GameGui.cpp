@@ -276,15 +276,24 @@ void GameGui::toggleGameMenu()
     panel->addChild(menu, 2);
 }
 
+void GameGui::setHudVisible(bool visible)
+{
+    _hudNode->setVisible(visible);
+    _hudButtonsNode->setVisible(visible);
+    _profileButton->setVisible(visible);
+}
+
 void GameGui::showTeleportInterface(BaseBlock* block)
 {
     // TODO: finish
+    setHudVisible(false);
     _teleportPanel->showFromBlock(block);
 }
 
 void GameGui::hideTeleportInterface()
 {
     // TODO: finish
+    setHudVisible(true);
     _teleportPanel->setVisible(false);
 }
 
