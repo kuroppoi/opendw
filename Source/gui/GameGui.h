@@ -7,6 +7,7 @@ namespace opendw
 {
 
 class BaseBlock;
+class EntityAnimatedAvatar;
 class SpriteButton;
 class TeleportPanel;
 class WorldZone;
@@ -63,6 +64,12 @@ public:
     void showBigAlert(const std::string& title, const std::string& subtitle = "");
     void showBigAlert(const ax::Value& data);
 
+    /* FUNC: GameGui::positionDescription: @ 0x10005CD87 */
+    std::string getPositionDescription() const;
+
+    /* FUNC: GameGui::playerAppearanceDidChange: @ 0x100064497 */
+    void onPlayerAppearanceChanged(const ax::ValueMap& data);
+
     /* FUNC: GameGui::screenSizeDidChange: @ 0x100067741 */
     void onWindowResized();
 
@@ -72,8 +79,22 @@ private:
     WorldZone* _zone;                         // GameGui::zone @ 0x100311788
     ax::Node* _announcementsNode;             // GameGui::announcementsNode @ 0x100311948
     ax::Node* _gameMenu;                      // GameGui::gameMenu @ 0x100311A30
+    ax::Node* _hudNode;                       // GameGui::hudNode @ 0x100311840
     ax::Node* _hudButtonsNode;                // GameGui::hudButtonsNode @ 0x100311848
+    ax::Label* _nameLabel;                    // GameGui::nameLabel @ 0x100311868
+    ax::Label* _zoneLabel;                    // GameGui::zoneLabel @ 0x100311878
+    ax::Label* _positionLabel;                // GameGui::posLabel @ 0x1003118A0
+    SpriteButton* _profileButton;             // GameGui::profileButton @ 0x1003118C0
+    EntityAnimatedAvatar* _avatarPicture;     // GameGui::avatarPicture @ 0x1003118C8
+    SpriteButton* _inventoryButton;           // GameGui::inventoryButton @ 0x1003118D8
+    SpriteButton* _craftingButton;            // GameGui::craftingButton @ 0x1003118E0
+    SpriteButton* _socialButton;              // GameGui::socialButton @ 0x1003118B0
+    ax::Label* _socialLabel;                  // GameGui::socialLabel @ 0x1003118F8
     SpriteButton* _worldButton;               // GameGui::worldButton @ 0x100311900
+    SpriteButton* _shopButton;                // GameGui::shopButton @ 0x1003118E8
+    ax::Label* _crownsLabel;                  // GameGui::crownsLabel @ 0x1003118F0
+    SpriteButton* _mapButton;                 // GameGui::mapButton @ 0x100311908
+    SpriteButton* _consoleButton;             // GameGui::consoleButton @ 0x100311918
     TeleportPanel* _teleportPanel;            // GameGui::teleportPanel @ 0x100311A58
     double _lastAlertShownAt;                 // GameGui::lastAlertShownAt @ 0x100311978
     std::string _lastAlertShown;              // GameGui::lastAlertShown @ 0x100311A10

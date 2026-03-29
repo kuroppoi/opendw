@@ -20,16 +20,16 @@ public:
     /* FUNC: BatchSpriteButton::dealloc @ 0x100079D45 */
     virtual ~SpriteButton() override;
 
-    static SpriteButton* createWithSpriteFrame(const std::string& frame, const Callback& callback = nullptr);
+    static SpriteButton* createWithSpriteFrame(const std::string& frame);
     static SpriteButton* createWithBackground(const std::string& background,
                                               const std::string& foreground,
-                                              const Callback& callback = nullptr);
+                                              bool trimForeground = false);
 
     /* FUNC: BatchSpriteButton::initWithSpriteFrame:title:block: @ 0x1000792D2 */
-    bool initWithSpriteFrame(const std::string& frame, const Callback& callback);
+    bool initWithSpriteFrame(const std::string& frame);
 
-    /* FUNC: BatchSpriteButton::initWithBackground:foreground:color:block: @ 0x1000790AA */
-    bool initWithBackground(const std::string& background, const std::string& foreground, const Callback& callback);
+    /* FUNC: BatchSpriteButton::initWithBackground:trimmedForeground:color:block: @ 0x100079195 */
+    bool initWithBackground(const std::string& background, const std::string& foreground, bool trimForeground = false);
 
     /* FUNC: BatchSpriteButton::onEnter @ 0x1000793F7 */
     void onEnter() override;
@@ -45,6 +45,9 @@ public:
 
     void runBlinkAction(const ax::Color3B& fromColor, const ax::Color3B& toColor, float duration = 1.0F);
 
+    /* FUNC: BatchSpriteButton::foregroundSprite @ 0x100079F19 */
+    ax::Sprite* getForegroundSprite() const { return _foregroundSprite; }
+
     /* FUNC: BatchSpriteButton::setBlock: @ 0x1000798F2 */
     void setCallback(const Callback& callback) { _callback = callback; }
 
@@ -54,14 +57,15 @@ public:
     /* FUNC: BatchSpriteButton::setTitleColor: @ 0x100079ECF */
     void setTitleColor(const ax::Color3B& color) { _titleLabel->setColor(color); }
     void setTitleOffset(const ax::Vec2& offset) { _titleLabel->setPosition(_contentSize * 0.5F + offset); }
-    
+
     /* FUNC: BatchSpriteButton::ccMouseDown: @ 0x100078E57 */
     bool onTouchBegan(ax::Touch* touch, ax::Event* event);
 
 protected:
     ax::EventListenerTouchOneByOne* _touchListener;
-    ax::Label* _titleLabel;  // BatchSpriteButton::titleLabel @ 0x100311CD8
-    Callback _callback;      // BatchSpriteButton::block_ @ 0x100311CA0
+    ax::Sprite* _foregroundSprite;  // BatchSpriteButton::foregroundSprite @ 0x100311CC0
+    ax::Label* _titleLabel;         // BatchSpriteButton::titleLabel @ 0x100311CD8
+    Callback _callback;             // BatchSpriteButton::block_ @ 0x100311CA0
     ax::Sprite* _spinner;
 };
 

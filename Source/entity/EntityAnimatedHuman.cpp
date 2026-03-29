@@ -366,6 +366,44 @@ void EntityAnimatedHuman::updateAppearance(const ValueMap& data)
             setSlot("character-exo-foot-lower2", std::format("{}-foot-lower", sprite));
         }
     }
+
+    // 0x100176756: Fire event if this is the player's avatar
+    if (_playerAvatar)
+    {
+        ValueMap appearance = data;  // Create copy; can't pass const
+        _eventDispatcher->dispatchCustomEvent("playerDidChangeAppearance", &appearance);
+    }
+}
+
+void EntityAnimatedHuman::hideTorso()
+{
+    setSlot("character-torso", SLOT_EMPTY);
+    setSlot("character-arm-upper", SLOT_EMPTY);
+    setSlot("character-arm-upper1", SLOT_EMPTY);
+    setSlot("character-arm-lower", SLOT_EMPTY);
+    setSlot("character-arm-lower1", SLOT_EMPTY);
+    setSlot("character-hand", SLOT_EMPTY);
+    setSlot("character-hand1", SLOT_EMPTY);
+    setSlot("suit", SLOT_EMPTY);
+}
+
+void EntityAnimatedHuman::hideLegs()
+{
+    setSlot("character-leg-upper", SLOT_EMPTY);
+    setSlot("character-leg-upper1", SLOT_EMPTY);
+    setSlot("character-leg-lower", SLOT_EMPTY);
+    setSlot("character-leg-lower1", SLOT_EMPTY);
+    setSlot("character-foot-upper", SLOT_EMPTY);
+    setSlot("character-foot-upper1", SLOT_EMPTY);
+    setSlot("character-foot-lower", SLOT_EMPTY);
+    setSlot("character-foot-lower1", SLOT_EMPTY);
+}
+
+void EntityAnimatedHuman::hideSkirt()
+{
+    setSlot("character-skirt-l", SLOT_EMPTY);
+    setSlot("character-skirt-m", SLOT_EMPTY);
+    setSlot("character-skirt-r", SLOT_EMPTY);
 }
 
 void EntityAnimatedHuman::hideTool()
@@ -394,6 +432,16 @@ void EntityAnimatedHuman::hideExo()
     setSlot("character-exo-foot-upper2", SLOT_EMPTY);
     setSlot("character-exo-foot-lower", SLOT_EMPTY);
     setSlot("character-exo-foot-lower2", SLOT_EMPTY);
+}
+
+void EntityAnimatedHuman::showHeadOnly()
+{
+    hideTorso();
+    hideLegs();
+    hideSkirt();
+    hideTool();
+    hideExo();
+    animateEye("", 0.0F);
 }
 
 void EntityAnimatedHuman::animateEye(const std::string& suffix, float duration)

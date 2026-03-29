@@ -14,45 +14,59 @@ SpriteButton::~SpriteButton()
     _eventDispatcher->removeEventListener(_touchListener);
 }
 
-SpriteButton* SpriteButton::createWithSpriteFrame(const std::string& frame, const Callback& callback)
+SpriteButton* SpriteButton::createWithSpriteFrame(const std::string& frame)
 {
-    CREATE_INIT(SpriteButton, initWithSpriteFrame, frame, callback);
+    CREATE_INIT(SpriteButton, initWithSpriteFrame, frame);
 }
 
 SpriteButton* SpriteButton::createWithBackground(const std::string& background,
                                                  const std::string& foreground,
-                                                 const Callback& callback)
+                                                 bool trimForeground)
 {
-    CREATE_INIT(SpriteButton, initWithBackground, background, foreground, callback);
+    CREATE_INIT(SpriteButton, initWithBackground, background, foreground, trimForeground);
 }
 
-bool SpriteButton::initWithSpriteFrame(const std::string& frame, const Callback& callback)
+bool SpriteButton::initWithSpriteFrame(const std::string& frame)
 {
     if (!Sprite::initWithSpriteFrameName(frame))
     {
         return false;
     }
 
-    _callback   = callback;
+    _callback   = nullptr;
     _titleLabel = Label::createWithBMFont("console.fnt", "");  // Create even if it isn't used
     _titleLabel->setPosition(_contentSize * 0.5F);
     _titleLabel->setColor(Color3B::BLACK);
     addChild(_titleLabel, 2);
+    setCascadeOpacityEnabled(true);
     return true;
 }
 
-bool SpriteButton::initWithBackground(const std::string& background,
-                                      const std::string& foreground,
-                                      const Callback& callback)
+bool SpriteButton::initWithBackground(const std::string& background, const std::string& foreground, bool trimForeground)
 {
-    if (!initWithSpriteFrame(background, callback))
+    if (!initWithSpriteFrame(background))
     {
         return false;
     }
 
-    auto sprite = Sprite::createWithSpriteFrameName(foreground);
-    sprite->setPosition(_contentSize * 0.5F);
-    addChild(sprite, 1);
+    if (trimForeground)
+    {
+        auto frame = SpriteFrameCache::getInstance()->getSpriteFrameByName(foreground);
+
+        if (!frame)
+        {
+            return false;
+        }
+
+        _foregroundSprite = Sprite::createWithTexture(frame->getTexture(), frame->getRect());
+    }
+    else
+    {
+        _foregroundSprite = Sprite::createWithSpriteFrameName(foreground);
+    }
+
+    _foregroundSprite->setPosition(_contentSize * 0.5F);
+    addChild(_foregroundSprite, 1);
     return true;
 }
 
@@ -61,7 +75,8 @@ void SpriteButton::onEnter()
     Sprite::onEnter();
 
     // Create touch listener
-    _touchListener               = EventListenerTouchOneByOne::create();
+    _touchListener = EventListenerTouchOneByOne::create();
+    _touchListener->setSwallowTouches(true);
     _touchListener->onTouchBegan = AX_CALLBACK_2(SpriteButton::onTouchBegan, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_touchListener, this);
 }

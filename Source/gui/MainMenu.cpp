@@ -17,7 +17,6 @@
 #define ENABLE_NEWS_BACKGROUND 0
 #define ENABLE_ENTITIES        1
 #define PROGRESS_LABEL_TAG     1912
-
 #define TUTORIALS_URL          "https://www.youtube.com/playlist?list=PLxmqYQJh4C3AkZq2wd6tDTsi5T8IrIp4_"
 #define FORUMS_URL             "https://web.archive.org/web/20190829000640/https://forums.deepworldgame.com/"
 #define PROBLEMS_URL           "https://github.com/kuroppoi/opendw/issues"
@@ -323,8 +322,8 @@ void MainMenu::showAlert(const std::string& message)
 void MainMenu::addMenuButtons(const std::string& actionTitle, const Callback& actionCallback)
 {
     // Create cancel/okay button
-    auto button = SpriteButton::createWithBackground("title/cancel-button-back", "title/cancel-button-border",
-                                                     AX_CALLBACK_0(MainMenu::showPlayMenu, this));
+    auto button = SpriteButton::createWithBackground("title/cancel-button-back", "title/cancel-button-border");
+    button->setCallback(AX_CALLBACK_0(MainMenu::showPlayMenu, this));
     button->setTitle(actionTitle.empty() ? "Okay" : "Cancel");
     button->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
     button->setPosition(30.0F, 40.0F);
@@ -335,8 +334,8 @@ void MainMenu::addMenuButtons(const std::string& actionTitle, const Callback& ac
     // Create action button if present
     if (!actionTitle.empty())
     {
-        auto actionButton =
-            SpriteButton::createWithBackground("title/ok-button-back", "title/ok-button-border", actionCallback);
+        auto actionButton = SpriteButton::createWithBackground("title/ok-button-back", "title/ok-button-border");
+        actionButton->setCallback(actionCallback);
         actionButton->setTitle(actionTitle);
         actionButton->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
         actionButton->setPosition(button->getPosition() + Vec2::UNIT_X * math_util::getScaledWidth(button));
@@ -563,8 +562,8 @@ void MainMenu::showHelpMenu()
     // Create buttons
     for (auto& info : buttons)
     {
-        auto button =
-            SpriteButton::createWithSpriteFrame(info.frame, [=] { Application::getInstance()->openURL(info.url); });
+        auto button = SpriteButton::createWithSpriteFrame(info.frame);
+        button->setCallback([=] { Application::getInstance()->openURL(info.url); });
         button->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
         button->setPosition(x, y);
         button->setTitle(info.title);

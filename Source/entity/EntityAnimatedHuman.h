@@ -32,11 +32,23 @@ public:
     /* FUNC: EntityAnimatedHuman::updateAppearance: @ 0x100174EF4 */
     void updateAppearance(const ax::ValueMap& data);
 
+    /* FUNC: EntityAnimatedHuman::hideTorso @ 0x100176829 */
+    void hideTorso();
+
+    /* FUNC: EntityAnimatedHuman::hideLeg @ 0x10017692B */
+    void hideLegs();
+
+    /* FUNC EntityAnimatedHuman::hideSkirt @ 0x100176A73 */
+    void hideSkirt();
+
     /* FUNC: EntityAnimatedHuman::hideTool @ 0x100176ACD */
     void hideTool();
 
     /* FUNC: EntityAnimatedHuman::hideExo @ 0x100176B27 */
     void hideExo();
+
+    /* FUNC: EntityAnimatedHuman::showHeadOnly @ 0x100176C9B */
+    void showHeadOnly();
 
     /* FUNC: EntityAnimatedHuman::animateEye:duration: @ 0x100179154 */
     void animateEye(const std::string& suffix, float duration);
