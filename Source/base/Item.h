@@ -266,7 +266,7 @@ public:
     /* FUNC: Item::borderContinuity @ 0x10004E37A */
     const ContinuitySpriteMap& getBorderContinuity() const { return _borderContinuity; }
 
-    /* FUNC: Item::borderColor @ 0x10004E37A */
+    /* FUNC: Item::borderContinuityColor @ 0x10004E39C */
     const ax::Color3B& getBorderColor() const { return _borderColor; }
 
     /* FUNC: Item::maskCode @ 0x10004E1B4 */
