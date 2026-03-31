@@ -417,10 +417,15 @@ Value MessagePackParser::unpackValue()
     ensureEnoughBytes(1);
     auto token = _input[_position];  // Peek token but don't move the pointer
 
-    if (IS_FIXINT(token))
+    if (IS_POS_FIXINT(token))
     {
         _position++;
         return Value(token);
+    }
+    else if (IS_NEG_FIXINT(token))
+    {
+        _position++;
+        return Value(static_cast<int8_t>(token));
     }
     else if (IS_FIXSTRING(token))
     {
