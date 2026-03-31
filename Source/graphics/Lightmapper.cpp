@@ -21,6 +21,9 @@
 
 USING_NS_AX;
 
+static const auto kOverlayColor      = Color4F(25.0F, 15.0F, 3.0F, 250.0F);
+static const auto kDeathOverlayColor = Color4F(30.0F, 5.0F, 5.0F, 160.0F);
+
 namespace opendw
 {
 
@@ -46,7 +49,12 @@ bool Lightmapper::initWithZone(WorldZone* zone)
         return false;
     }
 
-    _zone = zone;
+    _zone         = zone;
+    _deathOverlay = 0.0F;
+    _overlay      = 0.0F;
+    _flash        = 0.0F;
+    _haze         = false;
+    _moodLighting = false;
 
     // Create texture
     _texture = new Texture2D();
@@ -59,7 +67,7 @@ bool Lightmapper::initWithZone(WorldZone* zone)
     _programState->autorelease();
     AX_SAFE_RETAIN(_programState);
     _programState->setTexture(program->getUniformLocation("u_texture"), 0, _texture->getBackendTexture());
-    
+
     // Create sprite
     _sprite = Sprite::createWithTexture(_texture);
     AX_SAFE_RETAIN(_sprite);
@@ -112,6 +120,23 @@ bool Lightmapper::initWithZone(WorldZone* zone)
     return true;
 }
 
+void Lightmapper::onEnter()
+{
+    Node::onEnter();
+    addEventListener("healthDidChange", [=](EventCustom* event) {
+        auto data = static_cast<float*>(event->getUserData());
+        onHealthChanged(data[0], data[1]);
+    });
+    addEventListener("playerDidActivateZoneTeleport", AX_CALLBACK_0(Lightmapper::beginHaze, this));
+    addEventListener("playerDidDeactivateZoneTeleport", AX_CALLBACK_0(Lightmapper::endHaze, this));
+}
+
+void Lightmapper::onExit()
+{
+    removeEventListeners();
+    Node::onExit();
+}
+
 void Lightmapper::setupScreen()
 {
     AX_SAFE_DELETE_ARRAY(_textureData);
@@ -153,6 +178,11 @@ void Lightmapper::update(float deltaTime)
     _screenRect         = blocksRect;
     _previousWorldScale = worldScale;
 
+    // 0x1000562D0: Update overlay
+    auto player   = Player::getMain();
+    _overlay      = math_util::lerp(_overlay, (_haze && !player->isZoneTeleporting()) ? 1.0F : 0.0F, deltaTime * 3.0F);
+    _deathOverlay = math_util::lerp(_deathOverlay, player->getHealth() <= 0.0F ? 1.0F : 0.0F, deltaTime * 3.0F);
+
     // Calculate sprite position
     auto scale    = worldScale * LIGHTMAP_SCALE;
     auto& winSize = _director->getWinSize();
@@ -175,7 +205,9 @@ void Lightmapper::update(float deltaTime)
 #endif
     {
         auto light = map_util::getFloat(GameConfig::getMain()->getData(), "lighting.player", 4.0F);
-        auto size  = light * 1.3F * LIGHTMAP_SCALE;
+        auto size  = math_util::lerp(light, 1.5F, _overlay);
+        size       = math_util::lerp(size, -0.2F, _deathOverlay);
+        size *= 1.3F * LIGHTMAP_SCALE;
 
         if (size > 0.01F)
         {
@@ -337,31 +369,31 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         {
             // Get a bit of sunlight from nearby blocks if we can
             auto width = _zone->getBlocksWidth();
-            auto depth = clampf(((float)y - surface) / (surface * 3.0F), 0.0F, 1.0F);
+            auto depth = ((float)y - surface) / (surface * 3.0F);
             light      = clampf((float)sunlight + 5.0F - y, 0.0F, 5.0F);
-            light      = MathUtil::lerp(light / 5.0F * 250.0F, 0.0F, depth);
+            light      = math_util::lerp(light / 5.0F * 250.0F, 0.0F, depth);
 
             if (x > 0)
             {
                 auto adjacentLight = clampf((float)_zone->getSunlightAt(x - 1) + 5.0F - y, 0.0F, 5.0F);
-                light += MathUtil::lerp(adjacentLight / 5.0F * 150.0F, 0.0F, depth);
+                light += math_util::lerp(adjacentLight / 5.0F * 150.0F, 0.0F, depth);
 
                 if (x > 1)
                 {
                     auto adjacentLight = clampf((float)_zone->getSunlightAt(x - 2) + 5.0F - y, 0.0F, 5.0F);
-                    light += MathUtil::lerp(adjacentLight / 5.0F * 75.0F, 0.0F, depth);
+                    light += math_util::lerp(adjacentLight / 5.0F * 75.0F, 0.0F, depth);
                 }
             }
 
             if (x + 1 < width)
             {
                 auto adjacentLight = clampf((float)_zone->getSunlightAt(x + 1) + 5.0F - y, 0.0F, 5.0F);
-                light += MathUtil::lerp(adjacentLight / 5.0F * 150.0F, 0.0F, depth);
+                light += math_util::lerp(adjacentLight / 5.0F * 150.0F, 0.0F, depth);
 
                 if (x + 2 < width)
                 {
                     auto adjacentLight = clampf((float)_zone->getSunlightAt(x + 2) + 5.0F - y, 0.0F, 5.0F);
-                    light += MathUtil::lerp(adjacentLight / 5.0F * 75.0F, 0.0F, depth);
+                    light += math_util::lerp(adjacentLight / 5.0F * 75.0F, 0.0F, depth);
                 }
             }
         }
@@ -389,13 +421,13 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         auto blue  = block->getCurrentLightB();
         auto alpha = clampf(getBaseLight() - block->getCurrentLightA(), 0.0F, 255.0F);
         alpha -=
-            MathUtil::lerp(light * (_zone->getCloudCover() * -0.4F + 1.0F) * _zone->getDayPercent(), 255.0F, _flash);
+            math_util::lerp(light * (_zone->getCloudCover() * -0.4F + 1.0F) * _zone->getDayPercent(), 255.0F, _flash);
 
         // 0x10005866B: Apply pulsating glow effect
         // FIXME: take light position into account
         if (front->getLight() > 0.0F)
         {
-            auto offset = MathUtil::lerp(4.0F, 7.0F, clampf((float)x / y, 0.0F, 1.0F));
+            auto offset = math_util::lerp(4.0F, 7.0F, (float)x / y);
             auto glow   = sinf(offset * ((float)y + x + utils::gettime())) * 10.0F + 10.0F;
             red -= glow;
             green -= glow;
@@ -413,15 +445,24 @@ void Lightmapper::illuminateBlocks(float deltaTime)
             {
                 auto& color    = fieldDamageBlock->getItem()->getColor();
                 auto distance  = math_util::getDistance(x, y, fieldDamageBlock->getX(), fieldDamageBlock->getY());
-                auto intensity = clampf(distance / -50.0F + 1.0F, 0.0F, 1.0F);
-                red            = MathUtil::lerp(red, color.r, intensity);
-                green          = MathUtil::lerp(green, color.g, intensity);
-                blue           = MathUtil::lerp(blue, color.b, intensity);
+                auto intensity = distance / -50.0F + 1.0F;
+                red            = math_util::lerp(red, color.r, intensity);
+                green          = math_util::lerp(green, color.g, intensity);
+                blue           = math_util::lerp(blue, color.b, intensity);
             }
         }
 
-        // TODO: haze
-        // TODO: death overlay
+        // 0x100058845: Apply overlay (haze)
+        auto overlay      = MAX(_overlay, _deathOverlay);
+        auto overlayColor = Player::getMain()->getHealth() <= 0.0F ? kDeathOverlayColor : kOverlayColor;
+
+        if (overlay > 0.0F)
+        {
+            red   = math_util::lerp(red, overlayColor.r, overlay);
+            green = math_util::lerp(green, overlayColor.g, overlay);
+            blue  = math_util::lerp(blue, overlayColor.b, overlay);
+            alpha = math_util::lerp(alpha, overlayColor.a, overlay);
+        }
 
         red   = clampf(red, 0.0F, 255.0F);
         green = clampf(green, 0.0F, 255.0F);
@@ -468,6 +509,14 @@ float Lightmapper::getBaseLight() const
     }
 
     return baseLight;
+}
+
+void Lightmapper::onHealthChanged(float oldHealth, float health)
+{
+    if (health < oldHealth)
+    {
+        _deathOverlay = MAX(0.1F, _deathOverlay);
+    }
 }
 
 }  // namespace opendw

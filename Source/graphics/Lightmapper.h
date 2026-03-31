@@ -3,6 +3,8 @@
 
 #include "axmol.h"
 
+#include "base/EventListenerContainer.h"
+
 namespace opendw
 {
 
@@ -12,7 +14,7 @@ class WorldZone;
 /*
  * CLASS: Lightmapper : CCNode @ 0x100316F68
  */
-class Lightmapper : public ax::Node
+class Lightmapper : public ax::Node, EventListenerContainer
 {
 public:
     /* FUNC: Lightmapper::dealloc @ 0x100059134 */
@@ -22,6 +24,10 @@ public:
 
     /* FUNC: Lightmapper::initWithZone: @ 0x1000556A8 */
     bool initWithZone(WorldZone* zone);
+
+    /* FUNC: Lightmapper::onEnter @ 0x10005579B */
+    void onEnter() override;
+    void onExit() override;
 
     /* FUNC: Lightmapper::setupScreen @ 0x100055DDC */
     void setupScreen();
@@ -38,18 +44,30 @@ public:
     /* FUNC: Lightmapper::flash: @ 0x100058E80 */
     void flash(float brightness) { _flash = brightness; }
 
+    /* FUNC: Lightmapper::beginHaze @ 0x100058E92 */
+    void beginHaze() { _haze = true; }
+
+    /* FUNC: Lightmapper::endHaze @ 0x100058EA3 */
+    void endHaze() { _haze = false; }
+
     /* FUNC: Lightmapper::setMoodLighting: @ 0x100059297 */
     void setMoodLighting(bool enabled) { _moodLighting = enabled; }
 
     /* FUNC: Lightmapper::moodLighting @ 0x100059286 */
     bool isMoodLighting() const { return _moodLighting; }
 
+    /* FUNC: Lightmapper::healthDidChange: @ 0x100058EE7 */
+    void onHealthChanged(float oldHealth, float health);
+
 private:
     WorldZone* _zone;              // Lightmapper::zone @ 0x100311610
     ax::Sprite* _torchLight;       // Lightmapper::torchLight @ 0x100311650
     int8_t* _lightRings;           // Lightmapper::lightRings @ 0x100311670
     ax::RenderTexture* _lightmap;  // Lightmapper::lightmap @ 0x100311690
+    float _deathOverlay;           // Lightmapper::deathOverlay @ 0x100311628
+    float _overlay;                // Lightmapper::overlay @ 0x100311630
     float _flash;                  // Lightmapper::flash @ 0x100311748
+    bool _haze;                    // Lightmapper::haze @ 0x1003116D0
     bool _moodLighting;            // Lightmapper::moodLighting @ 0x1003116E0
     ax::Point _ul;                 // Lightmapper::ul @ 0x100311700
     ax::Point _lr;                 // Lightmapper::lr @ 0x100311708

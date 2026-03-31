@@ -71,7 +71,7 @@ bool GameGui::initWithZone(WorldZone* zone)
     addChild(_hudNode, 1);
 
     // Create hud labels
-    _nameLabel  = Label::createWithBMFont("console-shadow.fnt", "Player Name");
+    _nameLabel = Label::createWithBMFont("console-shadow.fnt", "Player Name");
     _nameLabel->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
     _nameLabel->setScale(GUI_SCALE);
     _nameLabel->setOpacity(212);
@@ -184,36 +184,31 @@ bool GameGui::initWithZone(WorldZone* zone)
 void GameGui::onEnter()
 {
     Node::onEnter();
-    _eventListeners.push_back(_eventDispatcher->addCustomEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED,
-                                                                       AX_CALLBACK_0(GameGui::onWindowResized, this)));
-    _eventListeners.push_back(_eventDispatcher->addCustomEventListener("alert", [=](EventCustom* event) {
+#ifdef AX_PLATFORM_PC
+    addEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED, AX_CALLBACK_0(GameGui::onWindowResized, this));
+#endif
+    addEventListener("alert", [=](EventCustom* event) {
         auto& data = *static_cast<Value*>(event->getUserData());
         showAlert(data);
-    }));
-    _eventListeners.push_back(_eventDispatcher->addCustomEventListener("bigAlert", [=](EventCustom* event) {
+    });
+    addEventListener("bigAlert", [=](EventCustom* event) {
         auto& data = *static_cast<Value*>(event->getUserData());
         showBigAlert(data);
-    }));
-    _eventListeners.push_back(
-        _eventDispatcher->addCustomEventListener("playerDidChangeAppearance", [=](EventCustom* event) {
+    });
+    addEventListener("playerDidChangeAppearance", [=](EventCustom* event) {
         auto& data = *static_cast<ValueMap*>(event->getUserData());
         onPlayerAppearanceChanged(data);
-    }));
-    _eventListeners.push_back(_eventDispatcher->addCustomEventListener("healthDidChange", [=](EventCustom* event) {
+    });
+    addEventListener("healthDidChange", [=](EventCustom* event) {
         auto data = static_cast<float*>(event->getUserData());
         onHealthChanged(data[1], data[2]);
-    }));
+    });
     onWindowResized();
 }
 
 void GameGui::onExit()
 {
-    for (auto listener : _eventListeners)
-    {
-        _eventDispatcher->removeEventListener(listener);
-    }
-
-    _eventListeners.clear();
+    removeEventListeners();
     Node::onExit();
 }
 
@@ -302,6 +297,7 @@ void GameGui::showTeleportInterface(BaseBlock* block)
     // TODO: finish
     setHudVisible(false);
     _teleportPanel->showFromBlock(block);
+    _eventDispatcher->dispatchCustomEvent("playerDidActivateZoneTeleport");
 }
 
 void GameGui::hideTeleportInterface()
@@ -309,6 +305,7 @@ void GameGui::hideTeleportInterface()
     // TODO: finish
     setHudVisible(true);
     _teleportPanel->setVisible(false);
+    _eventDispatcher->dispatchCustomEvent("playerDidDeactivateZoneTeleport");
 }
 
 void GameGui::showTeleportZones(const std::string& type, const std::vector<ZoneSearchInfo>& data)

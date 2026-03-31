@@ -3,6 +3,8 @@
 
 #include "axmol.h"
 
+#include "base/EventListenerContainer.h"
+
 namespace opendw
 {
 
@@ -19,7 +21,7 @@ struct ZoneSearchInfo;
  *
  * Responsible for displaying all in-game GUI elements.
  */
-class GameGui : public ax::Node
+class GameGui : public ax::Node, EventListenerContainer
 {
 public:
     /* FUNC: GameGui::main @ 0x1000592A8 */
@@ -107,7 +109,6 @@ private:
     double _lastAlertShownAt;                 // GameGui::lastAlertShownAt @ 0x100311978
     std::string _lastAlertShown;              // GameGui::lastAlertShown @ 0x100311A10
     std::vector<std::string> _pendingAlerts;  // GameGui::pendingAlerts @ 0x1003117A8
-    std::vector<ax::EventListener*> _eventListeners;
 };
 
 }  // namespace opendw
