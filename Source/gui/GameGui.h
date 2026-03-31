@@ -8,6 +8,7 @@ namespace opendw
 
 class BaseBlock;
 class EntityAnimatedAvatar;
+class IconBar;
 class SpriteButton;
 class TeleportPanel;
 class WorldZone;
@@ -70,6 +71,9 @@ public:
     /* FUNC: GameGui::positionDescription: @ 0x10005CD87 */
     std::string getPositionDescription() const;
 
+    /* FUNC: GameGui::healthDidChange: @ 0x10005E036 */
+    void onHealthChanged(float health, float maxHealth);
+
     /* FUNC: GameGui::playerAppearanceDidChange: @ 0x100064497 */
     void onPlayerAppearanceChanged(const ax::ValueMap& data);
 
@@ -84,6 +88,7 @@ private:
     ax::Node* _gameMenu;                      // GameGui::gameMenu @ 0x100311A30
     ax::Node* _hudNode;                       // GameGui::hudNode @ 0x100311840
     ax::Node* _hudButtonsNode;                // GameGui::hudButtonsNode @ 0x100311848
+    IconBar* _healthBar;                      // GameGui::healthBar @ 0x100311858
     ax::Label* _nameLabel;                    // GameGui::nameLabel @ 0x100311868
     ax::Label* _zoneLabel;                    // GameGui::zoneLabel @ 0x100311878
     ax::Label* _positionLabel;                // GameGui::posLabel @ 0x1003118A0

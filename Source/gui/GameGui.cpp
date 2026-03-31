@@ -3,6 +3,7 @@
 #include "base/GameConfig.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
+#include "gui/widget/IconBar.h"
 #include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
 #include "gui/widget/SpriteButton.h"
@@ -85,6 +86,14 @@ bool GameGui::initWithZone(WorldZone* zone)
     _positionLabel->setScale(_zoneLabel->getScale() * 0.85F);
     _positionLabel->setOpacity(_zoneLabel->getOpacity() * 0.8F);
     _hudNode->addChild(_positionLabel);
+
+    // 0x100059A15: Create health bar
+    _healthBar = IconBar::createWithIcon("hud/heart", 5.0F);
+    _healthBar->setIconColor(color_util::hexToColor("FF4A34"));
+    _healthBar->setPadding(1.0F);
+    _healthBar->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
+    _healthBar->setScale(GUI_SCALE * 0.4F);
+    _hudNode->addChild(_healthBar);
 
     // Create hud buttons node
     _hudButtonsNode = Node::create();
@@ -190,6 +199,10 @@ void GameGui::onEnter()
         auto& data = *static_cast<ValueMap*>(event->getUserData());
         onPlayerAppearanceChanged(data);
     }));
+    _eventListeners.push_back(_eventDispatcher->addCustomEventListener("healthDidChange", [=](EventCustom* event) {
+        auto data = static_cast<float*>(event->getUserData());
+        onHealthChanged(data[1], data[2]);
+    }));
     onWindowResized();
 }
 
@@ -220,6 +233,7 @@ void GameGui::update(float deltaTime)
     _nameLabel->setString(Player::getMain()->getUsername());
     _zoneLabel->setString(_zone->getZoneName());
     _positionLabel->setString(getPositionDescription());
+    _healthBar->setPosition(_nameLabel->getPositionX() + math_util::getScaledWidth(_nameLabel) + 10.0F, _nameLabel->getPositionY());
 }
 
 void GameGui::ready()
@@ -401,9 +415,14 @@ std::string GameGui::getPositionDescription() const
     return std::format("{} {} {}{}m", abs(x), longitude, test, abs(depth));
 }
 
+void GameGui::onHealthChanged(float health, float maxHealth)
+{
+    _healthBar->setMaxValue(maxHealth);
+    _healthBar->setValue(health);
+}
+
 void GameGui::onPlayerAppearanceChanged(const ValueMap& data)
 {
-    AX_ASSERT(_avatarPicture);
     _avatarPicture->updateAppearance(data);
     _avatarPicture->showHeadOnly();
 }
