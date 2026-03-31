@@ -259,13 +259,13 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         }
 
         // Set block light color
-        auto& color     = front->getLightColor();
-        auto lightPoint = Point(x, y) + front->getLightPosition();
+        auto& color       = front->getLightColor();
+        auto& lightOffset = front->getLightPosition();
+        x += (int16_t)lightOffset.x;
+        y += (int16_t)lightOffset.y;
 
-        if (_screenRect.containsPoint(lightPoint))
+        if (_screenRect.containsPoint(Point(x, y)))
         {
-            auto x     = (int16_t)lightPoint.x;
-            auto y     = (int16_t)lightPoint.y;
             auto block = _zone->getBlockAt(x, y);
 
             if (block)
