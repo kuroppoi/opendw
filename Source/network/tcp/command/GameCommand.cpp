@@ -8,6 +8,7 @@
 #include "network/tcp/command/GameCommandEntityChange.h"
 #include "network/tcp/command/GameCommandEntityPosition.h"
 #include "network/tcp/command/GameCommandEntityStatus.h"
+#include "network/tcp/command/GameCommandHealth.h"
 #include "network/tcp/command/GameCommandKick.h"
 #include "network/tcp/command/GameCommandLight.h"
 #include "network/tcp/command/GameCommandNotification.h"
@@ -43,6 +44,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandLight();
     case Ident::ZONE_STATUS:
         return new GameCommandZoneStatus();
+    case Ident::HEALTH:
+        return new GameCommandHealth();
     case Ident::BLOCK_META:
         return new GameCommandBlockMeta();
     case Ident::ZONE_SEARCH:

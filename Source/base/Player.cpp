@@ -23,6 +23,7 @@
 #define JUMP_COOLDOWN         0.3
 #define AGILITY_LEVEL         10  // TODO: skills
 #define ENGINEERING_LEVEL     10  // TODO: skills
+#define STAMINA_LEVEL         10  // TODO: skills
 
 USING_NS_AX;
 
@@ -44,6 +45,7 @@ bool Player::initWithGame(GameManager* game)
     _game            = game;
     _username        = "Unknown player";
     _entityId        = -1;
+    _health          = 5.0F;
     _zoneTeleporting = false;
     _clip            = true;
     sMain            = this;
@@ -514,6 +516,13 @@ bool Player::climbBlock(BaseBlock* block, float deltaTime)
     return true;
 }
 
+void Player::playHurtSound(bool heavy)
+{
+    // TODO: male/female setting
+    auto variant = std::format("male.{}", heavy ? "heavy" : "light");
+    AudioManager::getInstance()->playSfx("ouch", variant, 0.0F, 0.5F);
+}
+
 void Player::teleportToZone(const std::string& id)
 {
     AudioManager::getInstance()->clearLoopLayers();
@@ -622,6 +631,28 @@ void Player::setLookDirection(int8_t direction)
         _lookDirection = direction;
         _avatar->setFlippedX(direction < 0);
     }
+}
+
+void Player::setHealth(float health)
+{
+    auto maxHealth = getMaxHealth();
+    auto clamped   = clampf(health, 0.0F, maxHealth);
+
+    if (_health == clamped)
+    {
+        return;
+    }
+
+    float data[] = {_health, clamped, maxHealth};  // 0 = old health, 1 = new health, 2 = max health
+    Director::getInstance()->getEventDispatcher()->dispatchCustomEvent("healthDidChange", &data);
+    _health = clamped;
+    // TODO: finish, handle death etc.
+}
+
+float Player::getMaxHealth() const
+{
+    auto stamina = MAX(0, MIN(STAMINA_LEVEL, 10));
+    return 5.0F + (stamina - (stamina == 10 ? 0 : 1)) * 0.5F;
 }
 
 void Player::setClip(bool clip)

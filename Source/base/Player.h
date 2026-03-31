@@ -55,6 +55,9 @@ public:
     /* FUNC: Player::climbBlock:delta: @ 0x100020A28 */
     bool climbBlock(BaseBlock* block, float deltaTime);
 
+    /* FUNC: Player::playHurtSound: @ 0x100028811 */
+    void playHurtSound(bool heavy = false);
+
     /* FUNC: Player::teleportToZone: @ 0x100029DE0 */
     void teleportToZone(const std::string& id);
 
@@ -72,7 +75,7 @@ public:
 
     /* FUNC: Player::runningSpeed @ 0x10002C89B */
     float getRunningSpeed() const;
-    
+
     /* FUNC: Player::climbingSpeed @ 0x10002C8D6 */
     float getClimbingSpeed() const;
 
@@ -124,6 +127,15 @@ public:
     /* FUNC: Player::lookDirection @ 0x10002DCB4 */
     int8_t getLookDirection() const { return _lookDirection; }
 
+    /* FUNC: Player::setHealth: @ 0x100020E0A */
+    void setHealth(float health);
+
+    /* FUNC: Player::health @ 0x10002DB81 */
+    float getHealth() const { return _health; }
+
+    /* FUNC: Player::maxHealth @ 0x10002CBE6 */
+    float getMaxHealth() const;
+
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
 
@@ -145,28 +157,29 @@ public:
 private:
     inline static Player* sMain;  // 10032EA98
 
-    GameManager* _game;                 // Player::game @ 0x100310630
-    std::string _username;              // Player::username @ 0x100310998
-    int32_t _entityId;                  // Player::entityId @ 0x100310638
-    EntityAnimatedAvatar* _avatar;      // Player::avatar @ 0x100310718
-    ax::Point _destination;             // Player::destination @ 0x100310760
-    Physical* _physical;                // Player::physical @ 0x100310768
-    ChipmunkShape* _feetShape;          // Player::feetShape @ 0x1003109A0
-    ChipmunkShape* _headShape;          // Player::headShape @ 0x1003109A8
-    int8_t _lookDirection;              // Player::lookDirection @ 0x100310720
-    uint8_t _currentLiquidLevel;        // Player::currentLiquidLevel @ 0x100310740
-    double _changeIdleAt;               // Player::changeIdleAt @ 0x100310710
-    std::string _idleAnimation;         // Player::currentIdleAnimation @ 0x100310750
-    double _nextMoveMessageTime;        // Player::nextMoveMessageTime @ 0x1003108C8
-    double _startedRunningAt;           // Player::startedRunningAt @ 0x100310788
-    double _lastPropelledUpwardAt;      // Player::lastPropelledUpwardAt @ 0x1003107A0
-    double _lastJumpedAt;               // Player::lastJumpedAt @ 0x1003107A8
-    Item* _flyAccessory;                // Player::flyAccessory @ 0x100310778
-    float _flyAccessoryPower;           // Player::flyAccessoryPower @ 0x100310798
-    bool _zoneTeleporting;              // Player::isZoneTeleporting @ 0x1003106F8
-    bool _travelingHorizontally;        // Player::isTravelingHorizontally @ 0x100310780
-    bool _admin;                        // Player::admin @ 0x100310958
-    bool _clip;                         // Player::clip @ 0x100310660
+    GameManager* _game;             // Player::game @ 0x100310630
+    std::string _username;          // Player::username @ 0x100310998
+    int32_t _entityId;              // Player::entityId @ 0x100310638
+    EntityAnimatedAvatar* _avatar;  // Player::avatar @ 0x100310718
+    ax::Point _destination;         // Player::destination @ 0x100310760
+    Physical* _physical;            // Player::physical @ 0x100310768
+    ChipmunkShape* _feetShape;      // Player::feetShape @ 0x1003109A0
+    ChipmunkShape* _headShape;      // Player::headShape @ 0x1003109A8
+    int8_t _lookDirection;          // Player::lookDirection @ 0x100310720
+    uint8_t _currentLiquidLevel;    // Player::currentLiquidLevel @ 0x100310740
+    double _changeIdleAt;           // Player::changeIdleAt @ 0x100310710
+    std::string _idleAnimation;     // Player::currentIdleAnimation @ 0x100310750
+    double _nextMoveMessageTime;    // Player::nextMoveMessageTime @ 0x1003108C8
+    double _startedRunningAt;       // Player::startedRunningAt @ 0x100310788
+    double _lastPropelledUpwardAt;  // Player::lastPropelledUpwardAt @ 0x1003107A0
+    double _lastJumpedAt;           // Player::lastJumpedAt @ 0x1003107A8
+    Item* _flyAccessory;            // Player::flyAccessory @ 0x100310778
+    float _flyAccessoryPower;       // Player::flyAccessoryPower @ 0x100310798
+    float _health;                  // Player::health @ 0x1003106A8
+    bool _zoneTeleporting;          // Player::isZoneTeleporting @ 0x1003106F8
+    bool _travelingHorizontally;    // Player::isTravelingHorizontally @ 0x100310780
+    bool _admin;                    // Player::admin @ 0x100310958
+    bool _clip;                     // Player::clip @ 0x100310660
     bool _running;
 };
 

@@ -23,6 +23,7 @@ public:
         BLOCK_CHANGE    = 9,
         LIGHT           = 15,
         ZONE_STATUS     = 17,
+        HEALTH          = 18,
         BLOCK_META      = 20,
         ZONE_SEARCH     = 23,
         NOTIFICATION    = 33,
