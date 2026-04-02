@@ -3,6 +3,7 @@
 #include "base/GameConfig.h"
 #include "base/Item.h"
 #include "base/Player.h"
+#include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -123,12 +124,9 @@ bool Lightmapper::initWithZone(WorldZone* zone)
 void Lightmapper::onEnter()
 {
     Node::onEnter();
-    addEventListener("healthDidChange", [=](EventCustom* event) {
-        auto data = static_cast<float*>(event->getUserData());
-        onHealthChanged(data[0], data[1]);
-    });
-    addEventListener("playerDidActivateZoneTeleport", AX_CALLBACK_0(Lightmapper::beginHaze, this));
-    addEventListener("playerDidDeactivateZoneTeleport", AX_CALLBACK_0(Lightmapper::endHaze, this));
+    addEventListener(events::kPlayerHealthChanged, EVENT_CALLBACK_EX(float*, onHealthChanged, data[0], data[1]));
+    addEventListener(events::kZoneTeleportActivated, AX_CALLBACK_0(Lightmapper::beginHaze, this));
+    addEventListener(events::kZoneTeleportDeactivated, AX_CALLBACK_0(Lightmapper::endHaze, this));
 }
 
 void Lightmapper::onExit()

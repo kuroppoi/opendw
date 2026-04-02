@@ -61,6 +61,18 @@ public:
     /* FUNC: Player::teleportToZone: @ 0x100029DE0 */
     void teleportToZone(const std::string& id);
 
+    /* FUNC: Player::respawn @ 0x10002CDEF */
+    void respawn();
+
+    /* FUNC: Player::sendRespawnCommand @ 0x10002CEE2 */
+    void sendRespawnMessage();
+
+    /* FUNC: Player::isRespawning @ 0x10002CDD1 */
+    bool isRespawning() const { return _respawnStartedAt > 0.0; }
+
+    /* FUNC: Player::playerDidRespawn @ 0x10002CECD */
+    void onPlayerRespawned() { _respawnStartedAt = 0.0; }
+
     /* FUNC: Player::sendMoveCommand @ 0x1000232BC */
     void sendMoveMessage();
 
@@ -136,6 +148,9 @@ public:
     /* FUNC: Player::maxHealth @ 0x10002CBE6 */
     float getMaxHealth() const;
 
+    bool isAlive() const { return _health > 0.0F; }
+    bool isDead() const { return !isAlive(); }
+
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
 
@@ -169,6 +184,7 @@ private:
     uint8_t _currentLiquidLevel;    // Player::currentLiquidLevel @ 0x100310740
     double _changeIdleAt;           // Player::changeIdleAt @ 0x100310710
     std::string _idleAnimation;     // Player::currentIdleAnimation @ 0x100310750
+    double _respawnStartedAt;       // Player::respawnStartedAt @ 0x100310830
     double _nextMoveMessageTime;    // Player::nextMoveMessageTime @ 0x1003108C8
     double _startedRunningAt;       // Player::startedRunningAt @ 0x100310788
     double _lastPropelledUpwardAt;  // Player::lastPropelledUpwardAt @ 0x1003107A0

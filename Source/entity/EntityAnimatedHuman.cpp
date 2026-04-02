@@ -2,6 +2,7 @@
 
 #include "base/GameConfig.h"
 #include "base/Item.h"
+#include "event/EventNames.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
@@ -371,7 +372,7 @@ void EntityAnimatedHuman::updateAppearance(const ValueMap& data)
     if (_playerAvatar)
     {
         ValueMap appearance = data;  // Create copy; can't pass const
-        _eventDispatcher->dispatchCustomEvent("playerDidChangeAppearance", &appearance);
+        _eventDispatcher->dispatchCustomEvent(events::kPlayerAppearanceChanged, &appearance);
     }
 }
 

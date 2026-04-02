@@ -18,6 +18,11 @@ void GameCommandPlayerPosition::run()
     auto y = _data[1].asFloat();
     player->setPosition({(x + 0.5F) * BLOCK_SIZE, (y + 0.5F) * -BLOCK_SIZE});
     game->getZone()->getWorldRenderer()->updateViewport(1.0F);
+
+    if (player->isRespawning())
+    {
+        player->onPlayerRespawned();
+    }
 }
 
 }  // namespace opendw

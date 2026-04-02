@@ -13,7 +13,8 @@ enum class MessageIdent : uint8_t
     BLOCKS        = 16,
     ZONE_SEARCH   = 23,
     ZONE_CHANGE   = 24,
-    BLOCKS_IGNORE = 25
+    BLOCKS_IGNORE = 25,
+    RESPAWN       = 26
 };
 
 }  // namespace opendw

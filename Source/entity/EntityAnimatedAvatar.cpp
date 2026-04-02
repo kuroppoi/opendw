@@ -11,6 +11,18 @@ USING_NS_AX;
 namespace opendw
 {
 
+void EntityAnimatedAvatar::setAlive(bool alive)
+{
+    if (_alive != alive && !alive)
+    {
+        _mainSkeleton->setAnimation(0, "death-fall-back", false);
+        _currentAnimation = -1;  // BUGFIX: Otherwise it might not play the proper animation after respawning
+        // TODO: update physical
+    }
+
+    EntityAnimated::setAlive(alive);
+}
+
 void EntityAnimatedAvatar::walkOnBlock(BaseBlock* block)
 {
     _feetItem = block->getFrontItem();

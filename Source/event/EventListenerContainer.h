@@ -3,6 +3,18 @@
 
 #include "axmol.h"
 
+#define EVENT_CALLBACK(__DATA_TYPE__, __SELECTOR__) \
+    [this](ax::EventCustom* event) { __SELECTOR__(static_cast<__DATA_TYPE__>(event->getUserData())); }
+
+#define EVENT_CALLBACK_REF(__DATA_TYPE__, __SELECTOR__) \
+    [this](ax::EventCustom* event) { __SELECTOR__(*static_cast<__DATA_TYPE__>(event->getUserData())); }
+
+#define EVENT_CALLBACK_EX(__DATA_TYPE__, __SELECTOR__, ...)           \
+    [this](ax::EventCustom* event) {                                  \
+        auto data = static_cast<__DATA_TYPE__>(event->getUserData()); \
+        __SELECTOR__(__VA_ARGS__);                                    \
+    }
+
 namespace opendw
 {
 

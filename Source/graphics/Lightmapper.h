@@ -3,7 +3,7 @@
 
 #include "axmol.h"
 
-#include "base/EventListenerContainer.h"
+#include "event/EventListenerContainer.h"
 
 namespace opendw
 {

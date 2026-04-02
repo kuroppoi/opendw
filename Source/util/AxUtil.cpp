@@ -5,6 +5,11 @@ USING_NS_AX;
 namespace opendw::ax_util
 {
 
+void scheduleOnce(const std::function<void(float)>& callback, void* target, float delay, std::string_view key)
+{
+    Director::getInstance()->getScheduler()->schedule(callback, target, 0.0F, 0, delay, false, key);
+}
+
 void runFadeSequence(Node* node, float fadeIn, float delay, float fadeOut)
 {
     AX_ASSERT(node);

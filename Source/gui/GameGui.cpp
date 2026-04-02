@@ -3,6 +3,7 @@
 #include "base/GameConfig.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
+#include "event/EventNames.h"
 #include "gui/widget/IconBar.h"
 #include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
@@ -94,6 +95,13 @@ bool GameGui::initWithZone(WorldZone* zone)
     _healthBar->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
     _healthBar->setScale(GUI_SCALE * 0.4F);
     _hudNode->addChild(_healthBar);
+
+    // 0x10005A079: Create death label
+    _deathLabel = Label::createWithBMFont("console.fnt", "You have died.");
+    _deathLabel->setPosition(_director->getWinSize() * 0.5F);
+    _deathLabel->setOpacity(212);
+    _deathLabel->setVisible(false);
+    _hudNode->addChild(_deathLabel);
 
     // Create hud buttons node
     _hudButtonsNode = Node::create();
@@ -187,22 +195,11 @@ void GameGui::onEnter()
 #ifdef AX_PLATFORM_PC
     addEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED, AX_CALLBACK_0(GameGui::onWindowResized, this));
 #endif
-    addEventListener("alert", [=](EventCustom* event) {
-        auto& data = *static_cast<Value*>(event->getUserData());
-        showAlert(data);
-    });
-    addEventListener("bigAlert", [=](EventCustom* event) {
-        auto& data = *static_cast<Value*>(event->getUserData());
-        showBigAlert(data);
-    });
-    addEventListener("playerDidChangeAppearance", [=](EventCustom* event) {
-        auto& data = *static_cast<ValueMap*>(event->getUserData());
-        onPlayerAppearanceChanged(data);
-    });
-    addEventListener("healthDidChange", [=](EventCustom* event) {
-        auto data = static_cast<float*>(event->getUserData());
-        onHealthChanged(data[1], data[2]);
-    });
+    addEventListener(events::kNotifyAlert, EVENT_CALLBACK_REF(Value*, showAlert));
+    addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
+    addEventListener(events::kPlayerAppearanceChanged, EVENT_CALLBACK_REF(ValueMap*, onPlayerAppearanceChanged));
+    addEventListener(events::kPlayerHealthChanged, EVENT_CALLBACK_EX(float*, onHealthChanged, data[1], data[2]));
+    addEventListener(events::kDeathMessageChanged, EVENT_CALLBACK_REF(std::string*, onDeathMessageChanged));
     onWindowResized();
 }
 
@@ -297,7 +294,7 @@ void GameGui::showTeleportInterface(BaseBlock* block)
     // TODO: finish
     setHudVisible(false);
     _teleportPanel->showFromBlock(block);
-    _eventDispatcher->dispatchCustomEvent("playerDidActivateZoneTeleport");
+    _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportActivated);
 }
 
 void GameGui::hideTeleportInterface()
@@ -305,7 +302,7 @@ void GameGui::hideTeleportInterface()
     // TODO: finish
     setHudVisible(true);
     _teleportPanel->setVisible(false);
-    _eventDispatcher->dispatchCustomEvent("playerDidDeactivateZoneTeleport");
+    _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportDeactivated);
 }
 
 void GameGui::showTeleportZones(const std::string& type, const std::vector<ZoneSearchInfo>& data)
@@ -401,6 +398,15 @@ void GameGui::showBigAlert(const Value& data)
     }
 }
 
+const char* GameGui::getRespawnMessage() const
+{
+#ifdef AX_PLATFORM_PC
+    return "Press space bar to respawn.";
+#else
+    return "Tap the screen to respawn.";
+#endif
+}
+
 std::string GameGui::getPositionDescription() const
 {
     auto player    = Player::getMain();
@@ -416,6 +422,12 @@ void GameGui::onHealthChanged(float health, float maxHealth)
 {
     _healthBar->setMaxValue(maxHealth);
     _healthBar->setValue(health);
+    _deathLabel->setVisible(health <= 0.0F);
+}
+
+void GameGui::onDeathMessageChanged(const std::string& deathMessage)
+{
+    _deathLabel->setString(deathMessage);
 }
 
 void GameGui::onPlayerAppearanceChanged(const ValueMap& data)

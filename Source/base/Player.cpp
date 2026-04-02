@@ -3,6 +3,7 @@
 #include "base/GameConfig.h"
 #include "base/Item.h"
 #include "entity/EntityAnimatedAvatar.h"
+#include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
 #include "input/InputManager.h"
@@ -11,6 +12,7 @@
 #include "physics/ChipmunkShape.h"
 #include "physics/ChipmunkSpace.h"
 #include "physics/Physical.h"
+#include "util/AxUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
@@ -42,13 +44,14 @@ Player* Player::createWithGame(GameManager* game)
 
 bool Player::initWithGame(GameManager* game)
 {
-    _game            = game;
-    _username        = "Unknown player";
-    _entityId        = -1;
-    _health          = 5.0F;
-    _zoneTeleporting = false;
-    _clip            = true;
-    sMain            = this;
+    _game             = game;
+    _username         = "Unknown player";
+    _entityId         = -1;
+    _respawnStartedAt = 0.0;
+    _health           = 5.0F;
+    _zoneTeleporting  = false;
+    _clip             = true;
+    sMain             = this;
     return true;
 }
 
@@ -535,6 +538,21 @@ void Player::teleportToZone(const std::string& id)
     _game->sendMessage(MessageIdent::ZONE_CHANGE, id);
 }
 
+void Player::respawn()
+{
+    if (!isRespawning())
+    {
+        _respawnStartedAt = utils::gettime();
+        AudioManager::getInstance()->playSfx("respawn");
+        ax_util::scheduleOnce([this](float) { sendRespawnMessage(); }, this, 0.3334F, "respawn");
+    }
+}
+
+void Player::sendRespawnMessage()
+{
+    _game->sendMessage(MessageIdent::RESPAWN, 0);
+}
+
 void Player::sendMoveMessage()
 {
     auto time = utils::gettime();
@@ -643,10 +661,21 @@ void Player::setHealth(float health)
         return;
     }
 
-    float data[] = {_health, clamped, maxHealth};  // 0 = old health, 1 = new health, 2 = max health
-    Director::getInstance()->getEventDispatcher()->dispatchCustomEvent("healthDidChange", &data);
+    auto dispatcher = Director::getInstance()->getEventDispatcher();
+    float data[]    = {_health, clamped, maxHealth};  // 0 = old health, 1 = new health, 2 = max health
+    dispatcher->dispatchCustomEvent(events::kPlayerHealthChanged, &data);
     _health = clamped;
-    // TODO: finish, handle death etc.
+    _avatar->setAlive(isAlive());
+
+    if (isAlive())
+    {
+        return;
+    }
+
+    // TODO: death message changes if we were killed by another player
+    auto deathMessage = std::format("You have died. {}", GameGui::getMain()->getRespawnMessage());
+    dispatcher->dispatchCustomEvent(events::kDeathMessageChanged, &deathMessage);
+    dispatcher->dispatchCustomEvent(events::kPlayerDeathEvent);
 }
 
 float Player::getMaxHealth() const

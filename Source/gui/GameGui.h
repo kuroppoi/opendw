@@ -3,7 +3,7 @@
 
 #include "axmol.h"
 
-#include "base/EventListenerContainer.h"
+#include "event/EventListenerContainer.h"
 
 namespace opendw
 {
@@ -70,11 +70,17 @@ public:
     void showBigAlert(const std::string& title, const std::string& subtitle = "");
     void showBigAlert(const ax::Value& data);
 
+    /* FUNC: GameGui::respawnMessage @ 0x100059475 */
+    const char* getRespawnMessage() const;
+
     /* FUNC: GameGui::positionDescription: @ 0x10005CD87 */
     std::string getPositionDescription() const;
 
     /* FUNC: GameGui::healthDidChange: @ 0x10005E036 */
     void onHealthChanged(float health, float maxHealth);
+
+    /* FUNC: GameGui::deathMessageDidChange @ 0x10005E3C3 */
+    void onDeathMessageChanged(const std::string& deathMessage);
 
     /* FUNC: GameGui::playerAppearanceDidChange: @ 0x100064497 */
     void onPlayerAppearanceChanged(const ax::ValueMap& data);
@@ -94,6 +100,7 @@ private:
     ax::Label* _nameLabel;                    // GameGui::nameLabel @ 0x100311868
     ax::Label* _zoneLabel;                    // GameGui::zoneLabel @ 0x100311878
     ax::Label* _positionLabel;                // GameGui::posLabel @ 0x1003118A0
+    ax::Label* _deathLabel;                   // GameGui::deadLabel @ 0x1003118A8
     SpriteButton* _profileButton;             // GameGui::profileButton @ 0x1003118C0
     EntityAnimatedAvatar* _avatarPicture;     // GameGui::avatarPicture @ 0x1003118C8
     SpriteButton* _inventoryButton;           // GameGui::inventoryButton @ 0x1003118D8

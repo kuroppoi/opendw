@@ -3,6 +3,7 @@
 #include "base/GameConfig.h"
 #include "base/Player.h"
 #include "entity/SpineManager.h"
+#include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/MainMenu.h"
 #include "input/DefaultInputManager.h"
@@ -360,10 +361,10 @@ void GameManager::notify(NotificationType type, const Value& data)
     switch (type)
     {
     case NotificationType::ALERT:
-        event = "alert";
+        event = events::kNotifyAlert;
         break;
     case NotificationType::BIG_ALERT:
-        event = "bigAlert";
+        event = events::kNotifyBigAlert;
         break;
     case NotificationType::WELCOME:
         enterGame(data.asString());
@@ -418,8 +419,7 @@ void GameManager::enterGame(const std::string& message)
     auto peers    = _zone->getPeerCount();
     auto subtitle = !peers ? "You are alone at the moment."
                            : std::format("You are joining {} other player{}.", peers, peers > 1 ? "s" : "");
-    Value alertData(map_util::mapOf("t", message, "t2", subtitle));
-    _eventDispatcher->dispatchCustomEvent("bigAlert", &alertData);
+    notify(NotificationType::BIG_ALERT, Value(map_util::mapOf("t", message, "t2", subtitle)));
 }
 
 void GameManager::leaveGame()

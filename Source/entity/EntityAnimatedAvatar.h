@@ -18,6 +18,9 @@ public:
     /* FUNC: EntityAnimatedAvatar::isAvatar @ 0x10017CA30 */
     bool isAvatar() const override { return true; }
 
+    /* FUNC: EntityAnimatedAvatar::setAlive: @ 0x10017D286 */
+    void setAlive(bool alive) override;
+
     /* FUNC: EntityAnimatedAvatar::walkOn: @ 0x10017D4B8 */
     void walkOnBlock(BaseBlock* block);
 

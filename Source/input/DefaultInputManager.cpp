@@ -59,7 +59,10 @@ void DefaultInputManager::checkInput(float deltaTime)
             break;
         case KeyCode::KEY_A:
         case KeyCode::KEY_LEFT_ARROW:
-            _player->setLookDirection(-1);
+            if (_player->isAlive())
+            {
+                _player->setLookDirection(-1);
+            }
             moveDirection.x -= 1.0F;
             break;
         case KeyCode::KEY_S:
@@ -68,7 +71,10 @@ void DefaultInputManager::checkInput(float deltaTime)
             break;
         case KeyCode::KEY_D:
         case KeyCode::KEY_RIGHT_ARROW:
-            _player->setLookDirection(1);
+            if (_player->isAlive())
+            {
+                _player->setLookDirection(1);
+            }
             moveDirection.x += 1.0F;
             break;
         case KeyCode::KEY_MINUS:
@@ -80,29 +86,36 @@ void DefaultInputManager::checkInput(float deltaTime)
         }
     }
 
-    // Move player
-    auto position = _player->getPosition();
-    moveDirection = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE);
-
-    if (_player->getClip())
+    if (_player->isAlive())
     {
-        _player->setDestination(position + moveDirection * BLOCK_SIZE);
-        _player->setTravelingHorizontally(moveDirection.x != 0.0F);
+        // Move player
+        auto position = _player->getPosition();
+        moveDirection = moveDirection.getClampPoint(Vec2::ONE * -1.0F, Vec2::ONE);
+
+        if (_player->getClip())
+        {
+            _player->setDestination(position + moveDirection * BLOCK_SIZE);
+            _player->setTravelingHorizontally(moveDirection.x != 0.0F);
+        }
+        else
+        {
+            moveDirection = moveDirection.getNormalized() * BLOCK_SIZE;
+            auto speed    = _keysPressed.contains(KeyCode::KEY_LEFT_SHIFT) ? 14.0F : 7.0F;
+            _player->setPosition(position + moveDirection * speed * deltaTime);
+            _player->setDestination(_player->getPosition());  // Prevent shenanigans when we switch back into clip mode
+        }
+
+        // Update world scale
+        auto zoomSpeed    = _keysPressed.contains(KeyCode::KEY_ALT) ? 0.25F : 1.0F;
+        auto renderer     = _game->getZone()->getWorldRenderer();
+        auto currentScale = renderer->getWorldScale();
+        auto worldScale   = currentScale + zoomDirection * zoomSpeed * deltaTime * currentScale;
+        renderer->setWorldScale(MAX(0.3F, MIN(1.2F, worldScale)));
     }
     else
     {
-        moveDirection = moveDirection.getNormalized() * BLOCK_SIZE;
-        auto speed    = _keysPressed.contains(KeyCode::KEY_LEFT_SHIFT) ? 14.0F : 7.0F;
-        _player->setPosition(position + moveDirection * speed * deltaTime);
-        _player->setDestination(_player->getPosition());  // Prevent shenanigans when we switch back into clip mode
+        _player->setDestination(_player->getPosition());  // TODO: is there a reason not to just use the move direction?
     }
-
-    // Update world scale
-    auto zoomSpeed    = _keysPressed.contains(KeyCode::KEY_ALT) ? 0.25F : 1.0F;
-    auto renderer     = _game->getZone()->getWorldRenderer();
-    auto currentScale = renderer->getWorldScale();
-    auto worldScale   = currentScale + zoomDirection * zoomSpeed * deltaTime * currentScale;
-    renderer->setWorldScale(MAX(0.3F, MIN(1.2F, worldScale)));
 
     // Update last input time
     // TODO: also check mouse input
@@ -130,6 +143,12 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         AudioManager::getInstance()->playButtonSfx();
         _gameGui->toggleGameMenu();
         break;
+    case KeyCode::KEY_SPACE:
+        if (_player->isDead())
+        {
+            _player->respawn();
+        }
+        break;
     case KeyCode::KEY_F1:
         _director->setStatsDisplay(!_director->isStatsDisplay());
         break;
@@ -154,7 +173,6 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
                 view->setFullscreen();
             }
         }
-
         break;
     case KeyCode::KEY_PERIOD:
     {
@@ -163,11 +181,8 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         break;
     }
     case KeyCode::KEY_LEFT_BRACKET:
-    {
-        auto player = Player::getMain();
-        player->setClip(!player->getClip());
+        _player->setClip(!_player->getClip());
         break;
-    }
     case KeyCode::KEY_RIGHT_BRACKET:
     {
         auto block = zone->getBlockAtScreenPoint(_cursorPosition);

@@ -823,8 +823,7 @@ void WorldZone::showBlockInfo(BaseBlock* block) const
         text += std::format("\n[Meta] Player: {}, Data: {}", metablock->getPlayerId(), metadata.getDescription());
     }
 
-    Value alert(text);
-    _eventDispatcher->dispatchCustomEvent("alert", &alert);
+    _game->notify(NotificationType::ALERT, Value(text));
 }
 
 void WorldZone::queueBlockForPhysics(BaseBlock* block)

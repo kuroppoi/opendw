@@ -101,9 +101,15 @@ public:
     /* FUNC: Entity::realRotation @ 0x1000C0FDB */
     float getRealRotation() const { return _realRotation; }
 
+    /* FUNC: Entity::setAlive: @ 0x1000C1125 */
+    virtual void setAlive(bool alive) { _alive = alive; }
+
+    /* FUNC: Entity::alive @ 0x1000C1114 */
+    bool isAlive() const { return _alive; }
+
     /* FUNC: Entity::setIsPlayerAvatar: @ 0x1000C1104 */
     void setIsPlayerAvatar(bool value) { _playerAvatar = value; }
-    
+
     /* FUNC: Entity::setGrounded: @ 0x1000C0ECC */
     void setGrounded(bool grounded) { _grounded = grounded; }
 
