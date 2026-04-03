@@ -79,6 +79,15 @@ public:
     /* FUNC: GameGui::healthDidChange: @ 0x10005E036 */
     void onHealthChanged(float health, float maxHealth);
 
+    /* FUNC: GameGui::steamDidChange: @ 0x10005E1F2 */
+    void onSteamChanged(float steam);
+
+    /* FUNC: GameGui::steamCooldownDidBegin @ 0x100061178 */
+    void onSteamCooldownBegan();
+
+    /* FUNC: GameGui::steamCooldownDidEnd @ 0x10006119A */
+    void onSteamCooldownEnded();
+
     /* FUNC: GameGui::deathMessageDidChange @ 0x10005E3C3 */
     void onDeathMessageChanged(const std::string& deathMessage);
 
@@ -97,6 +106,7 @@ private:
     ax::Node* _hudNode;                       // GameGui::hudNode @ 0x100311840
     ax::Node* _hudButtonsNode;                // GameGui::hudButtonsNode @ 0x100311848
     IconBar* _healthBar;                      // GameGui::healthBar @ 0x100311858
+    ax::Label* _steamLabel;                   // GameGui::steamLabel @ 0x100311860
     ax::Label* _nameLabel;                    // GameGui::nameLabel @ 0x100311868
     ax::Label* _zoneLabel;                    // GameGui::zoneLabel @ 0x100311878
     ax::Label* _positionLabel;                // GameGui::posLabel @ 0x1003118A0

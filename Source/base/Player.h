@@ -151,6 +151,24 @@ public:
     bool isAlive() const { return _health > 0.0F; }
     bool isDead() const { return !isAlive(); }
 
+    /* FUNC: Player::setSteam: @ 0x100021132 */
+    void setSteam(float steam);
+
+    /* FUNC: Player::hasSteam @ 0x10002C559 */
+    bool hasSteam() const;
+
+    /* FUNC: Player::steam @ 0x10002DB93*/
+    float getSteam() const { return _steam;}
+
+    /* FUNC: Player::maxSteam @ 0x10002C5A7 */
+    float getMaxSteam() const;
+
+    /* FUNC: Player::steamEfficiency @ 0x10002CC6F */
+    float getSteamEfficiency() const;
+
+    /* FUNC: Player::steamCooldownDuration @ 0x10002CCAA */
+    float getSteamCooldownDuration() const;
+
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
 
@@ -192,6 +210,9 @@ private:
     Item* _flyAccessory;            // Player::flyAccessory @ 0x100310778
     float _flyAccessoryPower;       // Player::flyAccessoryPower @ 0x100310798
     float _health;                  // Player::health @ 0x1003106A8
+    float _steam;                   // Player::steam @ 0x100310890
+    double _lastUsedSteamAt;        // Player::lastSteamedAt @ 0x100310828
+    double _steamCooldownAt;        // Player::steamCooldownAt @ 0x100310898
     bool _zoneTeleporting;          // Player::isZoneTeleporting @ 0x1003106F8
     bool _travelingHorizontally;    // Player::isTravelingHorizontally @ 0x100310780
     bool _admin;                    // Player::admin @ 0x100310958

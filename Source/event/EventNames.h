@@ -10,6 +10,9 @@ inline static const auto kPlayerDeathEvent        = "playerDidDie";
 inline static const auto kPlayerHealthChanged     = "healthDidChange";
 inline static const auto kNotifyAlert             = "alert";
 inline static const auto kNotifyBigAlert          = "bigAlert";
+inline static const auto kSteamChanged            = "steamDidChange";
+inline static const auto kSteamCooldownBegan      = "steamCooldownDidBegin";
+inline static const auto kSteamCooldownEnded      = "steamCooldownDidEnd";
 inline static const auto kZoneTeleportActivated   = "playerDidActivateZoneTeleport";
 inline static const auto kZoneTeleportDeactivated = "playerDidDeactivateZoneTeleport";
 

@@ -21,11 +21,13 @@
 #include "CommonDefs.h"
 #include "GameManager.h"
 
-#define MOVE_MESSAGE_INTERVAL 0.2
-#define JUMP_COOLDOWN         0.3
-#define AGILITY_LEVEL         10  // TODO: skills
-#define ENGINEERING_LEVEL     10  // TODO: skills
-#define STAMINA_LEVEL         10  // TODO: skills
+#define MOVE_MESSAGE_INTERVAL  0.2
+#define JUMP_COOLDOWN          0.3
+#define STEAM_RESTORE_COOLDOWN 0.5
+#define BASE_MAX_STEAM         20.0F
+#define AGILITY_LEVEL          10  // TODO: skills
+#define ENGINEERING_LEVEL      9   // TODO: skills
+#define STAMINA_LEVEL          10  // TODO: skills
 
 USING_NS_AX;
 
@@ -49,6 +51,8 @@ bool Player::initWithGame(GameManager* game)
     _entityId         = -1;
     _respawnStartedAt = 0.0;
     _health           = 5.0F;
+    _lastUsedSteamAt  = 0.0;
+    _steamCooldownAt  = 0.0;
     _zoneTeleporting  = false;
     _clip             = true;
     sMain             = this;
@@ -64,6 +68,7 @@ void Player::configure(const ValueMap& data)
 {
     // TODO: finish
     configureAvatar(data);
+    setSteam(getMaxSteam());
 }
 
 void Player::configureAvatar(const ValueMap& data)
@@ -286,7 +291,7 @@ void Player::update(float deltaTime)
         if (movement.y > propulsion)
         {
             _lastPropelledUpwardAt = utils::gettime();
-            flying                 = _flyAccessory != nullptr;
+            flying = _flyAccessory != nullptr && hasSteam();  // TODO: check for afterburner
         }
 
         // 0x10001CCE6: Apply horizontal movement
@@ -336,10 +341,10 @@ void Player::update(float deltaTime)
 
                 if (movement.y > -10.0F)
                 {
-                    // TODO: steam
                     // TODO: emitter
                     auto impulse = mass * deltaTime * -3.0F;
                     body->applyImpulseAtLocalPoint(_physical->getVelocity() * impulse);
+                    setSteam(_steam - _flyAccessory->getRate() * 0.2F * deltaTime / getSteamEfficiency());
                     counterforce = 0.95F;
                 }
 
@@ -483,13 +488,19 @@ void Player::update(float deltaTime)
     // Update fly accessory power & play sound effect
     MathUtil::smooth(&_flyAccessoryPower, 0.0F, deltaTime, 1.0F);
     AudioManager::getInstance()->setAutoLoopLayer("jetpack", _flyAccessoryPower, _flyAccessoryPower);
+
+    // 0x10001E882: Slowly restore steam if we haven't used it recently
+    // TODO: awesome mode
+    if (utils::gettime() > _lastUsedSteamAt + STEAM_RESTORE_COOLDOWN)
+    {
+        setSteam(_steam + deltaTime);
+    }
 }
 
 void Player::useFlyAccessory(Item* item, float deltaTime)
 {
     // TODO: flight suppression
     // TODO: emit particles
-    // TODO: track steam
     auto speedX    = _destination.x - _physical->getPosition().x;
     auto flySpeed  = getFlyingSpeed() * BLOCK_SIZE * deltaTime;
     auto direction = abs(speedX) < FLT_EPSILON ? 0.0F : speedX > 0.0F ? 1.0F : -1.0F;
@@ -497,6 +508,7 @@ void Player::useFlyAccessory(Item* item, float deltaTime)
     auto tilt     = speedX / BLOCK_SIZE * 42.0F;
     auto rotation = math_util::lerp(_avatar->getRotation(), tilt, deltaTime * 1.75F);
     _avatar->setRotation(rotation);
+    setSteam(_steam - item->getRate() * deltaTime / getSteamEfficiency());  // TODO: check for afterburner
     _flyAccessoryPower = math_util::lerp(_flyAccessoryPower, 1.0F, deltaTime * 2.0F);
 }
 
@@ -682,6 +694,61 @@ float Player::getMaxHealth() const
 {
     auto stamina = MAX(0, MIN(STAMINA_LEVEL, 10));
     return 5.0F + (stamina - (stamina == 10 ? 0 : 1)) * 0.5F;
+}
+
+void Player::setSteam(float steam)
+{
+    auto clamped = clampf(steam, 0.0F, getMaxSteam());
+
+    if (_steam == clamped)
+    {
+        return;
+    }
+
+    auto eventDispatcher = Director::getInstance()->getEventDispatcher();
+
+    if (clamped < _steam)
+    {
+        _lastUsedSteamAt = utils::gettime();
+
+        if (clamped == 0.0F && ENGINEERING_LEVEL < 10)
+        {
+            _steamCooldownAt = utils::gettime() + getSteamCooldownDuration();
+            // TODO: sends inventory use message?
+            eventDispatcher->dispatchCustomEvent(events::kSteamCooldownBegan);
+        }
+    }
+
+    if (_steamCooldownAt > 0.0 && utils::gettime() > _steamCooldownAt)
+    {
+        _steamCooldownAt = 0.0;
+        // TODO: sends inventory use message with primary item
+        eventDispatcher->dispatchCustomEvent(events::kSteamCooldownEnded);
+    }
+
+    _steam = clamped;
+    eventDispatcher->dispatchCustomEvent(events::kSteamChanged, &clamped);
+}
+
+bool Player::hasSteam() const
+{
+    return _steam > 0.0F && utils::gettime() > _steamCooldownAt;
+}
+
+float Player::getMaxSteam() const
+{
+    // TODO: steam bonus accessory
+    return BASE_MAX_STEAM;
+}
+
+float Player::getSteamEfficiency() const
+{
+    return math_util::lerp(1.0F, 1.5F, ENGINEERING_LEVEL / 15.0F);
+}
+
+float Player::getSteamCooldownDuration() const
+{
+    return math_util::lerp(4.0F, 1.0F, ENGINEERING_LEVEL / 10.0F);
 }
 
 void Player::setClip(bool clip)

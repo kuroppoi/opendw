@@ -96,6 +96,12 @@ bool GameGui::initWithZone(WorldZone* zone)
     _healthBar->setScale(GUI_SCALE * 0.4F);
     _hudNode->addChild(_healthBar);
 
+    // 0x100059BCC: Create steam label
+    _steamLabel = MultiLabel::createWithBMFont("console-shadow.fnt", ":gauge:");
+    _steamLabel->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
+    _steamLabel->setCascadeColorEnabled(true);  // setColorEmoji
+    _hudNode->addChild(_steamLabel);
+
     // 0x10005A079: Create death label
     _deathLabel = Label::createWithBMFont("console.fnt", "You have died.");
     _deathLabel->setPosition(_director->getWinSize() * 0.5F);
@@ -199,6 +205,9 @@ void GameGui::onEnter()
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
     addEventListener(events::kPlayerAppearanceChanged, EVENT_CALLBACK_REF(ValueMap*, onPlayerAppearanceChanged));
     addEventListener(events::kPlayerHealthChanged, EVENT_CALLBACK_EX(float*, onHealthChanged, data[1], data[2]));
+    addEventListener(events::kSteamChanged, EVENT_CALLBACK_REF(float*, onSteamChanged));
+    addEventListener(events::kSteamCooldownBegan, AX_CALLBACK_0(GameGui::onSteamCooldownBegan, this));
+    addEventListener(events::kSteamCooldownEnded, AX_CALLBACK_0(GameGui::onSteamCooldownEnded, this));
     addEventListener(events::kDeathMessageChanged, EVENT_CALLBACK_REF(std::string*, onDeathMessageChanged));
     onWindowResized();
 }
@@ -226,6 +235,7 @@ void GameGui::update(float deltaTime)
     _zoneLabel->setString(_zone->getZoneName());
     _positionLabel->setString(getPositionDescription());
     _healthBar->setPosition(_nameLabel->getPositionX() + math_util::getScaledWidth(_nameLabel) + 10.0F, _nameLabel->getPositionY());
+    _steamLabel->setPosition(_healthBar->getPosition() + Vec2(math_util::getScaledWidth(_healthBar) + 15.0F, -2.0F));
 }
 
 void GameGui::ready()
@@ -423,6 +433,22 @@ void GameGui::onHealthChanged(float health, float maxHealth)
     _healthBar->setMaxValue(maxHealth);
     _healthBar->setValue(health);
     _deathLabel->setVisible(health <= 0.0F);
+}
+
+void GameGui::onSteamChanged(float steam)
+{
+    auto ceiled = (int)ceilf(steam);
+    _steamLabel->setString(std::format("{}:gauge:", ceiled));
+}
+
+void GameGui::onSteamCooldownBegan()
+{
+    _steamLabel->setColor(Color3B::RED);
+}
+
+void GameGui::onSteamCooldownEnded()
+{
+    _steamLabel->setColor(Color3B::WHITE);
 }
 
 void GameGui::onDeathMessageChanged(const std::string& deathMessage)

@@ -158,6 +158,9 @@ public:
     /* FUNC: Item::power @ 0x10004DECB */
     float getPower() const { return _power; }
 
+    /* FUNC: Item::rate @ 0x10004DEDD */
+    float getRate() const { return _rate; }
+
     /* FUNC: Item::jiggle @ 0x10004E301 */
     float getJiggle() const { return _jiggle; }
 
@@ -321,6 +324,7 @@ private:
     bool _shadow;                                    // Item::shadow @ 0x100311258
     bool _borderShadow;                              // Item::borderShadow @ 0x1003112B0
     float _power;                                    // Item::power @ 0x100311288
+    float _rate;                                     // Item::rate @ 0x100311290
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8

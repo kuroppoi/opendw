@@ -212,8 +212,8 @@ void MultiLabel::updateIconQuads()
         auto index            = static_cast<int>(atlas->getTotalQuads());
         letterInfo.atlasIndex = index;
         auto frame            = icon.second;
-        auto& size            = frame->getOriginalSize();
-        auto adjustedScale    = _lineHeight / MAX(size.width, size.height);
+        auto& size            = frame->getRect().size;
+        auto adjustedScale    = _lineHeight / size.height;
         _reusedIconSprite->setTextureRect(frame->getRect(), frame->isRotated(), frame->getOriginalSize());
         _reusedIconSprite->setScale(_fontScale * MIN(1.0F, adjustedScale));
         _reusedIconSprite->setPosition(x, y - size.height * 0.4F * adjustedScale);
