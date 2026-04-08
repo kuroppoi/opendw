@@ -154,7 +154,7 @@ bool GameGui::initWithZone(WorldZone* zone)
     _socialButton = createTopHudButton("social", true, 30.0F, color_util::hexToColor("C1B09D"));
     _socialButton->setCallback(defaultCallback);
     _hudButtonsNode->addChild(_socialButton);
-    _socialLabel = Label::createWithBMFont("console-shadow.fnt", "0", TextHAlignment::CENTER);
+    _socialLabel = Label::createWithBMFont("console-shadow.fnt", "1", TextHAlignment::CENTER);
     _socialLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
     _socialLabel->setPosition(_socialButton->getForegroundSprite()->getPosition() - Vec2::UNIT_Y * 48.0F);
     _socialLabel->setScale(1.25F);
@@ -209,6 +209,8 @@ void GameGui::onEnter()
     addEventListener(events::kSteamCooldownBegan, AX_CALLBACK_0(GameGui::onSteamCooldownBegan, this));
     addEventListener(events::kSteamCooldownEnded, AX_CALLBACK_0(GameGui::onSteamCooldownEnded, this));
     addEventListener(events::kDeathMessageChanged, EVENT_CALLBACK_REF(std::string*, onDeathMessageChanged));
+    addEventListener(events::kPlayerEntered, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
+    addEventListener(events::kPlayerExited, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
     onWindowResized();
 }
 
@@ -454,6 +456,12 @@ void GameGui::onSteamCooldownEnded()
 void GameGui::onDeathMessageChanged(const std::string& deathMessage)
 {
     _deathLabel->setString(deathMessage);
+}
+
+void GameGui::onPlayerCountChanged()
+{
+    auto count = _zone->getPeerCount();
+    _socialLabel->setString(std::to_string(count + 1));
 }
 
 void GameGui::onPlayerAppearanceChanged(const ValueMap& data)

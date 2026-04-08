@@ -5,6 +5,7 @@
 #include "base/Player.h"
 #include "entity/Entity.h"
 #include "entity/EntityAnimatedAvatar.h"
+#include "event/EventNames.h"
 #include "graphics/SceneRenderer.h"
 #include "graphics/WorldRenderer.h"
 #include "input/InputManager.h"
@@ -556,6 +557,8 @@ Entity* WorldZone::registerEntity(int32_t id, int32_t code, const std::string& n
     {
         auto peer = static_cast<EntityAnimatedAvatar*>(entity);
         _peers.insert(id, peer);
+        _eventDispatcher->dispatchCustomEvent(events::kPlayerEntered, &peer);
+        // TODO: player alert
     }
 
     if (!entity->isClientDirected())
@@ -591,8 +594,10 @@ void WorldZone::removeEntity(int32_t id, bool violent)
 
     if (entity->isAvatar())
     {
+        auto peer = static_cast<EntityAnimatedAvatar*>(entity);
         _peers.erase(id);
-        // TODO: post notifications
+        _eventDispatcher->dispatchCustomEvent(events::kPlayerExited, &peer);
+        // TODO: player alert
     }
 
     _space->remove(entity->getPhysical());

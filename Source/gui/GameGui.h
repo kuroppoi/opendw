@@ -91,6 +91,9 @@ public:
     /* FUNC: GameGui::deathMessageDidChange @ 0x10005E3C3 */
     void onDeathMessageChanged(const std::string& deathMessage);
 
+    /* FUNC: GameGui::playerCountDidChange @ 0x10005EC12 */
+    void onPlayerCountChanged();
+
     /* FUNC: GameGui::playerAppearanceDidChange: @ 0x100064497 */
     void onPlayerAppearanceChanged(const ax::ValueMap& data);
 
