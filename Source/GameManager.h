@@ -151,6 +151,9 @@ public:
     /* FUNC: GameManager::currentUser @ 0x100037517 */
     User getCurrentUser() const;
 
+    /* @return The sum of all delta time values since game startup. */
+    float getElapsedTime() const { return _elapsedTime; }
+
 private:
     ax::Vector<GameCommand*> _commandQueue;       // GameManager::commandQueue @ 0x100310C60
     std::string _gatewayServer;                   // GameManager::gatewayServer @ 0x100310C70
@@ -166,6 +169,7 @@ private:
     ax::UserDefault* _default;
     MainMenu* _menu;
     TcpClient* _tcpClient;
+    float _elapsedTime;
 };
 
 }  // namespace opendw

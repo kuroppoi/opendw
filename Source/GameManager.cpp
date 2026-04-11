@@ -153,6 +153,7 @@ void GameManager::update(float deltaTime)
     }
 
     AudioManager::getInstance()->update(deltaTime);
+    _elapsedTime += deltaTime;
 }
 
 void GameManager::snapshotScreenAsSpinner(bool snapshotZone)

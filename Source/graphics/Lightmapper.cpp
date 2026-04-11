@@ -11,6 +11,7 @@
 #include "zone/MetaBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
+#include "GameManager.h"
 
 #define LIGHT_RING_ITERATIONS      8
 #define LIGHTMAP_SCALE             0.5
@@ -426,7 +427,7 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         if (front->getLight() > 0.0F)
         {
             auto offset = math_util::lerp(4.0F, 7.0F, (float)x / y);
-            auto glow   = sinf(offset * ((float)y + x + utils::gettime())) * 10.0F + 10.0F;
+            auto glow   = sinf(offset * ((float)y + x + GameManager::getInstance()->getElapsedTime())) * 10.0F + 10.0F;
             red -= glow;
             green -= glow;
             blue -= glow;

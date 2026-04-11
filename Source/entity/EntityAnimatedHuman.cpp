@@ -6,6 +6,7 @@
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
+#include "GameManager.h"
 
 #define SLOT_EMPTY ""
 
@@ -50,14 +51,14 @@ void EntityAnimatedHuman::update(float deltaTime)
     EntityAnimated::update(deltaTime);
 
     // 0x100178918: Animate exo overlay
-    auto time = utils::gettime();
+    auto time = GameManager::getInstance()->getElapsedTime();
     setSlotColor("exo-eye-glow", _facialGearGlowColor);
     setSlotColor("exo-torso-glow", _topsOverlayGlowColor);
     setSlotOpacity("exo-eye-glow", _facialGearGlow + sinf(time * 1.234F) * 0.08F);
     setSlotOpacity("exo-torso-glow", _topsOverlayGlow + sinf(time * M_PI) * 0.2F);
 
     // 0x10017885F: Animate eyes
-    if (time >= _nextEyeChangeAt)
+    if (utils::gettime() >= _nextEyeChangeAt)
     {
         if (_lastEyeWasBlink || rand_0_1() >= 0.5F)
         {
