@@ -174,6 +174,9 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
             }
         }
         break;
+    case KeyCode::KEY_COMMA:
+        _gameGui->toggleProtectorRangeVisibility();
+        break;
     case KeyCode::KEY_PERIOD:
     {
         auto physicsNode = worldRenderer->getPhysicsDebugNode();

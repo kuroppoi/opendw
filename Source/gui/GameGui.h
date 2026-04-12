@@ -50,6 +50,9 @@ public:
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
 
+    /* FUNC: GameGui::toggleProtectorRangefinder @ 0x100065A66 */
+    void toggleProtectorRangeVisibility();
+
     /* FUNC: GameGui::toggleHud: @ 0x1000693DF */
     void setHudVisible(bool visible);
 
@@ -100,6 +103,9 @@ public:
     /* FUNC: GameGui::screenSizeDidChange: @ 0x100067741 */
     void onWindowResized();
 
+    /* FUNC: GameGui::protectorRangeFinderActive @ 0x10006A5FC */
+    bool isProtectorRangeVisible() const { return _protectorRangeVisible; }
+
 private:
     inline static GameGui* sMain;  // 0x10032EAD0
 
@@ -129,6 +135,7 @@ private:
     double _lastAlertShownAt;                 // GameGui::lastAlertShownAt @ 0x100311978
     std::string _lastAlertShown;              // GameGui::lastAlertShown @ 0x100311A10
     std::vector<std::string> _pendingAlerts;  // GameGui::pendingAlerts @ 0x1003117A8
+    bool _protectorRangeVisible;              // GameGui::protectorRangefinderActive @ 0x100311A40
 };
 
 }  // namespace opendw

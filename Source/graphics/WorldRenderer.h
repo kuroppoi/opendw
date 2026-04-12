@@ -144,6 +144,7 @@ private:
     ax::Node* _animatedCharactersNode;            // WorldRenderer::animatedCharactersNode @ 0x100311EB8
     ax::Node* _animatedGhostlyEntitiesNode;       // WorldRenderer::animatedGhostlyEntitiesNode @ 0x100311EE8
     ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
+    ax::Node* _vectorLayer;                       // WorldRenderer::vectorLayer @ 0x100311F10
     ax::Node* _physicsDebugNode;                  // WorldRenderer::physicsDebugNode @ 0x100311F20
     ax::Vector<BaseBlock*> _renderQueue;          // WorldRenderer::renderQueue @ 0x100311DF8
     ax::Rect _visibleRect;                        // WorldRenderer::visibleRect @ 0x100311FA0

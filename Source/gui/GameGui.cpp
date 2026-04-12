@@ -294,6 +294,13 @@ void GameGui::toggleGameMenu()
     panel->addChild(menu, 2);
 }
 
+void GameGui::toggleProtectorRangeVisibility()
+{
+    // TODO: check skill requirement
+    _protectorRangeVisible = !_protectorRangeVisible;
+    AudioManager::getInstance()->playButtonSfx();
+}
+
 void GameGui::setHudVisible(bool visible)
 {
     _hudNode->setVisible(visible);

@@ -638,6 +638,7 @@ void WorldZone::leave()
     _chunks.clear();
     _metaBlocks.clear();
     _fieldMetaBlocks.clear();
+    _fieldDisplayMetaBlocks.clear();
     AX_SAFE_DELETE_ARRAY(_sunlight);
     _entities.clear();
     _peers.clear();
@@ -788,12 +789,18 @@ void WorldZone::setMetaBlock(int16_t x, int16_t y, Item* item, const ValueMap& m
     }
 
     _fieldMetaBlocks.erase(index);
+    _fieldDisplayMetaBlocks.erase(index);
 
     if (item)
     {
         if (item->getField() > 0)
         {
             _fieldMetaBlocks[index] = metaBlock;
+        }
+
+        if (item->isUsableType(UseType::FIELD_DISPLAY) || item->isUsableType(UseType::MINIGAME))
+        {
+            _fieldDisplayMetaBlocks[index] = metaBlock;
         }
     }
 

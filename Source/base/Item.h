@@ -55,11 +55,14 @@ enum class DamageType : uint8_t
 enum class UseType : uint8_t
 {
     NONE,
-    CLIMB = 2,
-    FLY   = 13,
+    CLIMB,
+    FLY,
     PROPEL,
     HOVER,
-    MOVE = 25
+    MINIGAME,
+    MOVE,
+    SUPPRESS,
+    FIELD_DISPLAY
 };
 
 /*

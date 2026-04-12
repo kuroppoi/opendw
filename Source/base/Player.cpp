@@ -67,6 +67,7 @@ void Player::preconfigure(const ValueMap& data)
 void Player::configure(const ValueMap& data)
 {
     // TODO: finish
+    _playerId = map_util::getString(data, "id");
     configureAvatar(data);
     setSteam(getMaxSteam());
 }

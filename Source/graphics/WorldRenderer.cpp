@@ -11,6 +11,7 @@
 #include "graphics/CavernRenderer.h"
 #include "graphics/Lightmapper.h"
 #include "graphics/SkyRenderer.h"
+#include "graphics/VectorLayer.h"
 #include "graphics/WorldLayerRenderer.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/ChipmunkSpace.h"
@@ -123,6 +124,8 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     // Create misc nodes
     _textNode = Node::create();  // Originally SpriteBatchNode but we cannot add labels to those
     _foreground->addChild(_textNode, getNextZIndex());
+    _vectorLayer = VectorLayer::create();
+    _foreground->addChild(_vectorLayer, getNextZIndex());
     _physicsDebugNode = PhysicsDebugNode::create();
     _physicsDebugNode->setVisible(false);
     _foreground->addChild(_physicsDebugNode, getNextZIndex());

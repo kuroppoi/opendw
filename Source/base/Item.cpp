@@ -450,8 +450,14 @@ UseType Item::getUseTypeForName(const std::string& name)
         return UseType::PROPEL;
     else if (name == "hover")
         return UseType::HOVER;
+    else if (name == "minigame")
+        return UseType::MINIGAME;
     else if (name == "move")
         return UseType::MOVE;
+    else if (name == "suppress")
+        return UseType::SUPPRESS;
+    else if (name == "field_display")
+        return UseType::FIELD_DISPLAY;
 
     return UseType::NONE;
 }
