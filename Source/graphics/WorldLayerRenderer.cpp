@@ -5,9 +5,11 @@
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/backend/MaskedSpriteBatchNode.h"
 #include "graphics/WorldRenderer.h"
+#include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
+#include "zone/MetaBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
@@ -117,6 +119,50 @@ void WorldLayerRenderer::placeSpecialItem(BaseBlock* block, Item* item)
             auto opacity  = (random % 3 + 150) & 0xFF;
             auto sprite   = placeSprite(block, nullptr, frame, false, true, ModType::ROTATION, rotation, 9);
             sprite->setOpacity(opacity);
+        }
+
+        break;
+    }
+    // 0x1000A94E0: Crest
+    case SpecialPlacement::CREST:
+    {
+        auto metaBlock = _zone->getMetaBlockAt(block->getX(), block->getY());
+
+        if (metaBlock)
+        {
+            auto& metadata = metaBlock->getMetadata();
+            auto offsetY   = BLOCK_SIZE * 0.75F;
+
+            // Place background sprites
+            std::vector<std::string> frames = {"upper-left", "upper-right", "lower-left", "lower-right"};
+
+            for (auto i = 0; i < frames.size(); i++)
+            {
+                auto frame  = config->getCurrentBiomeFrame(std::format("signs/crests/frame-{}", frames[i]));
+                auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 10);
+                auto color  = map_util::getString(metadata, std::format("c{}", i + 1));
+                sprite->setColor(color_util::hexToColor(color));
+                sprite->setPositionY(sprite->getPositionY() + offsetY);
+                sprite->setScale(1.1F);
+            }
+
+            // Place crest border sprite
+            auto frame  = config->getCurrentBiomeFrame("signs/crests/frame-back");
+            auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 11);
+            sprite->setPositionY(sprite->getPositionY() + offsetY);
+            sprite->setScale(0.9F);
+
+            // Place symbol sprite
+            auto symbol = map_util::getString(metadata, "s");
+
+            if (auto frame = config->getCurrentBiomeFrame(symbol))
+            {
+                auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 12);
+                auto color  = map_util::getString(metadata, "sc");
+                sprite->setColor(color_util::hexToColor(color));
+                sprite->setPositionY(sprite->getPositionY() + offsetY);
+                sprite->setScale(0.9F);
+            }
         }
 
         break;
