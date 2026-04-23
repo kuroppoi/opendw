@@ -55,7 +55,6 @@ public:
     /* FUNC: MainMenu::step: @ 0x100088967 */
     void update(float deltaTime) override;
 
-    void spawnNextEntity();
     void spawnEntity(const std::string& name,
                      const std::string& skin,
                      const std::string& animation,
@@ -95,6 +94,8 @@ public:
     /* FUNC: MainMenu::showHelpMenu @ 0x10008BA86 */
     void showHelpMenu();
     void showServerMenu();
+
+    MenuType getCurrentMenuType() const { return _currentMenuType; }
 
     /* FUNC: MainMenu::showNews: @ 0x10008D83F */
     void showNews(const std::vector<News>& news);

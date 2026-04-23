@@ -43,8 +43,6 @@ public:
     /* FUNC: BatchSpriteButton::hideSpinner @ 0x1000798A5 */
     void hideSpinner();
 
-    void runBlinkAction(const ax::Color3B& fromColor, const ax::Color3B& toColor, float duration = 1.0F);
-
     /* FUNC: BatchSpriteButton::foregroundSprite @ 0x100079F19 */
     ax::Sprite* getForegroundSprite() const { return _foregroundSprite; }
 

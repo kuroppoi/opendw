@@ -9,6 +9,8 @@ namespace opendw::ax_util
 /* Easy access to `scheduleOnce` without needing to be a Node object. */
 void scheduleOnce(const std::function<void(float)>& callback, void* target, float delay, std::string_view key);
 
+void runBlinkSequence(ax::Node* node, const ax::Color3B& fromColor, const ax::Color3B& toColor, float duration = 1.0F);
+
 void runFadeSequence(ax::Node* node, float fadeIn, float delay, float fadeOut);
 
 void fadeOutAndRemove(ax::Node* node, float duration = 0.5F);

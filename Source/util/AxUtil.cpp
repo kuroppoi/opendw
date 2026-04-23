@@ -10,6 +10,14 @@ void scheduleOnce(const std::function<void(float)>& callback, void* target, floa
     Director::getInstance()->getScheduler()->schedule(callback, target, 0.0F, 0, delay, false, key);
 }
 
+void runBlinkSequence(Node* node, const Color3B& fromColor, const Color3B& toColor, float duration)
+{
+    AX_ASSERT(node);
+    auto action = RepeatForever::create(Sequence::createWithTwoActions(TintTo::create(duration * 0.5F, fromColor),
+                                                                       TintTo::create(duration * 0.5F, toColor)));
+    node->runAction(action);
+}
+
 void runFadeSequence(Node* node, float fadeIn, float delay, float fadeOut)
 {
     AX_ASSERT(node);

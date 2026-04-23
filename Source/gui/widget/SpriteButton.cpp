@@ -110,13 +110,6 @@ void SpriteButton::hideSpinner()
     }
 }
 
-void SpriteButton::runBlinkAction(const Color3B& fromColor, const Color3B& toColor, float duration)
-{
-    auto action = RepeatForever::create(Sequence::createWithTwoActions(TintTo::create(duration * 0.5F, fromColor),
-                                                                       TintTo::create(duration * 0.5F, toColor)));
-    runAction(action);
-}
-
 bool SpriteButton::onTouchBegan(Touch* touch, Event* event)
 {
     if (!ax_util::isNodeVisible(this) || _spinner)

@@ -154,6 +154,8 @@ public:
     /* @return The sum of all delta time values since game startup. */
     float getElapsedTime() const { return _elapsedTime; }
 
+    bool isUpdateAvailable() const { return _updateAvailable; }
+
 private:
     ax::Vector<GameCommand*> _commandQueue;       // GameManager::commandQueue @ 0x100310C60
     std::string _gatewayServer;                   // GameManager::gatewayServer @ 0x100310C70
@@ -170,6 +172,7 @@ private:
     MainMenu* _menu;
     TcpClient* _tcpClient;
     float _elapsedTime;
+    bool _updateAvailable;
 };
 
 }  // namespace opendw

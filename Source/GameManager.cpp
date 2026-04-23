@@ -16,6 +16,12 @@
 #include "AssetManager.h"
 #include "AudioManager.h"
 
+#define ENABLE_UPDATE_CHECKER 1
+
+#if ENABLE_UPDATE_CHECKER
+#    define LATEST_RELEASE_API_URL "https://api.github.com/repos/kuroppoi/opendw/releases/latest"
+#endif
+
 USING_NS_AX;
 
 namespace opendw
@@ -66,7 +72,7 @@ bool GameManager::init()
     addChild(AudioManager::getInstance());  // HACK: Music volume tweening
 
     // 0x100035AA9: Set gateway server
-    _default = UserDefault::getInstance();
+    _default       = UserDefault::getInstance();
     _gatewayServer = _default->getStringForKey("gatewayServer", DEFAULT_GATEWAY);
     AXLOGI("[GameManager] Gateway server: {}", _gatewayServer);
 
@@ -74,6 +80,42 @@ bool GameManager::init()
     AssetManager::loadBaseSpriteSheets();
     _menu = MainMenu::create();
     addChild(_menu);
+
+    // Check latest version
+    // NOTE: GitHub API enforces a rate limit of 60 requests per hour, per IP address.
+    _updateAvailable = false;
+#if ENABLE_UPDATE_CHECKER
+    http::get(LATEST_RELEASE_API_URL, [=](const std::string& error, const rapidjson::Document& document) {
+        if (!error.empty())
+        {
+            AXLOGE("[GameManager] Couldn't fetch release info: {}", error);
+            return;
+        }
+
+        if (document.HasMember("tag_name"))
+        {
+            auto& tagName = document["tag_name"];
+
+            if (tagName.IsString())
+            {
+                std::string latestVersion = document["tag_name"].GetString();
+                auto currentVersion = latestVersion.starts_with("v") ? std::format("v{}", APP_VERSION) : APP_VERSION;
+                AXLOGI("[GameManager] Fetched latest release: {}", latestVersion);
+
+                if (currentVersion.compare(latestVersion))
+                {
+                    _updateAvailable = true;
+
+                    // Refresh the play menu to show the update button
+                    if (_menu->getCurrentMenuType() == MainMenu::MenuType::PLAY)
+                    {
+                        _menu->showPlayMenu();
+                    }
+                }
+            }
+        }
+    });
+#endif  // ENABLE_UPDATE_CHECKER
 
     // Request client data
     auto url = std::format("{}/clients", _gatewayServer);
@@ -99,7 +141,7 @@ bool GameManager::init()
             }
 
             _menu->showNews(news);
-        }        
+        }
     });
 
     // Create player

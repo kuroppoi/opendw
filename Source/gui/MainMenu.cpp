@@ -8,6 +8,7 @@
 #include "gui/widget/SpriteButton.h"
 #include "gui/widget/TabsBar.h"
 #include "gui/widget/TextField.h"
+#include "util/AxUtil.h"
 #include "util/ColorUtil.h"
 #include "util/MathUtil.h"
 #include "AudioManager.h"
@@ -20,6 +21,7 @@
 #define TUTORIALS_URL          "https://www.youtube.com/playlist?list=PLxmqYQJh4C3AkZq2wd6tDTsi5T8IrIp4_"
 #define FORUMS_URL             "https://web.archive.org/web/20190829000640/https://forums.deepworldgame.com/"
 #define PROBLEMS_URL           "https://github.com/kuroppoi/opendw/issues"
+#define LATEST_RELEASE_URL     "https://github.com/kuroppoi/opendw/releases/latest"
 
 USING_NS_AX;
 
@@ -328,7 +330,7 @@ void MainMenu::addMenuButtons(const std::string& actionTitle, const Callback& ac
     button->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
     button->setPosition(30.0F, 40.0F);
     button->setScale(0.75F);
-    button->runBlinkAction(color_util::hexToColor("CDCDCD"), button->getColor());
+    ax_util::runBlinkSequence(button, color_util::hexToColor("CDCDCD"), button->getColor());
     _currentMenu->addChild(button, 1);
 
     // Create action button if present
@@ -342,7 +344,7 @@ void MainMenu::addMenuButtons(const std::string& actionTitle, const Callback& ac
         actionButton->setScale(0.75F);
         actionButton->setTitleOffset({-10.0F, 0.0F});
         actionButton->setColor(color_util::hexToColor("64E864"));
-        actionButton->runBlinkAction(color_util::hexToColor("32B632"), actionButton->getColor());
+        ax_util::runBlinkSequence(actionButton, color_util::hexToColor("32B632"), actionButton->getColor());
         _currentMenu->addChild(actionButton, 1);
     }
 }
@@ -459,11 +461,28 @@ void MainMenu::showPlayMenu()
     menuItems.pushBack(helpButton);
     menuItems.pushBack(serverButton);
     menuItems.pushBack(passwordButton);
+    auto offsetY = 0.0F;
+
+    // Create update button if there is an update available
+    if (GameManager::getInstance()->isUpdateAvailable())
+    {
+        auto color  = color_util::hexToColor("FFDC0A");
+        auto button = MenuItemLabel::create(Label::createWithBMFont("console.fnt", "New update available!"));
+        button->setColor(color);
+        button->setCallback([=](Object*) {
+            AudioManager::getInstance()->playButtonSfx();
+            Application::getInstance()->openURL(LATEST_RELEASE_URL);
+            ax_util::runBlinkSequence(button, color_util::hexToColor("D8B208"), color);  // For some reason, clicking a button cancels all actions on it
+        });
+        ax_util::runBlinkSequence(button, color_util::hexToColor("D8B208"), color);
+        menuItems.pushBack(button);
+        offsetY = math_util::getScaledHeight(button) * 0.333F;
+    }
 
     // Create menu
     auto menu = Menu::createWithArray(menuItems);
     menu->alignItemsVerticallyWithPadding(10.0F);
-    menu->setPosition(_currentMenu->getContentSize() * 0.5F);
+    menu->setPosition(_currentMenu->getContentSize() * 0.5F + Vec2::UNIT_Y * offsetY);
     _currentMenu->addChild(menu);
 }
 
