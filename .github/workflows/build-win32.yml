@@ -17,7 +17,7 @@ jobs:
     - name: Setup Axmol
       shell: pwsh
       run: |
-        git clone --depth 1 --branch v2.8.1 https://github.com/axmolengine/axmol.git $HOME/axmol
+        git clone --depth 1 --branch v2.11.3 https://github.com/axmolengine/axmol.git $HOME/axmol
         cd $HOME/axmol
         ./setup.ps1
     - name: Set env

@@ -20,7 +20,7 @@
 
 ### Prerequisites
 - Visual Studio 2022
-- Axmol Engine [v2.8.1](https://github.com/axmolengine/axmol/releases/tag/v2.8.1)
+- Axmol Engine [v2.11.3](https://github.com/axmolengine/axmol/releases/tag/v2.11.3)
 
 > [!IMPORTANT]  
 > Game assets are not included, so if you want to build from source you will have to provide them yourself.\
