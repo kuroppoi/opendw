@@ -291,6 +291,7 @@ private:
     float _acidity;                                         // WorldZone::acidity @ 0x100311138
     float _skyCoverage;                                     // WorldZone::skyCoverage @ 0x100311140
     float _cloudCover;                                      // WorldZone::cloudCover @ 0x100311160
+    double _nextAmbientSoundAt;                             // WorldZone::nextAmbientSoundAt @ 0x1003110D0
     double _lastBlocksRequestAt;                            // WorldZone::lastBlocksRequestAt @ 0x100311100
     double _lastBlocksIgnoreAt;                             // WorldZone::lastBlocksIgnoreAt @ 0x100311108
     double _doneWaitingForBlocksAt;                         // WorldZone::doneWaitingForBlocksAt @ 0x1003110F8

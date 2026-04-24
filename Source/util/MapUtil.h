@@ -39,6 +39,8 @@ const ax::ValueVector& getArray(const ax::ValueMap& map, const std::string& path
 
 std::string getString(const ax::ValueMap& map, const std::string& path, const std::string& def = "");
 
+std::string getRandomKeyWeighted(const ax::ValueMap& map);
+
 uint32_t getUInt32(const ax::ValueMap& map, const std::string& path, uint32_t def = 0);
 uint64_t getUInt64(const ax::ValueMap& map, const std::string& path, uint64_t def = 0);
 

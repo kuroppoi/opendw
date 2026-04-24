@@ -117,6 +117,37 @@ std::string getString(const ValueMap& map, const std::string& path, const std::s
     }
 }
 
+std::string getRandomKeyWeighted(const ValueMap& map)
+{
+    if (map.empty())
+    {
+        return "";
+    }
+
+    double totalWeight = 0.0F;
+
+    for (auto& entry : map)
+    {
+        totalWeight += entry.second.asDouble();
+    }
+
+    auto rolled = rand_0_1() * totalWeight;
+
+    for (auto& entry : map)
+    {
+        auto weight = entry.second.asDouble();
+
+        if (rolled < weight)
+        {
+            return entry.first;
+        }
+
+        rolled -= weight;
+    }
+
+    return "";
+}
+
 uint32_t getUInt32(const ValueMap& map, const std::string& path, uint32_t def)
 {
     return getValue(map, path).asUint(def);

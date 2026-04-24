@@ -393,6 +393,24 @@ void WorldZone::update(float deltaTime)
     // TODO: rain
     auto wind = math_util::lerp(0.0F, 1.0F, _skyCoverage * 3.0F);
     AudioManager::getInstance()->setAutoLoopLayer("wind", wind, 1.0F);
+
+    if (utils::gettime() > _nextAmbientSoundAt)
+    {
+        auto path    = std::format("sound.{}", _skyCoverage > 0.1 ? "aboveground" : "underground");
+        auto& sounds = map_util::getMap(_biomeConfig, path);
+
+        if (!sounds.empty())
+        {
+            auto sound    = map_util::getRandomKeyWeighted(sounds);
+            auto x        = random(-25.0F, 25.0F);
+            auto y        = random(-25.0F, 25.0F);
+            auto position = player->getPosition() + Vec2(x, y) * BLOCK_SIZE;
+            auto pitch    = random(0.8F, 1.2F);
+            AudioManager::getInstance()->playSfx(sound, position, pitch, 0.85F);
+        }
+
+        _nextAmbientSoundAt = utils::gettime() + random(5.0, 10.0);
+    }
 }
 
 void WorldZone::updateTimedStatus(float deltaTime)
@@ -435,6 +453,7 @@ void WorldZone::begin()
     AXLOGI("[WorldZone] Beginning zone!");
     _state = State::ACTIVE;
     _sceneRenderer->setVisible(true);
+    _nextAmbientSoundAt = utils::gettime() + random(5.0, 10.0);
     _game->getPlayer()->begin();
     AudioManager::getInstance()->fadeOutMusic();  // Fade out menu music
     schedule(AX_CALLBACK_0(WorldZone::cleanupChunks, this), 0.033F, "cleanupChunks");
