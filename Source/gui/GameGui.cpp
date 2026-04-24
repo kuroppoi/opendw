@@ -357,7 +357,7 @@ void GameGui::showAlert(const std::string& text)
     auto sequence = Sequence::create({fadeIn, delay, fadeOut, cleanup});
     label->runAction(Spawn::createWithTwoActions(moveUp, sequence));
     addChild(label, 9);
-    AudioManager::getInstance()->playSfx("notification", 1.0F, 0.21F);
+    AudioManager::getInstance()->playSfx("notification", 1.0F, 0.0F, 0.21F);
     _lastAlertShown   = text;
     _lastAlertShownAt = utils::gettime();
 }

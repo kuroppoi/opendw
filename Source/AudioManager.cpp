@@ -1,6 +1,9 @@
 #include "AudioManager.h"
 
+#include "base/Player.h"
 #include "util/MapUtil.h"
+#include "util/MathUtil.h"
+#include "CommonDefs.h"
 
 #define MUSIC_VOLUME_KEY "musicVolume"
 #define AUDIO_FORMAT     "ogg"
@@ -93,16 +96,17 @@ void AudioManager::updateTweenAction(float value, std::string_view key)
     }
 }
 
-AUDIO_ID AudioManager::playSfx(const std::string& name, float pitch, float gain)
+AUDIO_ID AudioManager::playSfx(const std::string& name, float pitch, float pan, float gain)
 {
     auto volume = _masterVolume * _sfxVolume * gain;
     auto file   = name + "." + AUDIO_FORMAT;
     auto track  = AudioEngine::play2d(file, false, volume);
     AudioEngine::setPitch(track, pitch);
+    AudioEngine::setPan(track, pan);
     return track;
 }
 
-AUDIO_ID AudioManager::playSfx(const std::string& name, const std::string& variant, float pitchRange, float gain)
+AUDIO_ID AudioManager::playSfx(const std::string& name, const std::string& variant, float pitchRange, float pan, float gain)
 {
     auto path        = std::format("{}.{}", name, variant);
     auto defaultPath = std::format("{}.default", name);
@@ -115,13 +119,33 @@ AUDIO_ID AudioManager::playSfx(const std::string& name, const std::string& varia
 
     auto option = options[rand() % options.size()].asString();
     auto pitch  = random(1.0F - pitchRange * 0.5F, 1.0F + pitchRange * 0.5F);
-    auto track  = playSfx(option, pitch, gain);
+    auto track  = playSfx(option, pitch, pan, gain);
     return track;
+}
+
+AUDIO_ID AudioManager::playSfx(const std::string& name, const Point& position, float pitch, float gain)
+{
+    auto player = Player::getMain();
+    AX_ASSERT(player);
+    auto earPosition  = player->getPosition();
+    auto hearingRange = math_util::lerp(25.0F, 60.0F, gain - 1.0F);
+    auto distance     = math_util::getDistance(position.x, position.y, earPosition.x, earPosition.y);
+    auto normalized   = distance / (hearingRange * BLOCK_SIZE);
+
+    if (normalized >= 1.0F)
+    {
+        AudioEngine::INVALID_AUDIO_ID;  // Sound is too far away; don't play it
+    }
+
+    auto pan = clampf((position.x - earPosition.x) / (BLOCK_SIZE * 19.0F), -1.0F, 1.0F);
+    pan      = abs(pan) >= 0.2 ? pan : 0.0F;  // Zero pan if sound is close enough to the player
+    gain     = clampf(gain, 0.0F, 1.0F) * (1.0F - normalized);
+    return playSfx(name, pitch, pan, gain);
 }
 
 void AudioManager::playButtonSfx()
 {
-    playSfx(BUTTON_SFX, 1.0F, 0.3F);
+    playSfx(BUTTON_SFX, 1.0F, 0.0F, 0.3F);
 }
 
 void AudioManager::playThemeMusic()

@@ -33,10 +33,13 @@ public:
     void updateTweenAction(float value, std::string_view key) override;
 
     /* FUNC: AudioEngine::playSample:group:pitch:pan:gain: @ 0x1000B3A79 */
-    AUDIO_ID playSfx(const std::string& name, float pitch = 1.0F, float gain = 1.0F);
+    AUDIO_ID playSfx(const std::string& name, float pitch = 1.0F, float pan = 0.0F, float gain = 1.0F);
 
     /* FUNC: AudioEngine::playSfx:variant:pitchRange:pan:gain: @ 0x1000B3DDA */
-    AUDIO_ID playSfx(const std::string& name, const std::string& variant, float pitchRange = 0.0F, float gain = 1.0F);
+    AUDIO_ID playSfx(const std::string& name, const std::string& variant, float pitchRange = 0.0F, float pan = 0.0F, float gain = 1.0F);
+
+    /* FUNC: AudioEngine::playSample:atWorldPosition:group:pitch:pan:gain: @ 0x1000B3BDF */
+    AUDIO_ID playSfx(const std::string& name, const ax::Point& position, float pitch = 1.0F, float gain = 1.0F);
 
     void playButtonSfx();
 

@@ -536,13 +536,13 @@ void Player::playHurtSound(bool heavy)
 {
     // TODO: male/female setting
     auto variant = std::format("male.{}", heavy ? "heavy" : "light");
-    AudioManager::getInstance()->playSfx("ouch", variant, 0.0F, 0.5F);
+    AudioManager::getInstance()->playSfx("ouch", variant, 0.0F, 0.0F, 0.5F);
 }
 
 void Player::teleportToZone(const std::string& id)
 {
     AudioManager::getInstance()->clearLoopLayers();
-    AudioManager::getInstance()->playSfx("teleport", 1.0F, 0.5F);
+    AudioManager::getInstance()->playSfx("teleport", 1.0F, 0.0F, 0.5F);
     // TODO: _usedZoneTeleporter = true;
     _zoneTeleporting = true;
     _game->snapshotScreenAsSpinner(true);

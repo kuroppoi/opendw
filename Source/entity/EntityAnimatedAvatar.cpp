@@ -34,7 +34,7 @@ void EntityAnimatedAvatar::playWalkSfx(bool force)
 {
     if (_feetItem && (force || utils::gettime() > _lastFootstepSoundAt + WALK_SFX_INTERVAL))
     {
-        AudioManager::getInstance()->playSfx("footsteps", _feetItem->getMaterial(), 0.3F, 0.15F);
+        AudioManager::getInstance()->playSfx("footsteps", _feetItem->getMaterial(), 0.3F, 0.0F, 0.15F);
         _lastFootstepSoundAt = utils::gettime();
     }
 }
