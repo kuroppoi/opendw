@@ -107,7 +107,7 @@ bool GameManager::init()
                     _updateAvailable = true;
 
                     // Refresh the play menu to show the update button
-                    if (_menu->getCurrentMenuType() == MainMenu::MenuType::PLAY)
+                    if (_menu->getCurrentMenuType() == MainMenu::MenuType::PLAY && !_menu->isSpinnerVisible())
                     {
                         _menu->showPlayMenu();
                     }

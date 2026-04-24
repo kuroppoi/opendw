@@ -68,6 +68,8 @@ public:
     /* FUNC: MainMenu::pendAuthentication @ 0x10008B516 */
     void showSpinner();
 
+    bool isSpinnerVisible() const;
+
     /* FUNC: MainMenu::showMenuError: @ 0x10008D273 */
     void showAlert(const std::string& message);
 

@@ -287,6 +287,11 @@ void MainMenu::showSpinner()
     _currentMenu->addChild(_spinner, 10);
 }
 
+bool MainMenu::isSpinnerVisible() const
+{
+    return _spinner && _spinner->getParent();
+}
+
 void MainMenu::showAlert(const std::string& message)
 {
     // Determine how and where to display the label
