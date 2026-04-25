@@ -157,6 +157,7 @@ private:
     size_t _fxFrame;                              // WorldRenderer::fxFrame @ 0x100311F50
     double _nextLiquidCycle;                      // WorldRenderer::nextLiquidCycle @ 0x100311F98
     size_t _liquidFrame;                          // 0x100320BC0
+    bool _initialArrange;
     ax::Point _cameraPosition;
 };
 

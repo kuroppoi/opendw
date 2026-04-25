@@ -208,6 +208,7 @@ void WorldRenderer::ready()
 {
     _sky->rebuild();
     _cavern->rebuild();
+    _initialArrange = true;
     updateViewport(0.0F);
 }
 
@@ -343,7 +344,7 @@ void WorldRenderer::arrangeBlockSprites()
     auto arrangeRect = Rect(arrangeUL, arrangeLR - arrangeUL);
 
     // 0x10008058F: Do nothing if arrange rect has not changed since last update
-    if (arrangeRect.equals(_lastArrangeRect))
+    if (!_initialArrange && arrangeRect.equals(_lastArrangeRect))
     {
         return;
     }
@@ -357,9 +358,9 @@ void WorldRenderer::arrangeBlockSprites()
         for (auto y = arrangeRect.getMinY(); y <= arrangeRect.getMaxY(); y++)
         {
             // Only add blocks that weren't already rendered last time
-            if (!intersection.containsPoint({x, y}))
+            if (_initialArrange || !intersection.containsPoint({x, y}))
             {
-                if (auto block = _zone->getBlockAt((uint16_t)x, (uint16_t)y))
+                if (auto block = _zone->getBlockAt((int16_t)x, (int16_t)y))
                 {
                     _renderQueue.pushBack(block);
                 }
@@ -368,15 +369,18 @@ void WorldRenderer::arrangeBlockSprites()
     }
 
     // 0x100080792: Clear blocks that are no longer visible
-    for (auto x = _lastArrangeRect.getMinX(); x <= _lastArrangeRect.getMaxX(); x++)
+    if (!_initialArrange)
     {
-        for (auto y = _lastArrangeRect.getMinY(); y <= _lastArrangeRect.getMaxY(); y++)
+        for (auto x = _lastArrangeRect.getMinX(); x <= _lastArrangeRect.getMaxX(); x++)
         {
-            if (!intersection.containsPoint({x, y}))
+            for (auto y = _lastArrangeRect.getMinY(); y <= _lastArrangeRect.getMaxY(); y++)
             {
-                if (auto block = _zone->getBlockAt((uint16_t)x, (uint16_t)y))
+                if (!intersection.containsPoint({x, y}))
                 {
-                    block->clearFromWorld();
+                    if (auto block = _zone->getBlockAt((int16_t)x, (int16_t)y))
+                    {
+                        block->clearFromWorld();
+                    }
                 }
             }
         }
@@ -385,6 +389,7 @@ void WorldRenderer::arrangeBlockSprites()
     // TODO: is there a reason to keep these separate?
     _blockRect       = arrangeRect;
     _lastArrangeRect = arrangeRect;
+    _initialArrange  = false;
 }
 
 void WorldRenderer::renderBlockSprites()
