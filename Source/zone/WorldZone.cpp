@@ -606,7 +606,7 @@ void WorldZone::removeEntity(int32_t id, bool violent)
 
     if (violent)
     {
-        // TODO: entity->animateViolentDeath();
+        entity->animateViolentDeath();
     }
 
     _entities.erase(it);

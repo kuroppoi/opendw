@@ -87,6 +87,18 @@ public:
     /* FUNC: EntityConfig::attachments @ 0x100120E7F */
     const std::vector<std::string>& getAttachments() const { return _attachments; }
 
+    /* FUNC: EntityConfig::sound @ 0x100120DAD */
+    const std::vector<std::string>& getSounds() const { return _sounds; }
+
+    /* FUNC: EntityConfig::ambientSound @ 0x100120DBE */
+    const std::vector<std::string>& getAmbientSounds() const { return _ambientSounds; }
+
+    /* FUNC: EntityConfig::deathSound @ 0x100120DCF */
+    const std::vector<std::string>& getDeathSounds() const { return _deathSounds; }
+
+    /* FUNC: EntityConfig::powerOnSounds @ 0x100120DE0 */
+    const std::vector<std::string>& getPowerOnSounds() const { return _powerOnSounds; }
+
 protected:
     int32_t _code;                                     // EntityConfig::code @ 0x100313C48
     std::string _group;                                // EntityConfig::group @ 0x100313C58
@@ -107,6 +119,10 @@ protected:
     std::map<std::string, int32_t> _animationsByName;  // EntityConfig::animationsByName @ 0x100313CF8
     std::vector<std::string> _slots;                   // EntityConfig::slots @ 0x100313E00
     std::vector<std::string> _attachments;             // EntityConfig::attachments @ 0x100313E08
+    std::vector<std::string> _sounds;                  // EntityConfig::sound @ 0x100313D50
+    std::vector<std::string> _ambientSounds;           // EntityConfig::ambientSounds @ 0x100313D58
+    std::vector<std::string> _deathSounds;             // EntityConfig::deathSounds @ 0x100313D60
+    std::vector<std::string> _powerOnSounds;           // EntityConfig::powerOnSounds @ 0x100313D68
 };
 
 }  // namespace opendw

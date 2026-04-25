@@ -41,11 +41,17 @@ public:
     /* FUNC: Entity::buildPhysicalFromConfig @ 0x1000BFBD3 */
     virtual void buildPhysical();
 
+    /* FUNC: Entity::playEntrySoundEffects @ 0x1000BC730 */
+    virtual void playEntrySoundEffects();
+
     /* FUNC: Entity::change: @ 0x1000BCB73 */
     virtual void change(const ax::ValueMap& data);
 
     /* FUNC: Entity::runAnimation: @ 0x1000BEA8D */
     virtual bool runAnimation(int32_t id) { return false; }
+
+    /* FUNC: Entity::animateViolentDeath @ 0x1000BF10B */
+    virtual void animateViolentDeath();
 
     /* FUNC: Entity::setFlipX: @ 0x1000BC034 */
     virtual void setFlippedX(bool flippedX);

@@ -13,6 +13,25 @@ EntityConfig* EntityConfig::createWithData(const ValueMap& data)
     CREATE_INIT(EntityConfig, initWithData, data);
 }
 
+// TODO: move to utilities, find a generic way to do this for any type
+static void populateStringVector(const Value& src, std::vector<std::string>& dst)
+{
+    if (!src.isNull())
+    {
+        if (src.getType() == Value::Type::VECTOR)
+        {
+            for (auto& element : src.asValueVector())
+            {
+                dst.push_back(element.asString());
+            }
+        }
+        else  // Assume string
+        {
+            dst.push_back(src.asString());
+        }
+    }
+}
+
 bool EntityConfig::initWithData(const ValueMap& data)
 {
     _code        = map_util::getInt32(data, "code", -1);
@@ -86,6 +105,11 @@ bool EntityConfig::initWithData(const ValueMap& data)
         }
     }
 
+    // 0x10012004E: Configure sounds
+    populateStringVector(map_util::getValue(data, "sound"), _sounds);
+    populateStringVector(map_util::getValue(data, "ambient sound"), _ambientSounds);
+    populateStringVector(map_util::getValue(data, "death sound"), _deathSounds);
+    populateStringVector(map_util::getValue(data, "power on"), _powerOnSounds);
     return true;
 }
 

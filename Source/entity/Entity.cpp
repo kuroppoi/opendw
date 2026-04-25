@@ -11,6 +11,8 @@
 #include "physics/Physical.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
+#include "zone/WorldZone.h"
+#include "AudioManager.h"
 #include "CommonDefs.h"
 
 USING_NS_AX;
@@ -215,6 +217,40 @@ void Entity::buildPhysical()
     // TODO: finish
 }
 
+void Entity::playEntrySoundEffects()
+{
+    if (WorldZone::getMain()->getState() != WorldZone::State::ACTIVE)
+    {
+        return;
+    }
+
+    // 0x1000BC775: Play random entry sound
+    auto& sounds = _config->getSounds();
+
+    if (!sounds.empty())
+    {
+        auto& sound = sounds[random() % sounds.size()];
+        auto pitch  = random(0.85F, 1.15F);
+        AudioManager::getInstance()->playSfx(sound, _position, pitch, 0.5F);
+    }
+
+    // 0x1000BC81A: Play power on sounds
+    auto& powerOnSounds = _config->getPowerOnSounds();
+
+    if (!powerOnSounds.empty())
+    {
+        float currentDelay = 0.0F;
+
+        for (auto& sound : powerOnSounds)
+        {
+            auto delay  = DelayTime::create(currentDelay);
+            auto action = CallFunc::create([=]() { AudioManager::getInstance()->playSfx(sound, _position, 1.0F, 0.5F); });
+            this->runAction(Sequence::createWithTwoActions(delay, action));
+            currentDelay += 1.0F;
+        }
+    }
+}
+
 void Entity::onExit()
 {
     Sprite::onExit();
@@ -233,6 +269,16 @@ void Entity::update(float deltaTime)
         // TODO: probably need to find the shortest rotation distance or something
         auto rotation = MathUtil::lerp(getRotation(), _realRotation, fminf(1.0F, deltaTime * 10.0F));
         setRotation(rotation);
+    }
+
+    // 0x1000BCF33: Randomly play an ambient sound
+    auto& ambientSounds = _config->getAmbientSounds();
+
+    if (!ambientSounds.empty() && rand_0_1() < deltaTime * 0.1F)
+    {
+        auto& sound = ambientSounds[random() % ambientSounds.size()];
+        auto pitch  = random(0.85F, 1.15F);
+        AudioManager::getInstance()->playSfx(sound, _position, pitch, 0.4F);
     }
 
     // NOTE: Originally done in EntityAnimatedHuman::step:
@@ -326,6 +372,20 @@ void Entity::createNameLabel()
     _nameLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
 }
 
+void Entity::animateViolentDeath()
+{
+    // TODO: play the actual animation
+    // 0x1000BF2C7: Play random death sound
+    auto& deathSounds = _config->getDeathSounds();
+
+    if (!deathSounds.empty())
+    {
+        auto& sound = deathSounds[random() % deathSounds.size()];
+        auto pitch  = random(0.85F, 1.15F);
+        AudioManager::getInstance()->playSfx(sound, _position, pitch, 0.5F);
+    }
+}
+
 void Entity::setFlippedX(bool flippedX)
 {
     if (_flippedX != flippedX && _config->doesFlipX())
@@ -346,6 +406,7 @@ void Entity::setRealPosition(const Point& position)
     if (!_positioned)
     {
         // TODO: finish
+        playEntrySoundEffects();
 
         if (isBlock())
         {
