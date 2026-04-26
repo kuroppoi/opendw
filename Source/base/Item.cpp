@@ -444,6 +444,8 @@ UseType Item::getUseTypeForName(const std::string& name)
 {
     if (name == "climb")
         return UseType::CLIMB;
+    else if (name == "sign")
+        return UseType::SIGN;
     else if (name == "fly")
         return UseType::FLY;
     else if (name == "propel")

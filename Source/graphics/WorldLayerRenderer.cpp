@@ -5,6 +5,7 @@
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/backend/MaskedSpriteBatchNode.h"
 #include "graphics/WorldRenderer.h"
+#include "gui/widget/MultiLabel.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -20,11 +21,14 @@
 #define PLUGGED_MAW         7
 #define PLUGGED_PIPE        8
 #define WATER               192
+#define RUBY_PLAQUE         399
 #define DAGUERREOTYPE_SMALL 754
 #define DAGUERREOTYPE_LARGE 755
 #define GIANT_CLOCK         761
 #define LANDSCAPE           797
 #define WINE_PRESS          863
+#define LANDMARK_PLAQUE     916
+#define MECHANICAL_SIGN     919
 #define HELL_DISH           1010
 
 USING_NS_AX;
@@ -703,6 +707,107 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
             }
         }
     }
+
+    // 0x1000A5408: Place sign text
+    // NOTE: I took some liberties here, but the implementation still isn't amazing...
+    if (item->isUsableType(UseType::SIGN))
+    {
+        auto metaBlock = _zone->getMetaBlockAt(x, y);
+
+        if (metaBlock)
+        {
+            auto& metadata     = metaBlock->getMetadata();
+            auto& color        = item->getColor();
+            auto code          = item->getCode();
+            auto fontScale     = 0.5F;  // FIXME: Why is the font size too big!?
+            auto letterSpacing = code == MECHANICAL_SIGN ? 10.0F : 0.0F;
+            auto maxLabelScale = (code == MECHANICAL_SIGN ? 1.2F : 1.0F) * fontScale;
+            auto landmark      = code == RUBY_PLAQUE || code == LANDMARK_PLAQUE;
+            auto paddingX      = (landmark ? 0.1F : 0.0F) * fontScale;
+            auto linePadding   = (landmark ? -2.0F : 2.0F) * fontScale;
+            auto signSprite    = block->getTopSpriteForLayer(BlockLayer::FRONT);
+            auto signWidth     = signSprite->getContentSize().width - BLOCK_SIZE * 0.5F;
+            auto keys          = {"t", "t1", "t2", "t3", "t4"};  // Sign metadata text keys
+            float totalHeight  = 0.0F;
+            std::vector<Label*> labels;
+
+            // 0x1000A5647: Create labels
+            for (auto& key : keys)
+            {
+                if (!metadata.contains(key))
+                {
+                    continue;
+                }
+
+                auto text  = map_util::getString(metadata, key);
+                auto label = MultiLabel::createWithBMFont("sign-font-small-1+hd.fnt", text);
+                label->setAdditionalKerning(letterSpacing);
+                auto textWidth = label->getContentSize().width;
+                auto scaleX    = MIN(maxLabelScale, signWidth / textWidth);
+                label->setScale((scaleX - paddingX) * 0.925F);
+                label->setColor(color.g != 0xFF ? color : color_util::hexToColor("0A0A0A"));  // Wow! This sucks.
+                labels.push_back(label);
+                totalHeight += label->getContentSize().height * 0.5F + linePadding;
+            }
+
+            auto signsNode = worldRenderer->getSignsNode();
+            auto point     = _zone->getPointAtBlock(x, y);
+            auto labelX    = point.x + (item->getWidth() * 0.5F - 0.5F) * BLOCK_SIZE;
+            auto labelY    = point.y + totalHeight * 0.5F + (item->getHeight() * 0.5F - 0.5F) * BLOCK_SIZE;
+            labelY -= BLOCK_SIZE * 0.1875F;  // Our label anchor is middle instead of top so we must compensate
+
+            if (landmark)
+            {
+                labelY += BLOCK_SIZE * 0.1F;
+
+                // 0x1000A5ADB: Draw vote/xp count
+                auto count = map_util::getInt32(metadata, "vc");
+                auto label = Label::createWithBMFont("sign-font-small-1+hd.fnt", std::to_string(count));
+                label->setColor(color_util::hexToColor("FFDC0A"));
+                label->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
+                label->setScale(0.8F * fontScale);
+                auto x = point.x + (item->getWidth() * 0.5F - 0.39F) * BLOCK_SIZE;
+                label->setPosition(x, point.y);
+                label->setUserData(signsNode);
+                signsNode->addChild(label, 5);
+                block->pushAccessory(label);
+            }
+
+            // 0x1000A5CC8: Position & draw labels
+            for (auto& label : labels)
+            {
+                label->setPosition(labelX, labelY);
+                labelY -= label->getContentSize().height * 0.5F + linePadding;
+
+                // 0x1000A5F2A: Draw mechanical letter borders
+                if (code == MECHANICAL_SIGN)
+                {
+                    auto borderColor = color_util::hexToColor("3C3732");
+
+                    for (auto i = 0; i < label->getStringLength(); i++)
+                    {
+                        auto letter = label->getLetter(i);
+
+                        if (letter)
+                        {
+                            auto sprite = Sprite::createWithSpriteFrameName("signs/mechanical-letter-border");
+                            sprite->setPosition(letter->getWorldPosition());
+                            sprite->setColor(borderColor);
+                            math_util::scaleToSize(sprite, letter->getContentSize() + Vec2(20.0F, 15.0F));
+                            letter->setColor(label->getColor());  // Why does calling getLetter reset the color?
+                            sprite->setUserData(signsNode);
+                            signsNode->addChild(sprite, 4);
+                            block->pushAccessory(sprite);
+                        }
+                    }
+                }
+
+                label->setUserData(signsNode);
+                signsNode->addChild(label, 5);
+                block->pushAccessory(label);
+            }
+        }
+    }
 }
 
 void WorldLayerRenderer::placeBorder(BaseBlock* block,
@@ -956,6 +1061,7 @@ MaskedSprite* WorldLayerRenderer::getNextSprite()
     if (_recycledSprites.empty())
     {
         sprite = MaskedSprite::createWithTexture(_batchNode->getTexture(), _batchNode->getMaskTexture());
+        sprite->setUserData(this);
         _batchNode->addChild(sprite);  // FIXME: Can cause double reordering
         sTotalSpriteCount++;
     }
@@ -987,7 +1093,11 @@ MaskedSprite* WorldLayerRenderer::getNextSprite(const Rect& maskRect, MaskOrient
 void WorldLayerRenderer::recycleSprite(MaskedSprite* sprite)
 {
     AXASSERT(sprite, "Sprite can't be nullptr");
-    AXASSERT(sprite->getParent() == _batchNode, "Sprite must belong to this layer renderer");
+
+    if (sprite->getParent() != _batchNode)
+    {
+        return;
+    }
 
     // 0x100032A5F: Stop node actions
     if (sprite->getTag() == ACTION_SPRITE_TAG)

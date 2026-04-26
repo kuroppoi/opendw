@@ -103,6 +103,9 @@ public:
     /* FUNC: WorldRenderer::frontAccentsNode @ 0x100086E6F */
     WorldLayerRenderer* getFronterAccentsNode() const { return _fronterAccentsNode; }
 
+    /* FUNC: WorldRenderer::signsNode @ 0x100086E80 */
+    WorldLayerRenderer* getSignsNode() const { return _signsNode; }
+
     /* FUNC: WorldRenderer::animatedCharactersNode @ 0x100086EA2 */
     ax::Node* getAnimatedCharactersNode() const { return _animatedCharactersNode; }
 

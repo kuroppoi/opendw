@@ -64,6 +64,12 @@ Rect getRectIntersection(const Rect& rectA, const Rect& rectB)
     return Rect(minX, minY, width, height);
 }
 
+void scaleToSize(Node* node, const Size& size)
+{
+    auto& nodeSize = node->getContentSize();
+    node->setScale(size.width / nodeSize.width, size.height / nodeSize.height);
+}
+
 Size getScaledSize(Node* node)
 {
     Vec2 scale(node->getScaleX(), node->getScaleY());

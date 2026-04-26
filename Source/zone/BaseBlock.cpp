@@ -25,6 +25,7 @@ BaseBlock::~BaseBlock()
 {
     // If this triggers then there is a bug in our zone cleanup loop that needs to be addressed
     AXASSERT(_sprites.empty(), "Sprites were not recycled properly!");
+    AXASSERT(_accessories.empty(), "Accessories were not recycled properly!");
     sBlocksAllocated--;
 }
 
@@ -637,27 +638,42 @@ void BaseBlock::pushSprite(MaskedSprite* sprite)
     _sprites.pushBack(sprite);
 }
 
+void BaseBlock::pushAccessory(Node* node)
+{
+    _accessories.pushBack(node);
+}
+
 void BaseBlock::recycleSprites(BlockLayer layer)
 {
-    // TODO: accessory sprites
+    // Recycle sprites
     for (auto it = _sprites.begin(); it != _sprites.end();)
     {
         auto sprite = *it;
-        auto parent = sprite->getParent();
-
-        // Can happen when biome renderers remove all of their sprites
-        if (!parent)
-        {
-            it = _sprites.erase(it);
-            continue;
-        }
-
-        auto renderer = static_cast<WorldLayerRenderer*>(parent->getParent());
+        AX_ASSERT(sprite->getUserData());
+        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getUserData());
 
         if (layer == BlockLayer::NONE || renderer->getLayer() == layer)
         {
             renderer->recycleSprite(sprite);
             it = _sprites.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+
+    // Clear accessories
+    for (auto it = _accessories.begin(); it != _accessories.end();)
+    {
+        auto node = *it;
+        AX_ASSERT(node->getUserData());
+        auto renderer = static_cast<WorldLayerRenderer*>(node->getUserData());
+
+        if (layer == BlockLayer::NONE || renderer->getLayer() == layer)
+        {
+            node->removeFromParent();
+            it = _accessories.erase(it);
         }
         else
         {

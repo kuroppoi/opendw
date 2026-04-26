@@ -56,6 +56,7 @@ enum class UseType : uint8_t
 {
     NONE,
     CLIMB,
+    SIGN,
     FLY,
     PROPEL,
     HOVER,

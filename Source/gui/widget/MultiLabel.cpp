@@ -175,7 +175,8 @@ void MultiLabel::updateColor()
 
 void MultiLabel::updateIconColors()
 {
-    Color4B color(_displayedColor.r, _displayedColor.g, _displayedColor.b, _displayedOpacity);
+    auto displayedColor = _cascadeColorEnabled ? _displayedColor : Color3B::WHITE;
+    Color4B color(displayedColor.r, displayedColor.g, displayedColor.b, _displayedOpacity);
 
     if (_isOpacityModifyRGB)
     {

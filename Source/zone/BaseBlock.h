@@ -130,6 +130,7 @@ public:
 
     /* FUNC: BaseBlock::pushSprite:accessory: @ 0x100032381 */
     void pushSprite(MaskedSprite* sprite);
+    void pushAccessory(ax::Node* node);
 
     /* FUNC: BaseBlock::recycleSprites:inLayer: @ 0x100032916 */
     void recycleSprites(BlockLayer layer = BlockLayer::NONE);
@@ -280,6 +281,7 @@ private:
     Item* _liquidItem;                   // BaseBlock::liquidItem @ 0x100310AD8
     double _queuedAt;                    // BaseBlock::queuedAt @ 0x100310BB8
     ax::Vector<MaskedSprite*> _sprites;  // BaseBlock::sprites @ 0x100310B58
+    ax::Vector<ax::Node*> _accessories;  // BaseBlock::accessorySprites @ 0x100310B60
     bool _placing;                       // BaseBlock::placing @ 0x100310A70
     bool _rendering;                     // BaseBlock::rendering @ 0x100310A78
     uint8_t _wholeness;                  // BaseBlock::wholeness @ 0x100310B18
