@@ -218,6 +218,7 @@ void AudioManager::playLoopLayer(const std::string& name, float level, float gai
         auto volume   = _masterVolume * _sfxVolume * modifier * gain;
         auto track    = _loopMap.contains(sample) ? _loopMap[sample] : AudioEngine::play2d(file, true);
         AudioEngine::setVolume(track, volume);
+        AudioEngine::setPan(track, 0.0F);  // Why does pan change sometimes when switching zones?
         _loopMap[sample] = track;
     }
 }
