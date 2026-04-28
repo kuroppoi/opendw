@@ -4,6 +4,7 @@
 
 #define ICON_ATLAS "guiv2.png"
 #define ICON_CHAR  '\0'  // Character that represents custom icons
+#define TAB_CHAR   0x9
 
 USING_NS_AX;
 
@@ -92,6 +93,14 @@ void MultiLabel::initIcons()
     definition.validDefinition = true;
     definition.xAdvance        = height * 1.5F;
     _fontAtlas->addLetterDefinition(ICON_CHAR, definition);
+
+    // Create tab letter definition if it doesn't exist
+    if (!_fontAtlas->getLetterDefinitionForChar(TAB_CHAR, definition) &&
+        _fontAtlas->getLetterDefinitionForChar(' ', definition))
+    {
+        definition.xAdvance *= 2.0F;
+        _fontAtlas->addLetterDefinition(TAB_CHAR, definition);
+    }
 }
 
 void MultiLabel::setString(std::string_view text)
