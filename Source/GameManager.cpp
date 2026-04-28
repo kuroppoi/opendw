@@ -211,7 +211,7 @@ void GameManager::snapshotScreenAsSpinner(bool snapshotZone)
     // 0x100036FAB: Create render texture
     auto& winSize      = _director->getWinSize();
     auto renderTexture = RenderTexture::create(winSize.width, winSize.height, backend::PixelFormat::RGB8);
-    renderTexture->begin();
+    renderTexture->beginWithClear(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0);
 
     if (snapshotZone)
     {

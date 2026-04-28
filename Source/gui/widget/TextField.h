@@ -91,6 +91,7 @@ private:
     ax::EventListenerTouchOneByOne* _touchListener;
     ax::BMFontConfiguration* _fontConfiguration;
     ax::ui::EditBox* _editBox;
+    ax::ClippingRectangleNode* _clippingNode;
     bool _layoutDirty;
 };
 

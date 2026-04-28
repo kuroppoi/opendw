@@ -37,8 +37,8 @@ bool TextField::initWithFont(const std::string& fontFile)
     AX_SAFE_RETAIN(_fontConfiguration);
 
     // Create value clipping node
-    auto clippingNode = ClippingNode::create();
-    addChild(clippingNode, 1);
+    _clippingNode = ClippingRectangleNode::create();
+    addChild(_clippingNode, 1);
 
     // Create touch listener
     _touchListener               = EventListenerTouchOneByOne::create();
@@ -63,7 +63,7 @@ bool TextField::initWithFont(const std::string& fontFile)
     _valueLabel = Label::createWithBMFont(fontFile, "");
     _valueLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     _valueLabel->setOpacity(INACTIVE_OPACITY);
-    clippingNode->addChild(_valueLabel);
+    _clippingNode->addChild(_valueLabel);
 
     // Create hint label
     _hintLabel = Label::createWithBMFont(fontFile, "");
@@ -75,7 +75,6 @@ bool TextField::initWithFont(const std::string& fontFile)
     // Create background panel
     _backgroundPanel = Panel::createWithStyle("input/border");
     _backgroundPanel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
-    clippingNode->setStencil(_backgroundPanel);
     addChild(_backgroundPanel);
 
     // Misc
@@ -117,6 +116,13 @@ void TextField::updateLayout()
     _backgroundPanel->setPositionY(currentY);
     _backgroundPanel->setContentSize({_width, height});
     currentY += paddingY;
+
+    // Update value clipping rect
+    auto clippingRect = _backgroundPanel->getBoundingBox();
+    Vec2 clippingOffset(_padding, paddingY);
+    clippingRect.origin += clippingOffset;
+    clippingRect.size -= clippingOffset * 2.0F;
+    _clippingNode->setClippingRegion(clippingRect);
 
     // Update value label
     _valueLabel->setPositionY(currentY);
