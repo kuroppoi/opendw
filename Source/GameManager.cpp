@@ -45,9 +45,16 @@ GameManager* GameManager::getInstance()
     if (!sInstance)
     {
         sInstance = new GameManager();
-        sInstance->autorelease();
-        sInstance->init();
-        AX_SAFE_RETAIN(sInstance);
+
+        if (sInstance->init())
+        {
+            sInstance->autorelease();
+            sInstance->retain();
+        }
+        else
+        {
+            AX_SAFE_DELETE(sInstance);
+        }
     }
 
     return sInstance;
@@ -56,7 +63,7 @@ GameManager* GameManager::getInstance()
 Scene* GameManager::createScene()
 {
     auto scene = Scene::create();
-    scene->addChild(GameManager::getInstance());
+    scene->addChild(this);
     return scene;
 }
 
@@ -64,6 +71,13 @@ bool GameManager::init()
 {
     if (!Node::init())
     {
+        return false;
+    }
+
+    // Try to load base assets
+    if (!AssetManager::loadBaseSpriteSheets())
+    {
+        showAlert("Failed to load base game assets.\nThe application will close.", "Error");
         return false;
     }
 
@@ -77,7 +91,6 @@ bool GameManager::init()
     AXLOGI("[GameManager] Gateway server: {}", _gatewayServer);
 
     // Create main menu
-    AssetManager::loadBaseSpriteSheets();
     _menu = MainMenu::create();
     addChild(_menu);
 
@@ -532,10 +545,18 @@ void GameManager::enqueueCommand(GameCommand* command)
 
 void GameManager::loadNextAsset()
 {
-    auto total    = assets::kGameAssets.size();
-    auto loaded   = total - _assetsToLoad.size();
-    auto progress = (float)(loaded + 1) / total;
-    AssetManager::loadSpriteSheets({_assetsToLoad[0]});
+    auto total      = assets::kGameAssets.size();
+    auto loaded     = total - _assetsToLoad.size();
+    auto progress   = (float)(loaded + 1) / total;
+    auto& nextAsset = _assetsToLoad[0];
+
+    if (!AssetManager::loadSpriteSheets({nextAsset}))
+    {
+        _loadAssets = false;
+        _menu->showAlert(std::format("Oops! Failed to load asset:\n{}", nextAsset));
+        return;
+    }
+
     _assetsToLoad.erase(_assetsToLoad.begin());
     auto message = _assetsToLoad.empty() ? "Configuring..." : std::format("Loading texture {} of {}...", loaded, total);
     _menu->setAssetLoadStatus(message, progress);

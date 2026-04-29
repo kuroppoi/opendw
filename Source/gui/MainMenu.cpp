@@ -48,6 +48,7 @@ bool MainMenu::init()
     AX_SAFE_RETAIN(_spinner);
     _progressBar = ProgressTimer::create(Sprite::createWithSpriteFrameName("icons/gear"));
     _progressBar->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
+    _progressBar->setVisible(false);
     _spinner->addChild(_progressBar, 1);
 
     // 0x100087F0A: Create build label
@@ -277,12 +278,14 @@ void MainMenu::showSpinner()
         }
     }
 
-    // Show spinner
-    _spinner->removeFromParent();
+    // Reset spinner state
+    _progressBar->setVisible(false);
     _spinner->removeChildByTag(PROGRESS_LABEL_TAG);
+    _spinner->removeFromParent();
     _spinner->setPosition(_currentMenu->getContentSize() * 0.5F);
     _spinner->setRotation(0.0F);
     _spinner->setScale(0.65F);
+    _spinner->setColor(Color3B::WHITE);
     _spinner->runAction(RepeatForever::create(RotateBy::create(1.0F, 360.0F)));
     _currentMenu->addChild(_spinner, 10);
 }
@@ -742,6 +745,7 @@ void MainMenu::setAssetLoadStatus(const std::string& message, float progress)
     }
 
     // Update progress bar
+    _progressBar->setVisible(true);
     _progressBar->setPercentage(progress * 100.0F);
     _spinner->setColor(color_util::hexToColor("808080"));
 

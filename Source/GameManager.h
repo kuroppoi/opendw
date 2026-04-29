@@ -49,7 +49,7 @@ public:
     static GameManager* getInstance();
 
     /* FUNC: GameManager::scene @ 0x100035799 */
-    static ax::Scene* createScene();
+    ax::Scene* createScene();
 
     /* FUNC: GameManager::init @ 0x1000357EC */
     bool init() override;

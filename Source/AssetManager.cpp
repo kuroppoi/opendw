@@ -5,22 +5,32 @@ USING_NS_AX;
 namespace opendw
 {
 
-void AssetManager::loadBaseSpriteSheets()
+bool AssetManager::loadBaseSpriteSheets()
 {
-    loadSpriteSheets(assets::kBaseAssets);
+    return loadSpriteSheets(assets::kBaseAssets);
 }
 
-void AssetManager::loadSpriteSheets(const std::vector<std::string_view>& files)
+bool AssetManager::loadSpriteSheets(const std::vector<std::string_view>& files)
 {
     auto textureCache = Director::getInstance()->getTextureCache();
     auto frameCache   = SpriteFrameCache::getInstance();
 
     for (auto& file : files)
     {
-        // TODO: there's... no way to know if this actually succeeds or not
         frameCache->addSpriteFramesWithFile(file);
-        AXLOGI("[AssetManager] Loaded asset {}", file);
+
+        if (frameCache->isSpriteFramesWithFileLoaded(file))
+        {
+            AXLOGI("[AssetManager] Loaded asset {}", file);
+        }
+        else
+        {
+            AXLOGW("[AssetManager] Failed to load asset {}", file);
+            return false;
+        }
     }
+
+    return true;
 }
 
 }  // namespace opendw

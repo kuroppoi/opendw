@@ -10,10 +10,10 @@ class AssetManager
 {
 public:
     /* FUNC: GameManager::loadBaseSpriteSheets @ 0x10003A950 */
-    static void loadBaseSpriteSheets();
+    static bool loadBaseSpriteSheets();
 
     /* FUNC: GameManager::loadSpriteSheets:frames:texture:format: @ 0x10003B5D1 */
-    static void loadSpriteSheets(const std::vector<std::string_view>& files);
+    static bool loadSpriteSheets(const std::vector<std::string_view>& files);
 };
 
 namespace assets

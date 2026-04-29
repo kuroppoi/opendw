@@ -3,6 +3,11 @@
 
 #include "axmol.h"
 
+namespace opendw
+{
+class GameManager;
+}
+
 /*
  * CLASS: AppDelegateMac : NSObject @ 0x100315D48
  */
@@ -18,6 +23,9 @@ public:
     bool applicationDidFinishLaunching() override;
     void applicationDidEnterBackground() override {}
     void applicationWillEnterForeground() override {}
+
+private:
+    opendw::GameManager* _game;
 };
 
 #endif  // __APP_DELEGATE_H__

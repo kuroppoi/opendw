@@ -9,7 +9,7 @@ static constexpr auto ENABLE_VSYNC      = true;
 
 AppDelegate::~AppDelegate()
 {
-    AX_SAFE_RELEASE(opendw::GameManager::getInstance());
+    AX_SAFE_RELEASE(_game);
 }
 
 void AppDelegate::initGfxContextAttrs()
@@ -41,6 +41,13 @@ bool AppDelegate::applicationDidFinishLaunching()
 #endif
     director->setAnimationInterval(0.0F);  // Unlimited
     renderView->setDesignResolutionSize(DESIGN_RESOLUTION.width, DESIGN_RESOLUTION.height, ResolutionPolicy::NO_BORDER);
-    director->runWithScene(opendw::GameManager::createScene());
-    return true;
+    _game = opendw::GameManager::getInstance();
+
+    if (_game)
+    {
+        director->runWithScene(_game->createScene());
+        return true;
+    }
+
+    return false;
 }
