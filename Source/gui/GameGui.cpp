@@ -8,6 +8,7 @@
 #include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
 #include "gui/widget/SpriteButton.h"
+#include "gui/InventoryContainer.h"
 #include "gui/TeleportPanel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"
@@ -23,6 +24,7 @@
 #define HUD_BUTTON_SCALE   0.5F
 #define PANEL_MARGIN       10.0F
 #define MIN_ALERT_INTERVAL 1.5
+#define HOTBAR_ITEM_COUNT  10
 
 USING_NS_AX;
 
@@ -57,6 +59,8 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     _zone     = zone;
     _gameMenu = nullptr;
+    _itemMargin = 2.0F;
+    _itemSize   = 70.0F;  // NOTE: 54.0F if win width <= 600
 
     // Create announcements node
     _announcementsNode = Node::create();
@@ -189,6 +193,11 @@ bool GameGui::initWithZone(WorldZone* zone)
     _consoleButton->getForegroundSprite()->setPositionX(_consoleButton->getForegroundSprite()->getPositionX() - 20.0F);
     _consoleButton->getForegroundSprite()->setColor(_consoleButton->getColor());
     _hudButtonsNode->addChild(_consoleButton);
+
+    // 0x10005B452: Create hotbar
+    _primaryHotbar = InventoryContainer::createWithGui(this, "hotbar", 1, HOTBAR_ITEM_COUNT);
+    _primaryHotbar->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
+    addChild(_primaryHotbar, 4);
 
     AXLOGI("[GameGui] Initialized");
     sMain = this;
@@ -501,6 +510,7 @@ void GameGui::onWindowResized()
     _inventoryButton->setPosition(_craftingButton->getPositionX() - buttonOffset, top);
     _mapButton->setPosition(right, bottom);
     _consoleButton->setPosition(left, bottom);
+    _primaryHotbar->setPosition(right - PANEL_MARGIN, top - PANEL_MARGIN);
 }
 
 }  // namespace opendw

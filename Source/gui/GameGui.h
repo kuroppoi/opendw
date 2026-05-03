@@ -11,6 +11,7 @@ namespace opendw
 class BaseBlock;
 class EntityAnimatedAvatar;
 class IconBar;
+class InventoryContainer;
 class SpriteButton;
 class TeleportPanel;
 class WorldZone;
@@ -73,6 +74,12 @@ public:
     void showBigAlert(const std::string& title, const std::string& subtitle = "");
     void showBigAlert(const ax::Value& data);
 
+    /* FUNC: GameGui::itemMargin @ 0x10006A55E */
+    float getItemMargin() const { return _itemMargin; }
+
+    /* FUNC: GameGui::itemSize @ 0x10006A570 */
+    float getItemSize() const { return _itemSize; }
+
     /* FUNC: GameGui::respawnMessage @ 0x100059475 */
     const char* getRespawnMessage() const;
 
@@ -110,6 +117,8 @@ private:
     inline static GameGui* sMain;  // 0x10032EAD0
 
     WorldZone* _zone;                         // GameGui::zone @ 0x100311788
+    float _itemMargin;                        // GameGui::itemMargin @ 0x1003117E8
+    float _itemSize;                          // GameGui::itemSize @ 0x1003117F0
     ax::Node* _announcementsNode;             // GameGui::announcementsNode @ 0x100311948
     ax::Node* _gameMenu;                      // GameGui::gameMenu @ 0x100311A30
     ax::Node* _hudNode;                       // GameGui::hudNode @ 0x100311840
@@ -131,6 +140,7 @@ private:
     ax::Label* _crownsLabel;                  // GameGui::crownsLabel @ 0x1003118F0
     SpriteButton* _mapButton;                 // GameGui::mapButton @ 0x100311908
     SpriteButton* _consoleButton;             // GameGui::consoleButton @ 0x100311918
+    InventoryContainer* _primaryHotbar;       // GameGui::primaryHotbar @ 0x100311920
     TeleportPanel* _teleportPanel;            // GameGui::teleportPanel @ 0x100311A58
     double _lastAlertShownAt;                 // GameGui::lastAlertShownAt @ 0x100311978
     std::string _lastAlertShown;              // GameGui::lastAlertShown @ 0x100311A10
