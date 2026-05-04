@@ -48,8 +48,9 @@ bool WorldZone::initWithGame(GameManager* game)
         return false;
     }
 
-    _game  = game;
-    _state = State::INACTIVE;
+    _game   = game;
+    _player = Player::getMain();
+    _state  = State::INACTIVE;
     _inactiveChunks.reserve(CHUNK_PREALLOC_COUNT);
     _sunlight = nullptr;
     sMain     = this;
@@ -168,10 +169,9 @@ void WorldZone::configure(const ValueMap& data)
 void WorldZone::update(float deltaTime)
 {
     Node::update(deltaTime);
-    auto player = _game->getPlayer();
 
     // Don't update if we're teleporting to another zone
-    if (player->isZoneTeleporting())
+    if (_player->isZoneTeleporting())
     {
         return;
     }
@@ -335,7 +335,7 @@ void WorldZone::update(float deltaTime)
     // 0x100042896: Find closest field damage block
     // BUGFIX: Do this *before* updating subcomponents because _fieldDamageBlock might be deleted
     _fieldDamageBlock    = nullptr;
-    auto playerPosition  = player->getBlockPosition();
+    auto playerPosition  = _player->getBlockPosition();
     auto nearestDistance = 0.0F;
 
     for (auto& entry : _fieldMetaBlocks)
@@ -366,7 +366,7 @@ void WorldZone::update(float deltaTime)
     _sceneRenderer->hideSpinner();
     _game->hideSnapshotSpinner();
     _game->getInputManager()->checkInput(deltaTime);
-    player->update(deltaTime);
+    _player->update(deltaTime);
     _sceneRenderer->update(deltaTime);
 
     // 0x10004257C: Update physics space
@@ -404,7 +404,7 @@ void WorldZone::update(float deltaTime)
             auto sound    = map_util::getRandomKeyWeighted(sounds);
             auto x        = random(-25.0F, 25.0F);
             auto y        = random(-25.0F, 25.0F);
-            auto position = player->getPosition() + Vec2(x, y) * BLOCK_SIZE;
+            auto position = _player->getPosition() + Vec2(x, y) * BLOCK_SIZE;
             auto pitch    = random(0.8F, 1.2F);
             AudioManager::getInstance()->playSfx(sound, position, pitch, 0.85F);
         }
@@ -444,6 +444,7 @@ void WorldZone::updateStatus(const ValueMap& status)
 void WorldZone::enter()
 {
     AXLOGI("[WorldZone] Entering zone!");
+    _player->setPrimaryHotbarIndex(0);
     _sceneRenderer->ready();
     begin();
 }
@@ -454,7 +455,7 @@ void WorldZone::begin()
     _state = State::ACTIVE;
     _sceneRenderer->setVisible(true);
     _nextAmbientSoundAt = utils::gettime() + random(5.0, 10.0);
-    _game->getPlayer()->begin();
+    _player->begin();
     AudioManager::getInstance()->fadeOutMusic();  // Fade out menu music
     schedule(AX_CALLBACK_0(WorldZone::cleanupChunks, this), 0.033F, "cleanupChunks");
 }
@@ -474,7 +475,6 @@ void WorldZone::cleanupChunks()
     }
 
     auto start   = utils::gettime();
-    auto player  = _game->getPlayer();
     auto cleaned = 0;
 
     for (auto it = _activeChunks.begin(); it != _activeChunks.end();)
@@ -490,7 +490,7 @@ void WorldZone::cleanupChunks()
 
         auto centerX  = (float)chunk->getBlockX() + _chunkWidth * 0.5F;
         auto centerY  = (float)chunk->getBlockY() + _chunkHeight * 0.5F;
-        auto position = player->getBlockPosition();
+        auto position = _player->getBlockPosition();
         auto distance = hypotf(position.x - centerX, position.y - centerY);
 
         // TODO: this distance check might clean up chunks on screen if zoomed out far enough!
@@ -890,8 +890,7 @@ bool WorldZone::beginAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
         return true;
     }
 
-    auto player = Player::getMain();
-    auto avatar = player->getAvatar();
+    auto avatar = _player->getAvatar();
 
     // FIXME: Collision events can still occur after the avatar is destroyed
     if (!avatar)
@@ -904,28 +903,28 @@ bool WorldZone::beginAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
     if (auto entity = dynamic_cast<Entity*>(target->getUserData()))
     {
         // Collision with entity
-        if (source == player->getFeetShape())
+        if (source == _player->getFeetShape())
         {
-            player->onFeetCollideWithEntity(entity);
+            _player->onFeetCollideWithEntity(entity);
         }
         else
         {
-            player->onCollideWithEntity(entity);
+            _player->onCollideWithEntity(entity);
         }
     }
     else
     {
         // Collision with block (most likely)
-        if (source == player->getFeetShape())
+        if (source == _player->getFeetShape())
         {
             avatar->setFootColliderCount(avatar->getFootColliderCount() + 1);
 
             if (auto block = dynamic_cast<BaseBlock*>(target->getUserData()))
             {
-                player->onFeetCollideWithBlock(block);
+                _player->onFeetCollideWithBlock(block);
             }
         }
-        else if (source == player->getHeadShape())
+        else if (source == _player->getHeadShape())
         {
             avatar->setHeadColliderCount(avatar->getHeadColliderCount() + 1);
         }
@@ -951,8 +950,7 @@ void WorldZone::separateAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space
         return;
     }
 
-    auto player = Player::getMain();
-    auto avatar = player->getAvatar();
+    auto avatar = _player->getAvatar();
 
     // FIXME: Collision events can still occur after the avatar is destroyed
     if (!avatar)
@@ -964,11 +962,11 @@ void WorldZone::separateAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space
 
     if (!dynamic_cast<Entity*>(target->getUserData()))
     {
-        if (source == player->getFeetShape())
+        if (source == _player->getFeetShape())
         {
             avatar->setFootColliderCount(avatar->getFootColliderCount() - 1);
         }
-        else if (source == player->getHeadShape())
+        else if (source == _player->getHeadShape())
         {
             avatar->setHeadColliderCount(avatar->getHeadColliderCount() - 1);
         }

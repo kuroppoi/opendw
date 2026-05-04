@@ -25,6 +25,9 @@ public:
     /* FUNC: InventoryContainer::pointAtItemIndex: @ 0x10006BCB2 */
     ax::Point getPointAtItemIndex(int index) const;
 
+    /* FUNC: InventoryContainer::slotSprites @ 0x10006CF09 */
+    const std::vector<ax::Sprite*>& getSlotSprites() const { return _slotSprites; }
+
 private:
     GameGui* _gameGui;                      // InventoryContainer::gameGui @ 0x100311A68
     std::string _name;                      // InventoryContainer::name @ 0x100311A70

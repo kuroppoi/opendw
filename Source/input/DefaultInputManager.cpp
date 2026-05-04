@@ -24,21 +24,21 @@ void DefaultInputManager::enterGame()
     InputManager::enterGame();
 
     // Create keyboard listener
-    _keyboardListener                = EventListenerKeyboard::create();
-    _keyboardListener->onKeyPressed  = AX_CALLBACK_2(DefaultInputManager::onKeyPressed, this);
-    _keyboardListener->onKeyReleased = AX_CALLBACK_2(DefaultInputManager::onKeyReleased, this);
-    _eventDispatcher->addEventListenerWithFixedPriority(_keyboardListener, 11);
+    auto keyboardListener           = EventListenerKeyboard::create();
+    keyboardListener->onKeyPressed  = AX_CALLBACK_2(DefaultInputManager::onKeyPressed, this);
+    keyboardListener->onKeyReleased = AX_CALLBACK_2(DefaultInputManager::onKeyReleased, this);
+    addEventListener(keyboardListener, 11);
 
     // Create mouse listener
-    _mouseListener = EventListenerMouse::create();
-    _mouseListener->onMouseMove = AX_CALLBACK_1(DefaultInputManager::onMouseMove, this);
-    _eventDispatcher->addEventListenerWithFixedPriority(_mouseListener, 11);
+    auto mouseListener           = EventListenerMouse::create();
+    mouseListener->onMouseMove   = AX_CALLBACK_1(DefaultInputManager::onMouseMove, this);
+    mouseListener->onMouseScroll = AX_CALLBACK_1(DefaultInputManager::onMouseScroll, this);
+    addEventListener(mouseListener, 11);
 }
 
 void DefaultInputManager::exitGame()
 {
-    _eventDispatcher->removeEventListener(_keyboardListener);
-    _eventDispatcher->removeEventListener(_mouseListener);
+    removeEventListeners();
     _keysPressed.clear();
     InputManager::exitGame();
 }
@@ -210,6 +210,24 @@ void DefaultInputManager::onKeyReleased(KeyCode keyCode, Event* event)
 bool DefaultInputManager::onMouseMove(EventMouse* event)
 {
     _cursorPosition.set(event->getCursorX(), event->getCursorY());
+    return false;
+}
+
+bool DefaultInputManager::onMouseScroll(EventMouse* event)
+{
+    auto delta = event->getScrollY();
+
+    if (delta == 0.0F)
+    {
+        delta = event->getScrollX();  // Horizontal scroll support
+    }
+
+    if (delta != 0.0F)
+    {
+        auto direction = delta > 0.0F ? 1 : -1;
+        _player->setPrimaryHotbarIndex(_player->getPrimaryHotbarIndex() + direction);
+    }
+
     return false;
 }
 

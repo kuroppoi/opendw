@@ -14,6 +14,7 @@ class EntityAnimatedAvatar;
 class GameManager;
 class Item;
 class MetaBlock;
+class Player;
 class SceneRenderer;
 class WorldRenderer;
 class WorldChunk;
@@ -250,6 +251,7 @@ private:
     static Biome getBiomeForName(const std::string& name);
 
     GameManager* _game;                                     // WorldZone::game @ 0x100310EA8
+    Player* _player;                                        // WorldZone::player @ 0x100310EB0
     SceneRenderer* _sceneRenderer;                          // WorldZone::sceneRenderer @ 0x1003110B8
     WorldRenderer* _worldRenderer;                          // WorldZone::worldRenderer @ 0x100310FC0
     ax::Vector<WorldChunk*> _inactiveChunks;                // WorldZone::inactiveChunks @ 0x100310EE8

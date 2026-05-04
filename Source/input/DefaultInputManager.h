@@ -1,6 +1,7 @@
 #ifndef __DEFAULT_INPUT_MANAGER_H__
 #define __DEFAULT_INPUT_MANAGER_H__
 
+#include "event/EventListenerContainer.h"
 #include "input/InputManager.h"
 
 namespace opendw
@@ -11,7 +12,7 @@ namespace opendw
  *
  * Default input manager for mouse & keyboard.
  */
-class DefaultInputManager : public InputManager
+class DefaultInputManager : public InputManager, EventListenerContainer
 {
 public:
     typedef ax::EventKeyboard::KeyCode KeyCode;
@@ -35,10 +36,11 @@ public:
 
     bool onMouseMove(ax::EventMouse* event);
 
+    /* FUNC: MacManager::ccMouseScroll: @ 0x10003F249 */
+    bool onMouseScroll(ax::EventMouse* event);
+
 private:
     std::unordered_set<KeyCode> _keysPressed;  // MacManager::keysPressed @ 0x100310E70
-    ax::EventListenerKeyboard* _keyboardListener;
-    ax::EventListenerMouse* _mouseListener;
 };
 
 }  // namespace opendw

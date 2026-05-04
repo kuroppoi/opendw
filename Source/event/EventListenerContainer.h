@@ -29,10 +29,12 @@ public:
     typedef std::function<void(ax::EventCustom*)> EventCallback;
 
     void addEventListener(std::string_view eventName, const EventCallback& callback);
+    void addEventListener(ax::EventListener* listener, ax::Node* node);
+    void addEventListener(ax::EventListener* listener, int fixedPriority);
     void removeEventListeners();
 
 protected:
-    std::vector<ax::EventListenerCustom*> _eventListeners;
+    std::vector<ax::EventListener*> _eventListeners;
 };
 
 }  // namespace opendw

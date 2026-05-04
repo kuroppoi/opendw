@@ -172,6 +172,12 @@ public:
     /* FUNC: Player::steamCooldownDuration @ 0x10002CCAA */
     float getSteamCooldownDuration() const;
 
+    /* FUNC: Player::setPrimaryHotbarIndex: @ 0x1000229A9 */
+    void setPrimaryHotbarIndex(int index);
+
+    /* FUNC: Player::primaryHotbarIndex @ 0x10002DA09 */
+    int getPrimaryHotbarIndex() const { return _primaryHotbarIndex; }
+
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
 
@@ -189,6 +195,8 @@ public:
 
     /* FUNC: Player::clip @ 0x100310660 */
     bool getClip() const { return _clip; }
+
+    static const int kHotbarItemCount;
 
 private:
     inline static Player* sMain;  // 10032EA98
@@ -217,6 +225,7 @@ private:
     float _steam;                   // Player::steam @ 0x100310890
     double _lastUsedSteamAt;        // Player::lastSteamedAt @ 0x100310828
     double _steamCooldownAt;        // Player::steamCooldownAt @ 0x100310898
+    int _primaryHotbarIndex;        // Player::primaryHotbarIndex @ 0x1003106A0
     bool _zoneTeleporting;          // Player::isZoneTeleporting @ 0x1003106F8
     bool _travelingHorizontally;    // Player::isTravelingHorizontally @ 0x100310780
     bool _admin;                    // Player::admin @ 0x100310958

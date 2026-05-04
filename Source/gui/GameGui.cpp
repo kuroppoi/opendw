@@ -24,7 +24,6 @@
 #define HUD_BUTTON_SCALE   0.5F
 #define PANEL_MARGIN       10.0F
 #define MIN_ALERT_INTERVAL 1.5
-#define HOTBAR_ITEM_COUNT  10
 
 USING_NS_AX;
 
@@ -195,7 +194,7 @@ bool GameGui::initWithZone(WorldZone* zone)
     _hudButtonsNode->addChild(_consoleButton);
 
     // 0x10005B452: Create hotbar
-    _primaryHotbar = InventoryContainer::createWithGui(this, "hotbar", 1, HOTBAR_ITEM_COUNT);
+    _primaryHotbar = InventoryContainer::createWithGui(this, "hotbar", 1, Player::kHotbarItemCount);
     _primaryHotbar->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
     addChild(_primaryHotbar, 4);
 
@@ -445,6 +444,22 @@ std::string GameGui::getPositionDescription() const
     auto depth     = (int16_t)(position.y - (_zone->getBiomeType() == Biome::DEEP ? -1000.0F : 200.0F));
     auto test      = depth > 0 ? ":down:" : ":up:";
     return std::format("{} {} {}{}m", abs(x), longitude, test, abs(depth));
+}
+
+void GameGui::updateHotbar()
+{
+    auto cache             = SpriteFrameCache::getInstance();
+    auto slotFrame         = cache->getSpriteFrameByName("inventory-slot");
+    auto selectedSlotFrame = cache->getSpriteFrameByName("inventory-slot-highlighted");
+    AX_ASSERT(slotFrame && selectedSlotFrame);
+    auto selectedSlotIndex = Player::getMain()->getPrimaryHotbarIndex();
+    auto& slotSprites      = _primaryHotbar->getSlotSprites();
+
+    for (auto i = 0; i < slotSprites.size(); i++)
+    {
+        auto sprite = slotSprites[i];
+        sprite->setSpriteFrame(i == selectedSlotIndex ? selectedSlotFrame : slotFrame);
+    }
 }
 
 void GameGui::onHealthChanged(float health, float maxHealth)

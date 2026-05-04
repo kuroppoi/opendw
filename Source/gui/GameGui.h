@@ -86,6 +86,9 @@ public:
     /* FUNC: GameGui::positionDescription: @ 0x10005CD87 */
     std::string getPositionDescription() const;
 
+    /* FUNC: GameGui::updateHotbar: @ 0x10005F18D */
+    void updateHotbar();
+
     /* FUNC: GameGui::healthDidChange: @ 0x10005E036 */
     void onHealthChanged(float health, float maxHealth);
 

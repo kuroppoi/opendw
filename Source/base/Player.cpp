@@ -34,6 +34,8 @@ USING_NS_AX;
 namespace opendw
 {
 
+const int Player::kHotbarItemCount = 10;
+
 Player::~Player()
 {
     AX_SAFE_RELEASE(_avatar);
@@ -750,6 +752,13 @@ float Player::getSteamEfficiency() const
 float Player::getSteamCooldownDuration() const
 {
     return math_util::lerp(4.0F, 1.0F, ENGINEERING_LEVEL / 10.0F);
+}
+
+void Player::setPrimaryHotbarIndex(int index)
+{
+    _primaryHotbarIndex = index < 0 ? kHotbarItemCount - 1 : index >= kHotbarItemCount ? 0 : index;
+    // TODO:　updateActiveItem
+    GameGui::getMain()->updateHotbar();
 }
 
 void Player::setClip(bool clip)
