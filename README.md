@@ -6,7 +6,7 @@
   <a href="https://github.com/kuroppoi/opendw/tree/master/Source"><img src="https://img.shields.io/github/languages/code-size/kuroppoi/opendw?labelColor=333A41&style=plastic"/></a>
 </p>
 <p align="center">
-    <kbd><img width="1536" height="864" alt="image" src="https://github.com/user-attachments/assets/309f7c82-48ac-4d02-942f-a2af50606efb"/></kbd>
+  <kbd><img width="1536" height="864" alt="image" src="https://github.com/user-attachments/assets/eefeb120-45cc-45ad-a476-bc4dfd2e7435"/></kbd>
 </p>
 
 > [!NOTE]
