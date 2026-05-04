@@ -312,6 +312,7 @@ void GameGui::toggleProtectorRangeVisibility()
 
 void GameGui::setHudVisible(bool visible)
 {
+    _primaryHotbar->setVisible(visible);
     _hudNode->setVisible(visible);
     _hudButtonsNode->setVisible(visible);
     _profileButton->setVisible(visible);
