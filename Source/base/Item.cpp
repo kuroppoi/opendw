@@ -19,6 +19,7 @@ namespace opendw
 
 Item::~Item()
 {
+    AX_SAFE_RELEASE(_inventoryFrame);
     AX_SAFE_RELEASE(_spriteFrame);
     AX_SAFE_RELEASE(_background);
     AX_SAFE_RELEASE(_maskFrame);
@@ -33,12 +34,16 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
 {
     _config           = config;
     _data             = data;
+    _category         = map_util::getString(data, "category");
     _name             = name;
     _code             = map_util::getUInt32(data, "code");
     _layer            = getLayerForName(map_util::getString(data, "layer"));
     _modType          = getModTypeForName(map_util::getString(data, "mod"));
+    _action           = getActionForName(map_util::getString(data, "action"));
     _specialPlacement = getSpecialPlacementForName(map_util::getString(data, "special_placement"));
     _material         = map_util::getString(data, "material");
+    _consumable       = _category == "consumables";
+    _accessory        = _category == "accessories";
     _visible          = map_util::getBool(data, "visible", true);
     _tileable         = map_util::getBool(data, "tileable");
     _opaque           = map_util::getBool(data, "opaque");
@@ -113,6 +118,22 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
         {
             _useMask |= 1ui64 << (static_cast<uint8_t>(type) & 0x3F);
         }
+    }
+
+    // 0x10004BF62: Configure inventory frame
+    auto inventoryFrame = map_util::getString(data, "inventory_frame", std::format("inventory/{}", name));
+
+    if (!inventoryFrame.empty())
+    {
+        auto cache      = SpriteFrameCache::getInstance();
+        _inventoryFrame = cache->getSpriteFrameByName(inventoryFrame);
+
+        if (!_inventoryFrame)
+        {
+            _inventoryFrame = cache->getSpriteFrameByName("inventory/unknown");
+        }
+
+        AX_SAFE_RETAIN(_inventoryFrame);
     }
 
     return true;
@@ -270,6 +291,11 @@ void Item::processSprites()
             AX_SAFE_RETAIN(_maskFrame);
         }
     }
+}
+
+bool Item::isEquippableAccessory() const
+{
+    return _accessory && (isUsable() || _action != Action::NONE);
 }
 
 bool Item::isContinuousFor(Item* item) const
@@ -462,6 +488,40 @@ UseType Item::getUseTypeForName(const std::string& name)
         return UseType::FIELD_DISPLAY;
 
     return UseType::NONE;
+}
+
+Item::Action Item::getActionForName(const std::string& name)
+{
+    if (name == "mine")
+        return Action::MINE;
+    else if (name == "dig")
+        return Action::DIG;
+    else if (name == "smash")
+        return Action::SMASH;
+    else if (name == "gun")
+        return Action::GUN;
+    else if (name == "shield")
+        return Action::SHIELD;
+    else if (name == "heal")
+        return Action::HEAL;
+    else if (name == "refill")
+        return Action::REFILL;
+    else if (name == "teleport")
+        return Action::TELEPORT;
+    else if (name == "stealth")
+        return Action::STEALTH;
+    else if (name == "exoleg")
+        return Action::EXOLEG;
+    else if (name == "melee")
+        return Action::MELEE;
+    else if (name == "skill reset")
+        return Action::SKILL_RESET;
+    else if (name == "revive")
+        return Action::REVIVE;
+    else if (name == "name change")
+        return Action::NAME_CHANGE;
+
+    return Action::NONE;
 }
 
 }  // namespace opendw

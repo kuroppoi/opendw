@@ -72,11 +72,30 @@ enum class UseType : uint8_t
 class Item : public ax::Object
 {
 public:
-    enum class Shape : uint8_t
+    enum class Shape
     {
         NONE,
         BOX,
         POLYGONAL
+    };
+
+    enum class Action
+    {
+        NONE,
+        MINE,
+        DIG,
+        SMASH,
+        GUN,
+        SHIELD,
+        HEAL,
+        REFILL,
+        TELEPORT,
+        STEALTH,
+        EXOLEG,
+        MELEE,
+        SKILL_RESET,
+        REVIVE,
+        NAME_CHANGE
     };
 
     typedef std::vector<ax::SpriteFrame*> SpriteList;
@@ -114,6 +133,9 @@ public:
     /* FUNC: Item::config @ 0x10004DD4A */
     const ax::ValueMap& getData() const { return _data; }
 
+    /* FUNC: Item::category @ 0x10004DD6B */
+    const std::string& getCategory() const { return _category; }
+
     /* FUNC: Item::name @ 0x10004DD8C */
     const std::string& getName() const { return _name; }
 
@@ -126,6 +148,9 @@ public:
     /* FUNC: Item::mod @ 0x10004DDF1 */
     ModType getModType() const { return _modType; }
 
+    /* FUNC: Item::action @ 0x10004DE12 */
+    Action getAction() const { return _action; }
+
     /* FUNC: Item::specialPlacement @ 0x10004E4E8 */
     SpecialPlacement getSpecialPlacement() const { return _specialPlacement; }
 
@@ -137,6 +162,15 @@ public:
 
     /* FUNC: Item::height @ 0x10004E144 */
     int16_t getHeight() const { return _height; }
+
+    /* FUNC: Item::isConsumable @ 0x10004D75F */
+    bool isConsumable() const { return _consumable; }
+
+    /* FUNC: Item::isAccessory @ 0x10004D770 */
+    bool isAccessory() const { return _accessory; }
+
+    /* FUNC: Item::isEquippableAccessory @ 0x10004D781 */
+    bool isEquippableAccessory() const;
 
     /* FUNC: Item::visible @ 0x10004DE32 */
     bool isVisible() const { return _visible; }
@@ -228,6 +262,9 @@ public:
     /* FUNC: Item::color @ 0x10004E2AC */
     const ax::Color3B& getColor() const { return _color; }
 
+    /* FUNC: Item::inventoryFrame @ 0x10004E235 */
+    ax::SpriteFrame* getInventoryFrame() const { return _inventoryFrame; }
+
     /* FUNC: Item::spriteName @ 0x10004E177 */
     const std::string& getSpriteName() const { return _spriteName; }
 
@@ -310,16 +347,23 @@ private:
     /* FUNC: 0x100052F09 */
     static UseType getUseTypeForName(const std::string& name);
 
+    /* FUNC: 0x10005312E */
+    static Action getActionForName(const std::string& name);
+
     GameConfig* _config;                             // Item::manager @ 0x1003111C8
     ax::ValueMap _data;                              // Item::config @ 0x1003111C0
+    std::string _category;                           // Item::category @ 0x1003111D0
     std::string _name;                               // Item::name @ 0x1003111E8
     uint16_t _code;                                  // Item::code @ 0x1003111E0
     BlockLayer _layer;                               // Item::layer @ 0x1003111D8
     ModType _modType;                                // Item::mod @ 0x100311388
+    Action _action;                                  // Item::action @ 0x100311398
     SpecialPlacement _specialPlacement;              // Item::specialPlacement @ 0x100311468
     std::string _material;                           // Item::material @ 0x1003111F8
     int16_t _width;                                  // Item::width @ 0x100311370
     int16_t _height;                                 // Item::height @ 0x100311378
+    bool _consumable;                                // Item::consumable @ 0x100311208
+    bool _accessory;                                 // Item::accessory @ 0x100311210
     bool _visible;                                   // Item::visible @ 0x100311228
     bool _tileable;                                  // Item::tileable @ 0x100311240
     bool _opaque;                                    // Item::opaque @ 0x100311248
@@ -343,6 +387,7 @@ private:
     Item* _useChangeItem;                            // Item::useChangeItem @ 0x100311530
     std::vector<Item*> _changeItems;                 // Item::changeItems @ 0x100311528
     ax::Color3B _color;                              // Item::color @ 0x100311458
+    ax::SpriteFrame* _inventoryFrame;                // Item::inventoryFrame @ 0x100311480
     std::string _spriteName;                         // Item::spriteName @ 0x1003114B0
     ax::SpriteFrame* _spriteFrame;                   // Item::spriteCode @ 0x1003114B8
     SpriteList _spriteOptions;                       // Item::spriteOptions @ 0x1003114A8
