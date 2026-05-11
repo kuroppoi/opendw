@@ -8,6 +8,7 @@
 #include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
 #include "gui/widget/SpriteButton.h"
+#include "gui/GameGuiWindow.h"
 #include "gui/InventoryContainer.h"
 #include "gui/TeleportPanel.h"
 #include "util/AxUtil.h"
@@ -121,6 +122,13 @@ bool GameGui::initWithZone(WorldZone* zone)
     _hudButtonsNode = Node::create();
     addChild(_hudButtonsNode, 8);
 
+    // 0x10005A2D4: Create gui window
+    auto slotSize   = _itemSize + _itemMargin;
+    auto windowSize = Size(_inventoryCols * slotSize + _panelPadding * 2.0F + 28.0F,
+                           (_inventoryRows + 1) * slotSize + _panelPadding * 3.0F + 273.0F);
+    _guiWindow = GameGuiWindow::createWithGui(this, windowSize);
+    addChild(_guiWindow, 7);
+
     // TODO: temp
     auto defaultCallback = [=]() { showAlert("Sorry, this feature isn't quite ready yet."); };
 
@@ -175,7 +183,8 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     // 0x10005A843: Create inventory button
     _inventoryButton = createTopHudButton("inventory", false, 20.0F, color_util::hexToColor("C1B09D"));
-    _inventoryButton->setCallback(defaultCallback);
+    _inventoryButton->setCallback(
+        [this]() { _guiWindow->toggle(GameGuiWindow::PanelType::INVENTORY); });  // 0x10005C7A7
     _hudButtonsNode->addChild(_inventoryButton);
 
     // 0x10005AF75: Create map button
@@ -216,6 +225,7 @@ void GameGui::onEnter()
 #endif
     addEventListener(events::kNotifyAlert, EVENT_CALLBACK_REF(Value*, showAlert));
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
+    addEventListener(events::kGuiWindowChangedPanel, AX_CALLBACK_0(GameGui::onGuiWindowPanelChanged, this));
     addEventListener(events::kPlayerAppearanceChanged, EVENT_CALLBACK_REF(ValueMap*, onPlayerAppearanceChanged));
     addEventListener(events::kPlayerHealthChanged, EVENT_CALLBACK_EX(float*, onHealthChanged, data[1], data[2]));
     addEventListener(events::kSteamChanged, EVENT_CALLBACK_REF(float*, onSteamChanged));
@@ -325,6 +335,7 @@ void GameGui::setHudVisible(bool visible)
 void GameGui::showTeleportInterface(BaseBlock* block)
 {
     // TODO: finish
+    _guiWindow->hide();
     setHudVisible(false);
     _teleportPanel->showFromBlock(block);
     _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportActivated);
@@ -451,6 +462,14 @@ std::string GameGui::getPositionDescription() const
     return std::format("{} {} {}{}m", abs(x), longitude, test, abs(depth));
 }
 
+Point GameGui::getGuiWindowPosition(bool alignRight) const
+{
+    auto x = alignRight ? _primaryHotbar->getPositionX() - math_util::getScaledWidth(_primaryHotbar) - _panelMargin
+                        : _profileButton->getPositionX() + _panelMargin;
+    auto y = _profileButton->getPositionY() - math_util::getScaledHeight(_profileButton) + 10.0F;
+    return Point(x, y);
+}
+
 void GameGui::updateHotbar()
 {
     auto cache             = SpriteFrameCache::getInstance();
@@ -465,6 +484,13 @@ void GameGui::updateHotbar()
         auto sprite = slotSprites[i];
         sprite->setSpriteFrame(i == selectedSlotIndex ? selectedSlotFrame : slotFrame);
     }
+}
+
+void GameGui::onGuiWindowPanelChanged()
+{
+    auto type = _guiWindow->getActivePanelType();
+    _inventoryButton->setSpriteFrame(type == GameGuiWindow::PanelType::INVENTORY ? "hud/bubble-top-highlight"
+                                                                                 : "hud/bubble-top");
 }
 
 void GameGui::onHealthChanged(float health, float maxHealth)
@@ -532,6 +558,7 @@ void GameGui::onWindowResized()
     _mapButton->setPosition(right, bottom);
     _consoleButton->setPosition(left, bottom);
     _primaryHotbar->setPosition(right - _panelMargin, top - _panelMargin);
+    _guiWindow->updatePosition();
 }
 
 }  // namespace opendw

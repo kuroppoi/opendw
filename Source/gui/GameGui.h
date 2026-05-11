@@ -10,6 +10,7 @@ namespace opendw
 
 class BaseBlock;
 class EntityAnimatedAvatar;
+class GameGuiWindow;
 class IconBar;
 class InventoryContainer;
 class SpriteButton;
@@ -104,8 +105,14 @@ public:
     /* FUNC: GameGui::positionDescription: @ 0x10005CD87 */
     std::string getPositionDescription() const;
 
+    /* FUNC: GameGui::guiWindowPosition: @ 0x1000675DA */
+    ax::Point getGuiWindowPosition(bool alignRight) const;
+
     /* FUNC: GameGui::updateHotbar: @ 0x10005F18D */
     void updateHotbar();
+
+    /* FUNC: GameGui::guiWindowChangedPanel @ 0x10005DEC0 */
+    void onGuiWindowPanelChanged();
 
     /* FUNC: GameGui::healthDidChange: @ 0x10005E036 */
     void onHealthChanged(float health, float maxHealth);
@@ -156,6 +163,7 @@ private:
     ax::Label* _zoneLabel;                    // GameGui::zoneLabel @ 0x100311878
     ax::Label* _positionLabel;                // GameGui::posLabel @ 0x1003118A0
     ax::Label* _deathLabel;                   // GameGui::deadLabel @ 0x1003118A8
+    GameGuiWindow* _guiWindow;                // GameGui::guiWindow @ 0x1003118B8
     SpriteButton* _profileButton;             // GameGui::profileButton @ 0x1003118C0
     EntityAnimatedAvatar* _avatarPicture;     // GameGui::avatarPicture @ 0x1003118C8
     SpriteButton* _inventoryButton;           // GameGui::inventoryButton @ 0x1003118D8
