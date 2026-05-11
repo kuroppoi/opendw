@@ -22,7 +22,6 @@
 #define GUI_SCALE          1.0F  // TOOD: should be a setting
 #define HUD_BUTTON_OPACITY 230   // TODO: should be a setting
 #define HUD_BUTTON_SCALE   0.5F
-#define PANEL_MARGIN       10.0F
 #define MIN_ALERT_INTERVAL 1.5
 
 USING_NS_AX;
@@ -56,10 +55,16 @@ bool GameGui::initWithZone(WorldZone* zone)
         return false;
     }
 
-    _zone     = zone;
-    _gameMenu = nullptr;
-    _itemMargin = 2.0F;
-    _itemSize   = 70.0F;  // NOTE: 54.0F if win width <= 600
+    _zone          = zone;
+    _gameMenu      = nullptr;
+    _panelMargin   = 10.0F;
+    _panelPadding  = 20.0F;
+    _itemMargin    = 2.0F;
+    _itemSize      = 70.0F;
+    _inventoryRows = 4;
+    _inventoryCols = 6;
+    _craftingRows  = 6;
+    _craftingCols  = 6;
 
     // Create announcements node
     _announcementsNode = Node::create();
@@ -514,7 +519,7 @@ void GameGui::onWindowResized()
 
     // Update elements
     _profileButton->setPosition(left, top);
-    _nameLabel->setPosition(_profileButton->getPositionX() + math_util::getScaledWidth(_profileButton) + PANEL_MARGIN, top - PANEL_MARGIN);
+    _nameLabel->setPosition(_profileButton->getPositionX() + math_util::getScaledWidth(_profileButton) + _panelMargin, top - _panelMargin);
     _zoneLabel->setPosition(_nameLabel->getPositionX(), _nameLabel->getPositionY() - math_util::getScaledHeight(_nameLabel) - 5.0F);
     _positionLabel->setPosition(_zoneLabel->getPositionX(), _zoneLabel->getPositionY() - math_util::getScaledHeight(_zoneLabel) - 5.0F);
     auto buttonWidth  = math_util::getScaledWidth(_shopButton);  // Should be the same for all buttons
@@ -526,7 +531,7 @@ void GameGui::onWindowResized()
     _inventoryButton->setPosition(_craftingButton->getPositionX() - buttonOffset, top);
     _mapButton->setPosition(right, bottom);
     _consoleButton->setPosition(left, bottom);
-    _primaryHotbar->setPosition(right - PANEL_MARGIN, top - PANEL_MARGIN);
+    _primaryHotbar->setPosition(right - _panelMargin, top - _panelMargin);
 }
 
 }  // namespace opendw

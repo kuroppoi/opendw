@@ -74,11 +74,29 @@ public:
     void showBigAlert(const std::string& title, const std::string& subtitle = "");
     void showBigAlert(const ax::Value& data);
 
+    /* FUNC: GameGui::panelMargin @ 0x10006A672 */
+    float getPanelMargin() const { return _panelMargin; }
+
+    /* FUNC: GameGui::panelPadding @ 0x10006A684 */
+    float getPanelPadding() const { return _panelPadding; }
+
     /* FUNC: GameGui::itemMargin @ 0x10006A55E */
     float getItemMargin() const { return _itemMargin; }
 
     /* FUNC: GameGui::itemSize @ 0x10006A570 */
     float getItemSize() const { return _itemSize; }
+
+    /* FUNC: GameGui::inventoryRows @ 0x10006A51A */
+    int32_t getInventoryRows() const { return _inventoryRows; }
+
+    /* FUNC: GameGui::inventoryCols @ 0x10006A52B */
+    int32_t getInventoryCols() const { return _inventoryCols; }
+
+    /* FUNC: GameGui::craftingRows @ 0x10006A54D */
+    int32_t getCraftingRows() const { return _craftingRows; }
+
+    /* FUNC: GameGui::craftingCols @ 0x10006A53C */
+    int32_t getCraftingCols() const { return _craftingCols; }
 
     /* FUNC: GameGui::respawnMessage @ 0x100059475 */
     const char* getRespawnMessage() const;
@@ -120,8 +138,14 @@ private:
     inline static GameGui* sMain;  // 0x10032EAD0
 
     WorldZone* _zone;                         // GameGui::zone @ 0x100311788
+    float _panelMargin;                       // GameGui::panelMargin @ 0x1003117D8
+    float _panelPadding;                      // GameGui::panelPadding @ 0x1003117E0
     float _itemMargin;                        // GameGui::itemMargin @ 0x1003117E8
     float _itemSize;                          // GameGui::itemSize @ 0x1003117F0
+    int32_t _inventoryRows;                   // GameGui::inventoryRows @ 0x1003117B8
+    int32_t _inventoryCols;                   // GameGui::inventoryCols @ 0x1003117C0
+    int32_t _craftingRows;                    // GameGui::craftingRows @ 0x1003117D0
+    int32_t _craftingCols;                    // GameGui::craftingCols @ 0x1003117C8
     ax::Node* _announcementsNode;             // GameGui::announcementsNode @ 0x100311948
     ax::Node* _gameMenu;                      // GameGui::gameMenu @ 0x100311A30
     ax::Node* _hudNode;                       // GameGui::hudNode @ 0x100311840
