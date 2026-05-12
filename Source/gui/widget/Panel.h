@@ -73,7 +73,7 @@ public:
     /* FUNC: Panel::pointerDown:event: @ 0x1000E921C */
     virtual bool onPointerDown(ax::Touch* touch) { return false; };
 
-private:
+protected:
     ax::SpriteBatchNode* _batch;           // Panel::batch @ 0x1003130D0
     std::string _style;                    // Panel::style @ 0x100313088
     Chop _chop;                            // Panel::chop @ 0x100313098

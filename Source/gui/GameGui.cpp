@@ -464,9 +464,8 @@ std::string GameGui::getPositionDescription() const
 
 Point GameGui::getGuiWindowPosition(bool alignRight) const
 {
-    auto x = alignRight ? _primaryHotbar->getPositionX() - math_util::getScaledWidth(_primaryHotbar) - _panelMargin
-                        : _profileButton->getPositionX() + _panelMargin;
-    auto y = _profileButton->getPositionY() - math_util::getScaledHeight(_profileButton) + 10.0F;
+    auto x = alignRight ? _primaryHotbar->getBoundingBox().getMinX() : _profileButton->getPositionX() + _panelMargin;
+    auto y = _profileButton->getBoundingBox().getMinY() + 10.0F;
     return Point(x, y);
 }
 
@@ -545,9 +544,9 @@ void GameGui::onWindowResized()
 
     // Update elements
     _profileButton->setPosition(left, top);
-    _nameLabel->setPosition(_profileButton->getPositionX() + math_util::getScaledWidth(_profileButton) + _panelMargin, top - _panelMargin);
-    _zoneLabel->setPosition(_nameLabel->getPositionX(), _nameLabel->getPositionY() - math_util::getScaledHeight(_nameLabel) - 5.0F);
-    _positionLabel->setPosition(_zoneLabel->getPositionX(), _zoneLabel->getPositionY() - math_util::getScaledHeight(_zoneLabel) - 5.0F);
+    _nameLabel->setPosition(_profileButton->getBoundingBox().getMaxX() + _panelMargin, top - _panelMargin);
+    _zoneLabel->setPosition(_nameLabel->getPositionX(), _nameLabel->getBoundingBox().getMinY() - 5.0F);
+    _positionLabel->setPosition(_zoneLabel->getPositionX(), _zoneLabel->getBoundingBox().getMinY() - 5.0F);
     auto buttonWidth  = math_util::getScaledWidth(_shopButton);  // Should be the same for all buttons
     auto buttonOffset = buttonWidth - buttonWidth * 0.15F;       // Chop
     _shopButton->setPosition(right - 100.0F, top);

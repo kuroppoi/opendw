@@ -25,14 +25,18 @@ bool GameGuiWindow::initWithGui(GameGui* gui, const Size& size)
     }
 
     _gui             = gui;
-    _activePanelType = PanelType::NONE;
     _activePanel     = nullptr;
+    _activePanelType = PanelType::NONE;
     setContentSize(size);
     setBorderScale(0.8F);
     setCascadeOpacityEnabled(true);
     setOpacity(0);
     _inventoryPanel = InventoryPanel::create();
     addPanel(_inventoryPanel);
+    auto borderPanel = Panel::createWithStyle("v2-transparent/brass");
+    borderPanel->setContentSize(size);
+    borderPanel->setBorderScale(_borderScale);
+    addChild(borderPanel, 10);
     return true;
 }
 
@@ -43,7 +47,7 @@ void GameGuiWindow::addPanel(Node* node)
     node->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     node->setPosition(Point::ZERO);
     node->setVisible(false);
-    addChild(node);
+    addChild(node, 9);
 }
 
 void GameGuiWindow::toggle(PanelType type)

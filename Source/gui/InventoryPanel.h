@@ -17,10 +17,11 @@ public:
     CREATE_FUNC(InventoryPanel);
 
     /* FUNC: InventoryPanel::load @ 0x100180753 */
-    bool init() override;
+    void onEnter() override;
 
 private:
     InventoryContainer* _inventoryContainer;
+    bool _loaded;
 };
 
 }  // namespace opendw
