@@ -42,7 +42,7 @@ bool isNodeVisible(Node* node)
 
     while (current)
     {
-        if (!current->isVisible())
+        if (!current->isVisible() || current->getOpacity() == 0)
         {
             return false;
         }
