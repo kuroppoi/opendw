@@ -653,6 +653,7 @@ void MainMenu::showNews(const std::vector<News>& news)
 
     // Create news tabs
     auto tabs = TabsBar::create();
+    tabs->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     tabs->setBackgroundScale(0.5F);
     tabs->setPosition(-7.0F, contentStart - 35.0F);
     _news->addChild(tabs);

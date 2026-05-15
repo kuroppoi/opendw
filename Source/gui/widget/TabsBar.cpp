@@ -122,6 +122,12 @@ void TabsBar::updateLayout()
         selectTab(_selectedTab);
     }
 
+    // Update content size
+    auto cols   = _maxColumns > 0 ? MIN(_tabs.size(), _maxColumns) : _tabs.size();
+    auto& size  = _background->getOriginalSize();
+    auto width  = cols * size.width * _backgroundScale;
+    auto height = rows * size.height * _backgroundScale;
+    setContentSize({width, height});
     _tabsDirty = false;
 }
 

@@ -39,8 +39,13 @@ public:
     void removeTab(ssize_t index);
     void removeAllTabs();
 
+    ssize_t getTabCount() const { return _tabs.size(); }
+
     /* FUNC: TabsBar::selectTab: @ 0x1000EE2E1 */
     void selectTab(ssize_t index);
+
+    /* FUNC: TabsBar::selectedTab @ 0x1000EF4FD */
+    ssize_t getSelectedTab() const { return _selectedTab; }
 
     /* FUNC: TabsBar::setMaxColumns: @ 0x1000EF3B9 */
     void setMaxColumns(ssize_t maxColumns);
