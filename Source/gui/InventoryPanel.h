@@ -6,7 +6,7 @@
 namespace opendw
 {
 
-class InventoryContainer;
+class ItemContainer;
 
 /*
  * CLASS: InventoryPanel : CCNode @ 0x10031E8F8
@@ -20,7 +20,7 @@ public:
     void onEnter() override;
 
 private:
-    InventoryContainer* _inventoryContainer;
+    ItemContainer* _inventoryContainer;
     bool _loaded;
 };
 

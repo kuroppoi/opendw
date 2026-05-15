@@ -124,19 +124,18 @@ void ItemContainer::updateLayout()
     // Update slot sprites
     _inventoryBatch->setPositionY(currentY);
     _inventoryBatch->removeAllChildren();
+    _slotSprites.clear();
+    int64_t slot = 0;
 
-    if (_opaqueSlots)
+    for (int32_t y = 0; y < _rows; y++)
     {
-        int64_t slot = 0;
-
-        for (int32_t y = 0; y < _rows; y++)
+        for (int32_t x = 0; x < _cols; x++)
         {
-            for (int32_t x = 0; x < _cols; x++)
-            {
-                auto sprite = Sprite::createWithSpriteFrameName("inventory-slot");
-                sprite->setPosition(getNodePointAtSlot(slot++));
-                _inventoryBatch->addChild(sprite);
-            }
+            Sprite* sprite = _opaqueSlots ? Sprite::createWithSpriteFrameName("inventory-slot")
+                                          : Sprite::createWithTexture(_inventoryBatch->getTexture(), Rect::ZERO);
+            sprite->setPosition(getNodePointAtSlot(slot++));
+            _inventoryBatch->addChild(sprite);
+            _slotSprites.push_back(sprite);
         }
     }
 

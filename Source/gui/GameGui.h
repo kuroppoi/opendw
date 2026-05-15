@@ -12,7 +12,7 @@ class BaseBlock;
 class EntityAnimatedAvatar;
 class GameGuiWindow;
 class IconBar;
-class InventoryContainer;
+class ItemContainer;
 class SpriteButton;
 class TeleportPanel;
 class WorldZone;
@@ -175,7 +175,7 @@ private:
     ax::Label* _crownsLabel;                  // GameGui::crownsLabel @ 0x1003118F0
     SpriteButton* _mapButton;                 // GameGui::mapButton @ 0x100311908
     SpriteButton* _consoleButton;             // GameGui::consoleButton @ 0x100311918
-    InventoryContainer* _primaryHotbar;       // GameGui::primaryHotbar @ 0x100311920
+    ItemContainer* _primaryHotbar;            // GameGui::primaryHotbar @ 0x100311920
     TeleportPanel* _teleportPanel;            // GameGui::teleportPanel @ 0x100311A58
     double _lastAlertShownAt;                 // GameGui::lastAlertShownAt @ 0x100311978
     std::string _lastAlertShown;              // GameGui::lastAlertShown @ 0x100311A10

@@ -5,11 +5,11 @@
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
 #include "gui/widget/IconBar.h"
+#include "gui/widget/ItemContainer.h"
 #include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
 #include "gui/widget/SpriteButton.h"
 #include "gui/GameGuiWindow.h"
-#include "gui/InventoryContainer.h"
 #include "gui/TeleportPanel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"
@@ -208,8 +208,9 @@ bool GameGui::initWithZone(WorldZone* zone)
     _hudButtonsNode->addChild(_consoleButton);
 
     // 0x10005B452: Create hotbar
-    _primaryHotbar = InventoryContainer::createWithGui(this, "hotbar", 1, Player::kHotbarItemCount);
+    _primaryHotbar = ItemContainer::createWithGui(this, 1, Player::kHotbarItemCount);
     _primaryHotbar->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
+    _primaryHotbar->updateLayout();
     addChild(_primaryHotbar, 4);
 
     AXLOGI("[GameGui] Initialized");

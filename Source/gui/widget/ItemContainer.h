@@ -43,6 +43,8 @@ public:
     ItemSprite* getItemAtSlot(int64_t slot, ssize_t category = -1) const;
     ax::Point getNodePointAtSlot(int64_t slot) const;
 
+    const std::vector<ax::Sprite*>& getSlotSprites() const { return _slotSprites; }
+
     void onTabSelected(TabsBar* tabsBar, ssize_t index) override;
 
 protected:
@@ -54,6 +56,7 @@ protected:
     float _itemSize;
     ax::Size _containerSize;
     ax::SpriteBatchNode* _inventoryBatch;
+    std::vector<ax::Sprite*> _slotSprites;
     std::map<ssize_t, ax::Map<int64_t, ItemSprite*>> _itemSprites;
     std::map<ItemSprite*, int64_t> _slotsByItem;
     std::map<ItemSprite*, ssize_t> _categoriesByItem;
