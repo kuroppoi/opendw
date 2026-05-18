@@ -197,6 +197,18 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
 
         break;
     }
+    case KeyCode::KEY_1:
+    case KeyCode::KEY_2:
+    case KeyCode::KEY_3:
+    case KeyCode::KEY_4:
+    case KeyCode::KEY_5:
+    case KeyCode::KEY_6:
+    case KeyCode::KEY_7:
+    case KeyCode::KEY_8:
+    case KeyCode::KEY_9:
+    case KeyCode::KEY_0:
+        _player->setActiveHotbarSlot(static_cast<int>(keyCode) - static_cast<int>(KeyCode::KEY_1));
+        break;
     }
 
     _keysPressed.insert(keyCode);
