@@ -42,6 +42,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _action           = getActionForName(map_util::getString(data, "action"));
     _specialPlacement = getSpecialPlacementForName(map_util::getString(data, "special_placement"));
     _material         = map_util::getString(data, "material");
+    _tool             = _category == "tools";
     _consumable       = _category == "consumables";
     _accessory        = _category == "accessories";
     _visible          = map_util::getBool(data, "visible", true);
@@ -86,6 +87,15 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     if (fieldDamage.size() >= 2)
     {
         _fieldDamageType = getDamageTypeForName(fieldDamage[0].asString());
+    }
+
+    // 0x10004B009: Configure inventory position
+    auto& inventoryPosition = map_util::getArray(data, "inventory_position");
+
+    if (inventoryPosition.size() >= 2)
+    {
+        _inventoryPosition.category = inventoryPosition[0].asInt64();
+        _inventoryPosition.slot     = inventoryPosition[1].asInt64();
     }
 
     // 0x10004B22C: Configure size

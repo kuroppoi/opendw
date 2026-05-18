@@ -11,8 +11,10 @@ class ChipmunkShape;
 class Entity;
 class EntityAnimatedAvatar;
 class GameManager;
+class InventoryItem;
 class Item;
 class Physical;
+enum class ContainerType;
 
 /*
  * CLASS: Player : NSObject @ 0x100316AE0
@@ -172,11 +174,27 @@ public:
     /* FUNC: Player::steamCooldownDuration @ 0x10002CCAA */
     float getSteamCooldownDuration() const;
 
+    /* FUNC: Player::setInventory:count:container:position: @ 0x100021766 */
+    InventoryItem* setInventory(Item* item, int64_t quantity, ContainerType container, int64_t slot);
+
+    /* FUNC: Player::inventoryItemInContainer:position: @ 0x100022801 */
+    InventoryItem* getInventoryItem(ContainerType container, int64_t slot, int64_t category = 0);
+
+    /* FUNC: Player::arrangeInventory: @ 0x10002106 */
+    void arrangeInventory(Item* item);
+    void arrangeInventory(int64_t category);
+
+    /* FUNC: Player::updateActiveItem: @ 0x100023018 */
+    void updateActiveHotbarItem();
+
+    /* FUNC: Player::activePrimaryInventoryItem @ 0x10002DA2B */
+    InventoryItem* getActiveHotbarItem() const { return _activeHotbarItem; }
+
     /* FUNC: Player::setPrimaryHotbarIndex: @ 0x1000229A9 */
-    void setPrimaryHotbarIndex(int index);
+    void setActiveHotbarSlot(int64_t slot);
 
     /* FUNC: Player::primaryHotbarIndex @ 0x10002DA09 */
-    int getPrimaryHotbarIndex() const { return _primaryHotbarIndex; }
+    int64_t getActiveHotbarSlot() const { return _activeHotbarSlot; }
 
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
@@ -196,40 +214,42 @@ public:
     /* FUNC: Player::clip @ 0x100310660 */
     bool getClip() const { return _clip; }
 
-    static const int kHotbarItemCount;
+    static const int kHotbarItemCount = 10;
 
 private:
     inline static Player* sMain;  // 10032EA98
 
-    GameManager* _game;             // Player::game @ 0x100310630
-    std::string _playerId;          // Player::playerId @ 0x100310968
-    std::string _username;          // Player::username @ 0x100310998
-    int32_t _entityId;              // Player::entityId @ 0x100310638
-    EntityAnimatedAvatar* _avatar;  // Player::avatar @ 0x100310718
-    ax::Point _destination;         // Player::destination @ 0x100310760
-    Physical* _physical;            // Player::physical @ 0x100310768
-    ChipmunkShape* _feetShape;      // Player::feetShape @ 0x1003109A0
-    ChipmunkShape* _headShape;      // Player::headShape @ 0x1003109A8
-    int8_t _lookDirection;          // Player::lookDirection @ 0x100310720
-    uint8_t _currentLiquidLevel;    // Player::currentLiquidLevel @ 0x100310740
-    double _changeIdleAt;           // Player::changeIdleAt @ 0x100310710
-    std::string _idleAnimation;     // Player::currentIdleAnimation @ 0x100310750
-    double _respawnStartedAt;       // Player::respawnStartedAt @ 0x100310830
-    double _nextMoveMessageTime;    // Player::nextMoveMessageTime @ 0x1003108C8
-    double _startedRunningAt;       // Player::startedRunningAt @ 0x100310788
-    double _lastPropelledUpwardAt;  // Player::lastPropelledUpwardAt @ 0x1003107A0
-    double _lastJumpedAt;           // Player::lastJumpedAt @ 0x1003107A8
-    Item* _flyAccessory;            // Player::flyAccessory @ 0x100310778
-    float _flyAccessoryPower;       // Player::flyAccessoryPower @ 0x100310798
-    float _health;                  // Player::health @ 0x1003106A8
-    float _steam;                   // Player::steam @ 0x100310890
-    double _lastUsedSteamAt;        // Player::lastSteamedAt @ 0x100310828
-    double _steamCooldownAt;        // Player::steamCooldownAt @ 0x100310898
-    int _primaryHotbarIndex;        // Player::primaryHotbarIndex @ 0x1003106A0
-    bool _zoneTeleporting;          // Player::isZoneTeleporting @ 0x1003106F8
-    bool _travelingHorizontally;    // Player::isTravelingHorizontally @ 0x100310780
-    bool _admin;                    // Player::admin @ 0x100310958
-    bool _clip;                     // Player::clip @ 0x100310660
+    GameManager* _game;                           // Player::game @ 0x100310630
+    std::string _playerId;                        // Player::playerId @ 0x100310968
+    std::string _username;                        // Player::username @ 0x100310998
+    int32_t _entityId;                            // Player::entityId @ 0x100310638
+    EntityAnimatedAvatar* _avatar;                // Player::avatar @ 0x100310718
+    ax::Point _destination;                       // Player::destination @ 0x100310760
+    Physical* _physical;                          // Player::physical @ 0x100310768
+    ChipmunkShape* _feetShape;                    // Player::feetShape @ 0x1003109A0
+    ChipmunkShape* _headShape;                    // Player::headShape @ 0x1003109A8
+    int8_t _lookDirection;                        // Player::lookDirection @ 0x100310720
+    uint8_t _currentLiquidLevel;                  // Player::currentLiquidLevel @ 0x100310740
+    double _changeIdleAt;                         // Player::changeIdleAt @ 0x100310710
+    std::string _idleAnimation;                   // Player::currentIdleAnimation @ 0x100310750
+    double _respawnStartedAt;                     // Player::respawnStartedAt @ 0x100310830
+    double _nextMoveMessageTime;                  // Player::nextMoveMessageTime @ 0x1003108C8
+    double _startedRunningAt;                     // Player::startedRunningAt @ 0x100310788
+    double _lastPropelledUpwardAt;                // Player::lastPropelledUpwardAt @ 0x1003107A0
+    double _lastJumpedAt;                         // Player::lastJumpedAt @ 0x1003107A8
+    Item* _flyAccessory;                          // Player::flyAccessory @ 0x100310778
+    float _flyAccessoryPower;                     // Player::flyAccessoryPower @ 0x100310798
+    float _health;                                // Player::health @ 0x1003106A8
+    float _steam;                                 // Player::steam @ 0x100310890
+    double _lastUsedSteamAt;                      // Player::lastSteamedAt @ 0x100310828
+    double _steamCooldownAt;                      // Player::steamCooldownAt @ 0x100310898
+    ax::Map<int16_t, InventoryItem*> _inventory;  // Player::inventory @ 0x100310670
+    InventoryItem* _activeHotbarItem;             // Player::activePrimaryInventoryItem @ 0x1003107E8
+    int64_t _activeHotbarSlot;                    // Player::primaryHotbarIndex @ 0x1003106A0
+    bool _zoneTeleporting;                        // Player::isZoneTeleporting @ 0x1003106F8
+    bool _travelingHorizontally;                  // Player::isTravelingHorizontally @ 0x100310780
+    bool _admin;                                  // Player::admin @ 0x100310958
+    bool _clip;                                   // Player::clip @ 0x100310660
     bool _running;
 };
 

@@ -18,6 +18,7 @@ namespace opendw
 void EntityAnimatedHuman::onEnter()
 {
     EntityAnimated::onEnter();
+    _toolGlowSlot = getSlot("tool-glow");
     hideTool();
     hideExo();
 
@@ -72,8 +73,21 @@ void EntityAnimatedHuman::update(float deltaTime)
         }
     }
 
+    // 0x100178A35: Animate tool glow
+    if (_toolItem)
+    {
+        if (_toolItem->getAction() == Item::Action::MELEE)
+        {
+            auto opacity = MAX(0.0F, _toolGlowSlot->getColor().a - time * 2.0F);
+            setSlotOpacity("tool-glow", opacity);
+        }
+        else
+        {
+            setSlotOpacity("tool-glow", sinf(time * 5.0F) * 0.2F + 0.8F);
+        }
+    }
+
     // TODO: update face color
-    // TODO: update tool animation
 }
 
 Size EntityAnimatedHuman::computeContentSize()
@@ -444,6 +458,36 @@ void EntityAnimatedHuman::showHeadOnly()
     hideTool();
     hideExo();
     animateEye("", 0.0F);
+}
+
+void EntityAnimatedHuman::setToolItem(Item* item)
+{
+    if (_toolItem == item)
+    {
+        return;
+    }
+
+    _toolItem = item;
+
+    if (!item || !item->isVisible())
+    {
+        hideTool();
+        return;
+    }
+
+    auto& sprite = item->getSpriteName();
+    auto& config = item->getData();
+    setSlot("tool", sprite);
+    setSlot("tool-end", map_util::getString(config, "muzzle", SLOT_EMPTY));
+    setSlot("tool-glow", map_util::getString(config, "glow_sprite", SLOT_EMPTY));
+    setSlotColor("tool-glow", item->getColor());
+
+    if (item->getAction() == Item::Action::MELEE)
+    {
+        setSlotOpacity("tool-glow", 0.0F);
+    }
+
+    // TODO: updateArms();
 }
 
 void EntityAnimatedHuman::animateEye(const std::string& suffix, float duration)

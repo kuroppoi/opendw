@@ -15,10 +15,25 @@ public:
 
     bool initWithItem(Item* item);
 
+    void removeFromContainer();
+
+    virtual void activate() {}
+
     Item* getItem() const { return _item; }
 
 protected:
     Item* _item;
+
+private:
+    friend class ItemContainer;
+
+    // Internal info for ItemContainer
+    struct Container
+    {
+        ItemContainer* pointer;
+        int64_t category;
+        int64_t slot;
+    } _container;
 };
 
 }  // namespace opendw

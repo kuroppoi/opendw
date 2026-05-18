@@ -1,6 +1,7 @@
 #include "Player.h"
 
 #include "base/GameConfig.h"
+#include "base/InventoryItem.h"
 #include "base/Item.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
@@ -33,8 +34,6 @@ USING_NS_AX;
 
 namespace opendw
 {
-
-const int Player::kHotbarItemCount = 10;
 
 Player::~Player()
 {
@@ -153,6 +152,9 @@ void Player::reset()
     AXLOGI("[Player] reset");
     _physical = nullptr;  // Managed by avatar, no need to release
     AX_SAFE_RELEASE_NULL(_avatar);
+    _inventory.clear();
+    _activeHotbarItem = nullptr;
+    _activeHotbarSlot = 0;
 }
 
 void Player::update(float deltaTime)
@@ -754,10 +756,108 @@ float Player::getSteamCooldownDuration() const
     return math_util::lerp(4.0F, 1.0F, ENGINEERING_LEVEL / 10.0F);
 }
 
-void Player::setPrimaryHotbarIndex(int index)
+InventoryItem* Player::setInventory(Item* item, int64_t quantity, ContainerType container, int64_t slot)
 {
-    _primaryHotbarIndex = index < 0 ? kHotbarItemCount - 1 : index >= kHotbarItemCount ? 0 : index;
-    // TODO:　updateActiveItem
+    auto code = item->getCode();
+    auto it   = _inventory.find(code);
+    InventoryItem* result;
+
+    if (it == _inventory.end())
+    {
+        // Create new inventory item
+        result = InventoryItem::createWithItem(item, quantity, container, slot);
+        _inventory.insert(code, result);
+        result->update();
+    }
+    else
+    {
+        // Update existing inventory item
+        result = (*it).second;
+        result->setQuantity(quantity);
+        result->moveToContainer(container, slot);
+    }
+
+    if (container == ContainerType::HOTBAR && _activeHotbarSlot == slot)
+    {
+        updateActiveHotbarItem();
+    }
+
+    return result;
+}
+
+InventoryItem* Player::getInventoryItem(ContainerType container, int64_t slot, int64_t category)
+{
+    // It's faster than it looks... probably
+    for (auto& entry : _inventory)
+    {
+        auto item = entry.second;
+
+        if (item->getContainer() == container && item->getSlot() == slot && item->getCategory() == category)
+        {
+            return item;
+        }
+    }
+
+    return nullptr;
+}
+
+static bool compareInventoryItem(InventoryItem* a, InventoryItem* b)
+{
+    return b->getItem()->getInventoryPosition().slot > a->getItem()->getInventoryPosition().slot;
+}
+
+void Player::arrangeInventory(Item* item)
+{
+    arrangeInventory(item->getInventoryPosition().category);
+}
+
+void Player::arrangeInventory(int64_t category)
+{
+    // Create a vector of all inventory items in the target category
+    std::vector<InventoryItem*> itemsInCategory;
+
+    for (auto& entry : _inventory)
+    {
+        if (entry.second->isInInventory() && entry.second->getItem()->getInventoryPosition().category == category)
+        {
+            itemsInCategory.push_back(entry.second);
+        }
+    }
+
+    // Sort items in ascending slot order
+    std::sort(itemsInCategory.begin(), itemsInCategory.end(), compareInventoryItem);
+
+    // Update position based on index in the sorted vector
+    for (ssize_t i = 0; i < itemsInCategory.size(); i++)
+    {
+        itemsInCategory[i]->setPosition(i, category);
+    }
+}
+
+void Player::updateActiveHotbarItem()
+{
+    _activeHotbarItem = getInventoryItem(ContainerType::HOTBAR, _activeHotbarSlot);
+    auto item = _activeHotbarItem ? _activeHotbarItem->getItem() : nullptr;
+    int16_t code;
+
+    if (item && item->isTool())
+    {
+        _avatar->setToolItem(item);
+        code = item->getCode();
+    }
+    else
+    {
+        _avatar->setToolItem(nullptr);
+        code = 0;
+    }
+
+    _game->sendMessage(MessageIdent::INVENTORY_USE, 0, code, 0);  // Primary, Item, Select
+}
+
+void Player::setActiveHotbarSlot(int64_t slot)
+{
+    _activeHotbarSlot = slot < 0 ? kHotbarItemCount - 1 : slot >= kHotbarItemCount ? 0 : slot;
+    updateActiveHotbarItem();
     GameGui::getMain()->updateHotbar();
 }
 

@@ -14,20 +14,21 @@ class GameCommand : public ax::Object
 public:
     enum class Ident : uint8_t
     {
-        CONFIGURE       = 2,
-        BLOCKS          = 3,
-        PLAYER_POSITION = 5,
-        ENTITY_POSITION = 6,
-        ENTITY_STATUS   = 7,
-        ENTITY_CHANGE   = 8,
-        BLOCK_CHANGE    = 9,
-        LIGHT           = 15,
-        ZONE_STATUS     = 17,
-        HEALTH          = 18,
-        BLOCK_META      = 20,
-        ZONE_SEARCH     = 23,
-        NOTIFICATION    = 33,
-        KICK            = 255
+        CONFIGURE        = 2,
+        BLOCKS           = 3,
+        PLAYER_INVENTORY = 4,
+        PLAYER_POSITION  = 5,
+        ENTITY_POSITION  = 6,
+        ENTITY_STATUS    = 7,
+        ENTITY_CHANGE    = 8,
+        BLOCK_CHANGE     = 9,
+        LIGHT            = 15,
+        ZONE_STATUS      = 17,
+        HEALTH           = 18,
+        BLOCK_META       = 20,
+        ZONE_SEARCH      = 23,
+        NOTIFICATION     = 33,
+        KICK             = 255
     };
 
     /* FUNC: GameCommand::commandClassForCode: @ 0x1000A16AC */

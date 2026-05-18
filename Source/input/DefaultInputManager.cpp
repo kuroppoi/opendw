@@ -225,7 +225,7 @@ bool DefaultInputManager::onMouseScroll(EventMouse* event)
     if (delta != 0.0F)
     {
         auto direction = delta > 0.0F ? 1 : -1;
-        _player->setPrimaryHotbarIndex(_player->getPrimaryHotbarIndex() + direction);
+        _player->setActiveHotbarSlot(_player->getActiveHotbarSlot() + direction);
     }
 
     return false;

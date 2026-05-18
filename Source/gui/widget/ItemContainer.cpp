@@ -41,11 +41,16 @@ bool ItemContainer::initWithGui(GameGui* gui, int32_t cols, int32_t rows)
     _currentPage     = 0;
     _previousPage    = 0;
     _pageCount       = 0;
+    _dynamicPaging   = false;
     _opaqueSlots     = true;
     _layoutDirty     = true;
     _inventoryBatch  = SpriteBatchNode::create("inventory+hd2.png");
     _inventoryBatch->setCascadeOpacityEnabled(true);
     addChild(_inventoryBatch, 2);
+    _itemSpriteNode = Node::create();
+    _itemSpriteNode->setCascadeOpacityEnabled(true);
+    addChild(_itemSpriteNode, 3);
+    setCascadeOpacityEnabled(true);
     return true;
 }
 
@@ -89,7 +94,7 @@ void ItemContainer::updateLayout()
         _categoryTabs->setDelegate(this);
         _categoryTabs->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
 
-        for (auto&& category : _categories)
+        for (auto& category : _categories)
         {
             _categoryTabs->addTab(category);
         }
@@ -112,10 +117,11 @@ void ItemContainer::updateLayout()
     {
         _pageTabs = TabsBar::create();
         _pageTabs->setCascadeOpacityEnabled(true);
-        _pageTabs->setAnchorPoint(Point::ANCHOR_BOTTOM_RIGHT);
-        _pageTabs->setPosition(_containerSize.width - _itemMargin, currentY);
+        _pageTabs->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
+        _pageTabs->setPosition(_containerSize.width * 0.5F, currentY);
         _pageTabs->setBackgroundScale(0.7F);
         _pageTabs->setDelegate(this);
+        _pageTabs->setVisible(_pageCount > 1);
         addChild(_pageTabs);
         _pageTabs->updateLayout();
         currentY += math_util::getScaledHeight(_pageTabs) + _itemMargin;
@@ -139,6 +145,7 @@ void ItemContainer::updateLayout()
         }
     }
 
+    _itemSpriteNode->setPosition(_inventoryBatch->getPosition());
     currentY += _containerSize.height;
     setContentSize({_containerSize.width, currentY});
     _layoutDirty = false;
@@ -161,6 +168,8 @@ void ItemContainer::updatePageTabs()
         _pageTabs->removeTab(_pageTabs->getTabCount() - 1);
     }
 
+    _pageTabs->setVisible(_pageCount > 1);
+    _pageTabs->updateLayout();  // Force update regardless of visibility
     _pagesDirty = false;
 }
 
@@ -171,97 +180,42 @@ void ItemContainer::updatePageCount()
         return;
     }
 
-    auto it = _itemSprites.find(_currentCategory);
-
-    if (it == _itemSprites.end())
-    {
-        setPageCount(1);
-        return;
-    }
-
     // Find the furthest occupied slot and use it to determine the new page count
-    auto& slots     = (*it).second;
     int64_t highest = 0;
 
-    for (auto&& entry : slots)
+    for (auto child : _itemSpriteNode->getChildren())
     {
-        auto slot = entry.first;
+        auto sprite = static_cast<ItemSprite*>(child);
 
-        if (slot > highest)
+        if (sprite->_container.category == _currentCategory)
         {
-            highest = slot;
+            auto slot = sprite->_container.slot;
+
+            if (slot > highest)
+            {
+                highest = slot;
+            }
         }
     }
 
     setPageCount((highest / _slotCount) + 1);
 }
 
-void ItemContainer::showSprites(ssize_t category, ssize_t page, bool visible)
+void ItemContainer::addSprite(ItemSprite* sprite, int64_t slot, int64_t category)
 {
-    auto it = _itemSprites.find(category);
-
-    if (it == _itemSprites.end())
+    if (!sprite->getParent())
     {
-        return;
+        _itemSpriteNode->addChild(sprite);
+    }
+    else if (sprite->getParent() != _itemSpriteNode)
+    {
+        sprite->removeFromParentAndCleanup(false);
+        sprite->removeFromContainer();
+        _itemSpriteNode->addChild(sprite);
     }
 
-    auto& sprites = (*it).second;
-
-    for (auto&& entry : sprites)
-    {
-        for (ssize_t i = 0; i < _slotCount; i++)
-        {
-            auto slot = page * _slotCount + i;
-            auto it   = sprites.find(slot);
-
-            if (it != sprites.end())
-            {
-                (*it).second->setVisible(visible);
-            }
-        }
-    }
-}
-
-void ItemContainer::addSprite(ItemSprite* sprite, int64_t slot, ssize_t category)
-{
-    auto parent = sprite->getParent();
-
-    // Remove sprite from its current container if necessary
-    if (parent)
-    {
-        if (parent != this)
-        {
-            auto container = static_cast<ItemContainer*>(parent);  // Assume parent is an item container...
-            container->removeSprite(sprite);
-        }
-        else
-        {
-            removeSprite(sprite);
-        }
-    }
-
-    // Remove the current sprite at this position
-    auto& sprites = _itemSprites[category];
-    auto it       = sprites.find(slot);
-
-    if (it != sprites.end())
-    {
-        auto sprite = (*it).second;
-        _slotsByItem.erase(sprite);
-        _categoriesByItem.erase(sprite);
-        sprites.erase(it);
-        removeChild(sprite, false);
-    }
-
-    _slotsByItem[sprite]      = slot;
-    _categoriesByItem[sprite] = category;
-    sprites.insert(slot, sprite);
-
-    // FIXME: We're supposed to always add this to inventoryBatch, but we can't
-    // because descendants of ItemSprite may have labels as children.
-    // Just keep in mind that addSprite currently relies on the fact that ItemSprite parents are ItemContainers.
-    addChild(sprite, 2);
-    sprite->setPosition(_inventoryBatch->getPosition() + getNodePointAtSlot(slot));
+    sprite->_container = {this, category, slot};
+    sprite->setPosition(getNodePointAtSlot(slot));
     sprite->setScale(_itemSize / INVENTORY_FRAME_SIZE * 0.725F);  // NOTE: Originally managed by the item sprite itself
     sprite->setVisible(isItemVisible(sprite));
 
@@ -271,26 +225,48 @@ void ItemContainer::addSprite(ItemSprite* sprite, int64_t slot, ssize_t category
     }
 }
 
-void ItemContainer::removeSprite(ItemSprite* sprite)
+void ItemContainer::removeSprite(ItemSprite* sprite, bool cleanup)
 {
-    auto it = _slotsByItem.find(sprite);
+    auto category = sprite->_container.category;
+    sprite->_container.pointer = nullptr;
 
-    if (it != _slotsByItem.end())
+    if (sprite->getParent() == _itemSpriteNode)
     {
-        auto slot = (*it).second;
-        _slotsByItem.erase(it);
-        auto it = _categoriesByItem.find(sprite);
+        _itemSpriteNode->removeChild(sprite, cleanup);
+    }
 
-        if (it != _categoriesByItem.end())
+    if (_dynamicPaging && category == _currentCategory)
+    {
+        updatePageCount();
+    }
+}
+
+void ItemContainer::removeAllSprites(bool cleanup)
+{
+    _itemSpriteNode->removeAllChildrenWithCleanup(cleanup);
+
+    if (_dynamicPaging)
+    {
+        updatePageCount();
+    }
+}
+
+void ItemContainer::showSprites(int64_t category, ssize_t page, bool visible)
+{
+    auto start = page * _slotCount;
+    auto end   = start + _slotCount;
+
+    for (auto child : _itemSpriteNode->getChildren())
+    {
+        auto sprite = static_cast<ItemSprite*>(child);
+
+        if (sprite->_container.category == category)
         {
-            auto category = (*it).second;
-            _categoriesByItem.erase(it);
-            _itemSprites[category].erase(slot);
-            removeChild(sprite, false);
+            auto slot = sprite->_container.slot;
 
-            if (_dynamicPaging && category == _currentCategory)
+            if (slot >= start && slot < end)
             {
-                updatePageCount();
+                sprite->setVisible(visible);
             }
         }
     }
@@ -302,7 +278,7 @@ void ItemContainer::setCategories(const std::vector<std::string>& categories)
     _layoutDirty = true;
 }
 
-void ItemContainer::setCurrentCategory(ssize_t category)
+void ItemContainer::setCurrentCategory(int64_t category)
 {
     if (_currentCategory != category && !_categories.empty() && category >= 0 && category < _categories.size())
     {
@@ -329,6 +305,11 @@ void ItemContainer::setCurrentCategory(ssize_t category)
         else
         {
             setCurrentPage(0);
+        }
+
+        if (_categoryChangeCallback)
+        {
+            _categoryChangeCallback(category);
         }
     }
 }
@@ -389,23 +370,15 @@ void ItemContainer::setOpaqueSlots(bool opaqueSlots)
 
 bool ItemContainer::isItemVisible(ItemSprite* sprite) const
 {
-    auto it = _categoriesByItem.find(sprite);
-
-    if (it != _categoriesByItem.end())
+    if (sprite->_container.category != _currentCategory)
     {
-        auto category = (*it).second;
-
-        if (category != _currentCategory)
-        {
-            return false;
-        }
-
-        auto it   = _slotsByItem.find(sprite);
-        auto slot = (*it).second;
-        return slot / _slotCount == _currentPage;
+        return false;
     }
 
-    return false;
+    auto start = _currentPage * _slotCount;
+    auto end   = start + _slotCount;
+    auto slot  = sprite->_container.slot;
+    return slot >= start && slot < end;
 }
 
 int64_t ItemContainer::getSlotAtScreenPoint(const Point& point) const
@@ -431,9 +404,9 @@ ItemSprite* ItemContainer::getItemAtScreenPoint(const Point& point) const
     return getItemAtSlot(slot);
 }
 
-ItemSprite* ItemContainer::getItemAtSlot(int64_t slot, ssize_t category) const
+ItemSprite* ItemContainer::getItemAtSlot(int64_t slot, int64_t category) const
 {
-    if (slot < 0 || slot >= _slotCount * _pageCount)
+    if (slot < 0 || slot >= _slotCount * MAX(1, _pageCount))
     {
         return nullptr;
     }
@@ -443,16 +416,13 @@ ItemSprite* ItemContainer::getItemAtSlot(int64_t slot, ssize_t category) const
         category = _currentCategory;
     }
 
-    auto it = _itemSprites.find(category);
-
-    if (it != _itemSprites.end())
+    for (auto child : _itemSpriteNode->getChildren())
     {
-        auto& sprites = (*it).second;
-        auto it       = sprites.find(slot);
+        auto sprite = static_cast<ItemSprite*>(child);
 
-        if (it != sprites.end())
+        if (sprite->_container.category == category && sprite->_container.slot == slot)
         {
-            return (*it).second;
+            return sprite;
         }
     }
 

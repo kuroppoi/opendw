@@ -97,6 +97,7 @@ void GameGuiWindow::show(PanelType type)
     }
 
     _eventDispatcher->dispatchCustomEvent(events::kGuiWindowChangedPanel);
+    setVisible(true);
     // TODO: send event message to server
 }
 
@@ -105,9 +106,12 @@ void GameGuiWindow::hide()
     _activePanelType = PanelType::NONE;
     _activePanel     = nullptr;
     stopAllActions();
-    auto fadeOut = FadeOut::create(FADE_SPEED);
-    auto scaleTo = ScaleTo::create(FADE_SPEED, 0.888F);
-    runAction(Spawn::createWithTwoActions(fadeOut, scaleTo));
+    auto fadeOut  = FadeOut::create(FADE_SPEED);
+    auto scaleTo  = ScaleTo::create(FADE_SPEED, 0.888F);
+    auto delay    = DelayTime::create(FADE_SPEED);
+    auto callFunc = CallFuncN::create([](Node* node) { node->setVisible(false); });
+    auto sequence = Sequence::create({delay, callFunc});
+    runAction(Spawn::create({fadeOut, scaleTo, sequence}));
     _eventDispatcher->dispatchCustomEvent(events::kGuiWindowChangedPanel);
     // TODO: send event message to server
 }

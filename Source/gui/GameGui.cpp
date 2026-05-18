@@ -1,10 +1,13 @@
 #include "GameGui.h"
 
 #include "base/GameConfig.h"
+#include "base/InventoryItem.h"
+#include "base/Item.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
 #include "gui/widget/IconBar.h"
+#include "gui/widget/InventoryItemSprite.h"
 #include "gui/widget/ItemContainer.h"
 #include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
@@ -211,7 +214,12 @@ bool GameGui::initWithZone(WorldZone* zone)
     _primaryHotbar = ItemContainer::createWithGui(this, 1, Player::kHotbarItemCount);
     _primaryHotbar->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
     _primaryHotbar->updateLayout();
-    addChild(_primaryHotbar, 4);
+    addChild(_primaryHotbar, 4, "hotbar");
+    _containers.insert(ContainerType::HOTBAR, _primaryHotbar);
+
+    // 0x10005B891: Create top sprite layer
+    _topSpriteLayer = Node::create();
+    addChild(_topSpriteLayer, 10);
 
     AXLOGI("[GameGui] Initialized");
     sMain = this;
@@ -235,6 +243,13 @@ void GameGui::onEnter()
     addEventListener(events::kDeathMessageChanged, EVENT_CALLBACK_REF(std::string*, onDeathMessageChanged));
     addEventListener(events::kPlayerEntered, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
     addEventListener(events::kPlayerExited, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
+
+    // Create touch listener
+    auto touchListener          = EventListenerTouchOneByOne::create();
+    touchListener->onTouchBegan = AX_CALLBACK_2(GameGui::onTouchBegan, this);
+    touchListener->onTouchMoved = AX_CALLBACK_2(GameGui::onTouchMoved, this);
+    touchListener->onTouchEnded = AX_CALLBACK_2(GameGui::onTouchEnded, this);
+    addEventListener(touchListener, 2);
     onWindowResized();
 }
 
@@ -271,11 +286,104 @@ void GameGui::ready()
 
 void GameGui::clear()
 {
+    for (auto& entry : _containers)
+    {
+        entry.second->removeAllSprites();
+    }
+
+    _itemSprites.clear();
     _pendingAlerts.clear();
+    _topSpriteLayer->removeAllChildren();
+    _activeItemSprite = nullptr;
+}
+
+void GameGui::updateInventoryItem(InventoryItem* item)
+{
+    auto code = item->getItem()->getCode();
+    auto it   = _itemSprites.find(code);
+    InventoryItemSprite* sprite;
+
+    if (it == _itemSprites.end())
+    {
+        sprite = InventoryItemSprite::createWithItem(item);
+        _itemSprites.insert(code, sprite);
+    }
+    else
+    {
+        sprite = (*it).second;
+    }
+
+    auto container = getItemContainerForType(item->getContainer());
+
+    if (container)
+    {
+        container->addSprite(sprite, item->getSlot(), item->getCategory());
+    }
+    else
+    {
+        sprite->removeFromContainer();
+    }
+
+    sprite->updateQuantity();
+}
+
+void GameGui::setItemContainerForType(ContainerType type, ItemContainer* container)
+{
+    _containers.insert(type, container);
+}
+
+ItemContainer* GameGui::getItemContainerForType(ContainerType type) const
+{
+    auto it = _containers.find(type);
+    return it == _containers.end() ? nullptr : (*it).second;
+}
+
+ContainerType GameGui::getTypeForItemContainer(ItemContainer* container) const
+{
+    for (auto& entry : _containers)
+    {
+        if (entry.second == container)
+        {
+            return entry.first;
+        }
+    }
+
+    return ContainerType::NONE;
+}
+
+ItemContainer* GameGui::getItemContainerAtScreenPoint(const Point& point) const
+{
+    for (auto& entry : _containers)
+    {
+        auto container = entry.second;
+
+        if (!ax_util::isNodeVisible(container))
+        {
+            continue;
+        };
+
+        Rect rect;
+        rect.size = container->getContentSize();
+
+        if (rect.containsPoint(container->convertToNodeSpace(point)))
+        {
+            return container;
+        }
+    }
+
+    return nullptr;
 }
 
 void GameGui::toggleGameMenu()
 {
+    // Close gui window first
+    // NOTE: Originally done by input manager
+    if (_guiWindow->getActivePanelType() != GameGuiWindow::PanelType::NONE)
+    {
+        _guiWindow->hide();
+        return;
+    }
+
     if (_gameMenu)
     {
         _gameMenu->removeFromParent();
@@ -470,19 +578,50 @@ Point GameGui::getGuiWindowPosition(bool alignRight) const
     return Point(x, y);
 }
 
+void GameGui::setActiveItemSprite(InventoryItemSprite* sprite)
+{
+    if (_activeItemSprite == sprite)
+    {
+        return;
+    }
+
+    // Reset current item sprite
+    if (_activeItemSprite)
+    {
+        _topSpriteLayer->removeChild(_activeItemSprite, false);
+        _activeItemSprite->getInventoryItem()->update();
+    }
+
+    // Set new item sprite
+    if (sprite)
+    {
+        auto parent = sprite->getParent();
+
+        if (parent)
+        {
+            auto position = parent->convertToWorldSpace(sprite->getPosition());
+            parent->removeChild(sprite, false);
+            sprite->setPosition(_topSpriteLayer->convertToNodeSpace(position));
+        }
+
+        _topSpriteLayer->addChild(sprite);
+    }
+
+    _activeItemSprite = sprite;
+}
+
 void GameGui::updateHotbar()
 {
-    auto cache             = SpriteFrameCache::getInstance();
-    auto slotFrame         = cache->getSpriteFrameByName("inventory-slot");
-    auto selectedSlotFrame = cache->getSpriteFrameByName("inventory-slot-highlighted");
-    AX_ASSERT(slotFrame && selectedSlotFrame);
-    auto selectedSlotIndex = Player::getMain()->getPrimaryHotbarIndex();
-    auto& slotSprites      = _primaryHotbar->getSlotSprites();
+    auto cache           = SpriteFrameCache::getInstance();
+    auto slotFrame       = cache->getSpriteFrameByName("inventory-slot");
+    auto activeSlotFrame = cache->getSpriteFrameByName("inventory-slot-highlighted");
+    auto activeSlot      = Player::getMain()->getActiveHotbarSlot();
+    auto& slotSprites    = _primaryHotbar->getSlotSprites();
 
     for (auto i = 0; i < slotSprites.size(); i++)
     {
         auto sprite = slotSprites[i];
-        sprite->setSpriteFrame(i == selectedSlotIndex ? selectedSlotFrame : slotFrame);
+        sprite->setSpriteFrame(i == activeSlot ? activeSlotFrame : slotFrame);
     }
 }
 
@@ -531,6 +670,129 @@ void GameGui::onPlayerAppearanceChanged(const ValueMap& data)
 {
     _avatarPicture->updateAppearance(data);
     _avatarPicture->showHeadOnly();
+}
+
+bool GameGui::onTouchBegan(Touch* touch, Event* event)
+{
+    auto point     = touch->getLocation();
+    auto container = getItemContainerAtScreenPoint(point);
+
+    if (container)
+    {
+        auto item = container->getItemAtScreenPoint(point);
+
+        if (item)
+        {
+            item->activate();
+
+            if (container == _primaryHotbar)
+            {
+                item->setScale(item->getScale() * 1.05F);  // TODO: find out how this actually happens
+                AudioManager::getInstance()->playButtonSfx();
+            }
+        }
+    }
+
+    return true;
+}
+
+void GameGui::onTouchMoved(Touch* touch, Event* event)
+{
+    if (_activeItemSprite)
+    {
+        _activeItemSprite->setPosition(_topSpriteLayer->convertToNodeSpace(touch->getLocation()));
+        _draggingItemSprite = true;
+    }
+}
+
+void GameGui::onTouchEnded(Touch* touch, Event* event)
+{
+    if (!_activeItemSprite)
+    {
+        return;
+    }
+
+    auto source = _activeItemSprite->getInventoryItem();
+
+    // Update hotbar selection
+    if (!_draggingItemSprite)
+    {
+        if (source->getContainer() == ContainerType::HOTBAR)
+        {
+            Player::getMain()->setActiveHotbarSlot(source->getSlot());
+        }
+
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    _draggingItemSprite = false;
+
+    if (source->getContainer() == ContainerType::NONE || source->getContainer() == ContainerType::HIDDEN)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    // Drag item to new container
+    auto point     = _topSpriteLayer->convertToNodeSpace(touch->getLocation());
+    auto container = getItemContainerAtScreenPoint(point);
+
+    if (!container)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    auto type = getTypeForItemContainer(container);
+
+    // Items are sorted; don't do anything if we're dragging from inventory to inventory
+    if (type == ContainerType::INVENTORY && source->getContainer() == ContainerType::INVENTORY)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    auto slot = container->getSlotAtScreenPoint(point);
+
+    if (slot == -1)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    auto item = source->getItem();
+
+    // If there's already an item in the target slot, swap the items
+    if (auto sprite = static_cast<InventoryItemSprite*>(container->getItemAtSlot(slot)))
+    {
+        sprite->getInventoryItem()->moveToContainer(source->getContainer(), source->getSlot());
+        auto category = sprite->getItem()->getInventoryPosition().category;
+
+        // Arrange inventory for this category unless it's the same category as the dragged item
+        if ((type == ContainerType::INVENTORY || source->getContainer() == ContainerType::INVENTORY) &&
+            category != item->getInventoryPosition().category)
+        {
+            Player::getMain()->arrangeInventory(category);
+        }
+    }
+
+    auto oldContainer = source->getContainer();
+    source->moveToContainer(type, slot);
+
+    if (oldContainer == ContainerType::INVENTORY)
+    {
+        // Rearrange source inventory container
+        Player::getMain()->arrangeInventory(item);
+    }
+    else if (type == ContainerType::INVENTORY)
+    {
+        // Rearrange destination inventory container
+        Player::getMain()->arrangeInventory(item);
+        container->updatePageCount();  // Ensures page count is updated properly
+    }
+
+    setActiveItemSprite(nullptr);
 }
 
 void GameGui::onWindowResized()

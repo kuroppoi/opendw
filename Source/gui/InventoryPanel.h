@@ -20,7 +20,7 @@ public:
     void onEnter() override;
 
 private:
-    ItemContainer* _inventoryContainer;
+    ax::Label* _categoryLabel;
     bool _loaded;
 };
 

@@ -98,6 +98,12 @@ public:
         NAME_CHANGE
     };
 
+    struct InventoryPosition
+    {
+        int64_t category;
+        int64_t slot;
+    };
+
     typedef std::vector<ax::SpriteFrame*> SpriteList;
 
     /*
@@ -151,6 +157,9 @@ public:
     /* FUNC: Item::action @ 0x10004DE12 */
     Action getAction() const { return _action; }
 
+    /* FUNC: Item::inventoryPosition @ 0x10004E00F */
+    const InventoryPosition& getInventoryPosition() const { return _inventoryPosition; }
+
     /* FUNC: Item::specialPlacement @ 0x10004E4E8 */
     SpecialPlacement getSpecialPlacement() const { return _specialPlacement; }
 
@@ -162,6 +171,9 @@ public:
 
     /* FUNC: Item::height @ 0x10004E144 */
     int16_t getHeight() const { return _height; }
+
+    /* FUNC: Item::tool @ 0x10004D688 */
+    bool isTool() const { return _tool; }
 
     /* FUNC: Item::isConsumable @ 0x10004D75F */
     bool isConsumable() const { return _consumable; }
@@ -358,6 +370,7 @@ private:
     BlockLayer _layer;                               // Item::layer @ 0x1003111D8
     ModType _modType;                                // Item::mod @ 0x100311388
     Action _action;                                  // Item::action @ 0x100311398
+    InventoryPosition _inventoryPosition;            // Item::inventoryPosition @ 0x100311310
     SpecialPlacement _specialPlacement;              // Item::specialPlacement @ 0x100311468
     std::string _material;                           // Item::material @ 0x1003111F8
     int16_t _width;                                  // Item::width @ 0x100311370
@@ -407,6 +420,7 @@ private:
     ax::SpriteFrame* _maskFrame;                     // Item::maskCode @ 0x1003113D8
     SpriteList _maskOptions;                         // Item::maskOptions @ 0x1003113D0
     int _spriteZ;                                    // Item::spriteZ @ 0x100311518
+    bool _tool;
     bool _mirrorable;
 };
 

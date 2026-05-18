@@ -15,6 +15,8 @@ class TabsBar;
 class ItemContainer : public ax::Node, public TabsBarDelegate
 {
 public:
+    typedef std::function<void(int64_t)> TabsBarCallback;
+
     static ItemContainer* createWithGui(GameGui* gui, int32_t cols, int32_t rows);
 
     bool initWithGui(GameGui* gui, int32_t cols, int32_t rows);
@@ -25,12 +27,14 @@ public:
     void updatePageTabs();
     void updatePageCount();
 
-    void showSprites(ssize_t category, ssize_t page, bool visible);
-    void addSprite(ItemSprite* sprite, int64_t slot, ssize_t category = 0);
-    void removeSprite(ItemSprite* sprite);
+    void addSprite(ItemSprite* sprite, int64_t slot, int64_t category = 0);
+    void removeSprite(ItemSprite* sprite, bool cleanup = false);
+    void removeAllSprites(bool cleanup = true);
+    void showSprites(int64_t category, ssize_t page, bool visible);
 
     void setCategories(const std::vector<std::string>& categories);
-    void setCurrentCategory(ssize_t category);
+    void setCategoryChangeCallback(const TabsBarCallback& callback) { _categoryChangeCallback = callback; }
+    void setCurrentCategory(int64_t category);
     void setPageCount(ssize_t pageCount);
     void setCurrentPage(ssize_t page);
     void setDynamicPaging(bool dynamicPaging);
@@ -40,7 +44,7 @@ public:
 
     int64_t getSlotAtScreenPoint(const ax::Point& point) const;
     ItemSprite* getItemAtScreenPoint(const ax::Point& point) const;
-    ItemSprite* getItemAtSlot(int64_t slot, ssize_t category = -1) const;
+    ItemSprite* getItemAtSlot(int64_t slot, int64_t category = -1) const;
     ax::Point getNodePointAtSlot(int64_t slot) const;
 
     const std::vector<ax::Sprite*>& getSlotSprites() const { return _slotSprites; }
@@ -56,13 +60,12 @@ protected:
     float _itemSize;
     ax::Size _containerSize;
     ax::SpriteBatchNode* _inventoryBatch;
+    ax::Node* _itemSpriteNode;
     std::vector<ax::Sprite*> _slotSprites;
-    std::map<ssize_t, ax::Map<int64_t, ItemSprite*>> _itemSprites;
-    std::map<ItemSprite*, int64_t> _slotsByItem;
-    std::map<ItemSprite*, ssize_t> _categoriesByItem;
     std::vector<std::string> _categories;
-    ssize_t _currentCategory;
-    ssize_t _visibleCategory;
+    TabsBarCallback _categoryChangeCallback;
+    int64_t _currentCategory;
+    int64_t _visibleCategory;
     TabsBar* _categoryTabs;
     TabsBar* _pageTabs;
     ssize_t _pageCount;

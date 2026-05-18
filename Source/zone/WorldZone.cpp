@@ -444,7 +444,7 @@ void WorldZone::updateStatus(const ValueMap& status)
 void WorldZone::enter()
 {
     AXLOGI("[WorldZone] Entering zone!");
-    _player->setPrimaryHotbarIndex(0);
+    _player->setActiveHotbarSlot(0);
     _sceneRenderer->ready();
     begin();
 }

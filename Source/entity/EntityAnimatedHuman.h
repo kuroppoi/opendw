@@ -50,14 +50,19 @@ public:
     /* FUNC: EntityAnimatedHuman::showHeadOnly @ 0x100176C9B */
     void showHeadOnly();
 
+    /* FUNC: EntityAnimatedHuman::setToolItem: @ 0x100177FA1 */
+    void setToolItem(Item* item);
+
     /* FUNC: EntityAnimatedHuman::animateEye:duration: @ 0x100179154 */
     void animateEye(const std::string& suffix, float duration);
 
 protected:
+    spine::Slot* _toolGlowSlot;         // EntityAnimatedHuman::toolGlowSlot @ 0x100315030
     bool _bareHanded;                   // EntityAnimatedHuman::bareHanded @ 0x1003150B0
     Item* _suitItem;                    // EntityAnimatedHuman::suitItem @ 0x100315070
     Item* _topsOverlayItem;             // EntityAnimatedHuman::topsOverlayItem @ 0x100315088
     Item* _legsOverlayItem;             // EntityAnimatedHuman::legsOverlayItem @ 0x100315090
+    Item* _toolItem;                    // EntityAnimatedHuman::toolItem @ 0x1003150F8
     ax::Color3B _skinColor;             // EntityAnimatedHuman::skinColor @ 0x1003150A0
     ax::Color3B _hairColor;             // EntityAnimatedHuman::hairColor @ 0x100315098
     ax::Color3B _facialGearGlowColor;   // EntityAnimatedHuman::facialGearGlowColor @ 0x100315080
