@@ -714,19 +714,38 @@ MaskedSprite* BaseBlock::getSpriteWithTag(int tag) const
 
 MaskedSprite* BaseBlock::getTopSpriteForLayer(BlockLayer layer) const
 {
-    MaskedSprite* topSprite = nullptr;
+    MaskedSprite* result = nullptr;
 
     for (auto& sprite : _sprites)
     {
-        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getParent()->getParent());
+        AX_ASSERT(sprite->getUserData());
+        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getUserData());
 
-        if (renderer->getLayer() == layer && (!topSprite || sprite->getLocalZOrder() >= topSprite->getLocalZOrder()))
+        if (renderer->getLayer() == layer && (!result || sprite->getLocalZOrder() > result->getLocalZOrder()))
         {
-            topSprite = sprite;
+            result = sprite;
         }
     }
 
-    return topSprite;
+    return result;
+}
+
+MaskedSprite* BaseBlock::getBottomSpriteForLayer(BlockLayer layer) const
+{
+    MaskedSprite* result = nullptr;
+
+    for (auto& sprite : _sprites)
+    {
+        AX_ASSERT(sprite->getUserData());
+        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getUserData());
+
+        if (renderer->getLayer() == layer && (!result || sprite->getLocalZOrder() < result->getLocalZOrder()))
+        {
+            result = sprite;
+        }
+    }
+
+    return result;
 }
 
 bool BaseBlock::isOpaque() const

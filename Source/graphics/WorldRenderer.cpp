@@ -16,6 +16,7 @@
 #include "physics/ChipmunkBody.h"
 #include "physics/ChipmunkSpace.h"
 #include "physics/PhysicsDebugNode.h"
+#include "util/AxUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
@@ -25,6 +26,7 @@
 #define MAX_BLOCK_RENDER_FRAME 0.1
 #define FX_PROCESS_INTERVAL    0.2
 #define LIQUID_CYCLE_INTERVAL  0.333
+#define GLOW_SPRITE_ITERATIONS 3
 
 USING_NS_AX;
 
@@ -124,6 +126,8 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     // Create misc nodes
     _textNode = Node::create();  // Originally SpriteBatchNode but we cannot add labels to those
     _foreground->addChild(_textNode, getNextZIndex());
+    _glowNode = Node::create();
+    _foreground->addChild(_glowNode, getNextZIndex());
     _vectorLayer = VectorLayer::create();
     _foreground->addChild(_vectorLayer, getNextZIndex());
     _physicsDebugNode = PhysicsDebugNode::create();
@@ -315,6 +319,28 @@ void WorldRenderer::updateBlocks()
     _visibleRect  = Rect(origin, size);
     arrangeBlockSprites();
     renderBlockSprites();
+}
+
+void WorldRenderer::glowSprite(MaskedSprite* sprite)
+{
+    if (!sprite)
+    {
+        return;
+    }
+
+    // NOTE: Doesn't work well with masks
+    for (auto i = 0; i < GLOW_SPRITE_ITERATIONS; i++)
+    {
+        auto glowSprite = Sprite::createWithTexture(sprite->getTexture());
+        glowSprite->setBlendFunc({backend::BlendFactor::ONE_MINUS_SRC_ALPHA, backend::BlendFactor::ONE});
+        glowSprite->setTextureRect(sprite->getTextureRect());
+        glowSprite->setPosition(sprite->getPosition());
+        glowSprite->setRotation(sprite->getRotation());
+        glowSprite->setFlippedX(sprite->isFlippedX());
+        glowSprite->setScale(sprite->getScale());
+        _glowNode->addChild(glowSprite, 20);
+        ax_util::fadeOutAndRemove(glowSprite, 0.333);
+    }
 }
 
 void WorldRenderer::loadBiome(const std::string& biome)

@@ -10,6 +10,7 @@ class BaseBlock;
 class CavernRenderer;
 class Entity;
 class Lightmapper;
+class MaskedSprite;
 class SkyRenderer;
 class WorldLayerRenderer;
 class WorldZone;
@@ -59,6 +60,9 @@ public:
 
     /* FUNC: WorldRenderer::updateViewport: @ 0x100082DE3 */
     void updateViewport(float deltaTime);
+
+    /* FUNC: WorldRenderer::glowSprite: @ 0x10008516C */
+    void glowSprite(MaskedSprite* sprite);
 
     /* FUNC: WorldRenderer::layerRenderer:withLayer:texture:z: @ 0x10007E28D */
     WorldLayerRenderer* createLayerRenderer(const std::string& name,
@@ -147,6 +151,7 @@ private:
     ax::Node* _animatedCharactersNode;            // WorldRenderer::animatedCharactersNode @ 0x100311EB8
     ax::Node* _animatedGhostlyEntitiesNode;       // WorldRenderer::animatedGhostlyEntitiesNode @ 0x100311EE8
     ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
+    ax::Node* _glowNode;                          // WorldRenderer::glowNode @ 0x100311F08
     ax::Node* _vectorLayer;                       // WorldRenderer::vectorLayer @ 0x100311F10
     ax::Node* _physicsDebugNode;                  // WorldRenderer::physicsDebugNode @ 0x100311F20
     ax::Vector<BaseBlock*> _renderQueue;          // WorldRenderer::renderQueue @ 0x100311DF8

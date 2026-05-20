@@ -144,6 +144,9 @@ public:
     /* FUNC: BaseBlock::topSpriteForLayer: @ 0x100032436 */
     MaskedSprite* getTopSpriteForLayer(BlockLayer layer) const;
 
+    /* FUNC: BaseBlock::bottomSpriteForLayer: @ 0x100032525 */
+    MaskedSprite* getBottomSpriteForLayer(BlockLayer layer) const;
+
     /* FUNC: BaseBlock::above @ 0x10002E68E */
     BaseBlock* getAbove() const;
 
