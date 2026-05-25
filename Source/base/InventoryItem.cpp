@@ -35,6 +35,15 @@ void InventoryItem::update()
         // TODO: moveToInitialPosition();
     }
 
+    // Update active item if item moved from or to the active hotbar slot
+    auto player = Player::getMain();
+
+    if ((_container == ContainerType::HOTBAR && _slot == player->getActiveHotbarSlot()) ||
+        player->getActiveHotbarItem() == this)
+    {
+        player->updateActiveHotbarItem();
+    }
+
     GameGui::getMain()->updateInventoryItem(this);
 }
 
@@ -80,15 +89,6 @@ void InventoryItem::moveToContainer(ContainerType container, int64_t slot, int64
     _category  = category;
     update();
     updateServer();
-
-    // Update active item if item moved from or to the active hotbar slot
-    auto player = Player::getMain();
-
-    if ((container == ContainerType::HOTBAR && slot == player->getActiveHotbarSlot()) ||
-        player->getActiveHotbarItem() == this)
-    {
-        player->updateActiveHotbarItem();
-    }
 }
 
 void InventoryItem::setQuantity(int64_t quantity)

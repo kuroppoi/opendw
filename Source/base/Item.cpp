@@ -45,6 +45,11 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _tool             = _category == "tools";
     _consumable       = _category == "consumables";
     _accessory        = _category == "accessories";
+    _placeable        = !_tool && !_consumable && !_accessory && _layer != BlockLayer::NONE;  // Custom criteria
+    _invulnerable     = map_util::getBool(data, "invulnerable");
+    _placeover        = map_util::getBool(data, "placeover");
+    _diggable         = map_util::getBool(data, "diggable");
+    _reach            = map_util::getBool(data, "reach");
     _visible          = map_util::getBool(data, "visible", true);
     _tileable         = map_util::getBool(data, "tileable");
     _opaque           = map_util::getBool(data, "opaque");
@@ -52,6 +57,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _center           = map_util::getBool(data, "center");
     _shadow           = map_util::getBool(data, "shadow");
     _borderShadow     = map_util::getBool(data, "border_shadow");
+    _mounted          = map_util::getBool(data, "mounted");
     _power            = map_util::getFloat(data, "power");
     _rate             = map_util::getFloat(data, "rate");
     _jiggle           = map_util::getFloat(data, "jiggle");
@@ -61,6 +67,8 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _color            = color_util::hexToColor(map_util::getString(data, "color"));
     _mirrorable       = map_util::getString(data, "rotation") == "mirror";
     _field            = map_util::getInt32(data, "field");
+    _fieldPlace       = map_util::getBool(data, "field_place");
+    _placeMod         = map_util::getUInt32(data, "place_mod");
     _spriteZ          = map_util::getInt32(data, "sprite_z");
 
     // 0x10004A98C: Configure physics shape
@@ -78,6 +86,18 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     else
     {
         _shape = Shape::NONE;
+    }
+
+    // 0x10004AD9A: Configure fieldability
+    auto& fieldable = map_util::getValue(data, "fieldable");
+
+    if (fieldable.getType() == Value::Type::STRING)
+    {
+        _fieldable = fieldable.asString() == "placed" ? Fieldable::PLACED : Fieldable::NO;
+    }
+    else
+    {
+        _fieldable = fieldable.asBool(true) ? Fieldable::YES : Fieldable::NO;
     }
 
     // 0x10004AE79: Configure field damage
@@ -100,11 +120,16 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
 
     // 0x10004B22C: Configure size
     auto& size = map_util::getArray(data, "size");
-
+    
     if (size.size() >= 2)
     {
         _width  = size[0].asInt();
         _height = size[1].asInt();
+    }
+    else
+    {
+        _width  = 1;
+        _height = 1;
     }
 
     // 0x10004B5FC: Configure light position
@@ -149,6 +174,14 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     return true;
 }
 
+void Item::postProcess()
+{
+    auto inventoryItem      = map_util::getString(_data, "inventory");
+    auto decayInventoryItem = map_util::getString(_data, "decay_inventory");
+    _inventoryItem          = inventoryItem.empty() ? this : _config->getItemForName(inventoryItem);
+    _decayInventoryItem     = decayInventoryItem.empty() ? this : _config->getItemForName(decayInventoryItem);
+}
+
 void Item::processSprites()
 {
     AX_SAFE_RELEASE_NULL(_spriteFrame);
@@ -177,6 +210,12 @@ void Item::processSprites()
         auto count     = options[1].asUint64();
         auto step      = options.size() >= 3 ? options[2].asUint64() : 1;
         _spriteOptions = createSequentialSpriteList(name, count, step);
+
+        if (!_spriteOptions.empty())
+        {
+            _spriteFrame = _spriteOptions[0];
+            AX_SAFE_RETAIN(_spriteFrame);
+        }
     }
     else
     {
@@ -199,6 +238,12 @@ void Item::processSprites()
             auto name          = options[0].asString();
             auto count         = options[1].asUint64();
             _backgroundOptions = createSequentialSpriteList(name, count);
+
+            if (!_backgroundOptions.empty())
+            {
+                _background = _backgroundOptions[0];
+                AX_SAFE_RETAIN(_background);
+            }
         }
         else
         {
@@ -301,6 +346,21 @@ void Item::processSprites()
             AX_SAFE_RETAIN(_maskFrame);
         }
     }
+}
+
+bool Item::isMiningTool() const
+{
+    return _action == Action::MINE || _action == Action::DIG || _action == Action::SMASH;
+}
+
+bool Item::isSwingableTool() const
+{
+    return isMiningTool() || _action == Action::MELEE;
+}
+
+bool Item::isGun() const
+{
+    return _action == Action::GUN;
 }
 
 bool Item::isEquippableAccessory() const

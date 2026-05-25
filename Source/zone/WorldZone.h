@@ -19,6 +19,7 @@ class SceneRenderer;
 class WorldRenderer;
 class WorldChunk;
 
+enum class BlockLayer : uint8_t;
 enum class Biome : uint8_t
 {
     TEMPERATE,
@@ -110,6 +111,9 @@ public:
 
     /* FUNC: 0x100045192 */
     BaseBlock* getBlockAt(int16_t x, int16_t y, bool allowChunkAlloc = false);
+
+    /* FUNC: WorldZone::reachableBlockForOrigin:layer:allowInvulnerable: @ 0x100046945 */
+    BaseBlock* findReachableBlock(int16_t x, int16_t y, BlockLayer layer, bool allowInvulnerable = false);
 
     /* FUNC: WorldZone::defaultSeed @ 0x100041497 */
     uint64_t getDefaultSeed() const;
@@ -216,6 +220,15 @@ public:
     /* FUNC: WorldZone::surfaceBottom @ 0x10004A29E */
     int16_t getSurfaceBottom() const { return _surfaceBottom; }
 
+    /* FUNC: WorldZone::isMember @ 0x10004A0F0 */
+    bool isMember() const { return _member; }
+
+    /* FUNC: WorldZone::isProtected @ 0x10004A0CE */
+    bool isProtected() const { return _protected; }
+
+    /* FUNC: WorldZone::isProtectedReason @ 0x10004A0DF */
+    const std::string& getProtectedReason() const { return _protectedReason; }
+
     /* FUNC: WorldZone::dayPercent @ 0x10004A177 */
     float getDayPercent() const { return _dayPercent; }
 
@@ -288,6 +301,9 @@ private:
     int16_t* _sunlight;                                     // WorldZone::sunlight @ 0x100311080
     ax::ValueVector _timedStatus;                           // WorldZone::status @ 0x100311110
     bool _receivedInitialStatus;                            // WorldZone::receivedInitialStatus @ 0x100310F58
+    bool _member;                                           // WorldZone::isMember @ 0x100310F60
+    bool _protected;                                        // WorldZone::isProtected @ 0x100310F68
+    std::string _protectedReason;                           // WorldZone::isProtectedReason @ 0x100310F70
     float _dayPercent;                                      // WorldZone::dayPercent @ 0x1003110E8
     float _dayTime;                                         // WorldZone::daytime @ 0x1003110E0
     float _acidity;                                         // WorldZone::acidity @ 0x100311138

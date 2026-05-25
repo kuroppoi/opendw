@@ -33,7 +33,7 @@ private:
         ItemContainer* pointer;
         int64_t category;
         int64_t slot;
-    } _container;
+    } _container{};
 };
 
 }  // namespace opendw

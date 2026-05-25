@@ -14,6 +14,7 @@ class GameManager;
 class InventoryItem;
 class Item;
 class Physical;
+enum class BlockLayer : uint8_t;
 enum class ContainerType;
 
 /*
@@ -78,6 +79,27 @@ public:
     /* FUNC: Player::sendMoveCommand @ 0x1000232BC */
     void sendMoveMessage();
 
+    /* FUNC: Player::sendInventoryUseMessage:onlyIfAllowed: @ 0x100025190 */
+    void sendInventoryUseMessage(Item* item, bool secondary = false, bool onlyIfAllowed = true);
+
+    /* FUNC: Player::useActivePrimaryItemAtPoint: @ 0x1000E9515 */
+    bool useActiveHotbarItem(const ax::Point& point);
+
+    /* FUNC: Player::useItem:atPoint:fromContainer: @ 0x10002365D */
+    bool useInventoryItem(InventoryItem* invItem, const ax::Point& point);
+
+    /* FUNC: Player::tryToMineBlockAtNodePoint:withItem: @ 0x100024470 */
+    BaseBlock* tryToMineBlockAtNodePoint(const ax::Point& point, InventoryItem* invItem);
+
+    /* FUNC: Player::tryToPlaceInventoryItem:atPoint: @ 0x100025346 */
+    bool tryToPlaceInventoryItem(InventoryItem* invItem, const ax::Point& point);
+
+    /* FUNC: Player::canDigAt: @ 0x100027608 */
+    bool canDigAt(const ax::Point& point) const;
+
+    /* FUNC: Player::canPlaceItem:atBlock: @ 0x100027A8C */
+    bool canPlaceItem(Item* item, BaseBlock* block) const;
+
     /* FUNC: Player::didFeetCollideWithBlock: @ 0x10002A33C */
     void onFeetCollideWithBlock(BaseBlock* block);
 
@@ -102,6 +124,12 @@ public:
     /* FUNC: Player::flyingSpeed @ 0x10002C987 */
     float getFlyingSpeed() const;
 
+    /* FUNC: Player::placingRange @ 0x10002CB2E */
+    float getPlacingRange() const;
+
+    /* FUNC: Player::miningSpeed @ 0x10002CBAB */
+    float getMiningSpeed() const;
+
     /* FUNC: Player::playerId @ 0x10002D9A3 */
     const std::string& getPlayerId() const { return _playerId; }
 
@@ -122,6 +150,9 @@ public:
 
     /* FUNC: Player::blockPosition @ 0x100028B15 */
     ax::Point getBlockPosition() const;
+
+    /* FUNC: Player::physicalCenter @ 0x100028C24 */
+    ax::Point getPhysicalCenter() const;
 
     /* FUNC: Player::avatar @ 0x10002DFAC */
     EntityAnimatedAvatar* getAvatar() const { return _avatar; }
@@ -174,8 +205,17 @@ public:
     /* FUNC: Player::steamCooldownDuration @ 0x10002CCAA */
     float getSteamCooldownDuration() const;
 
+    /* FUNC: Player::setInventory:count: @ 0x100021727 */
+    InventoryItem* setInventory(Item* item, int64_t quantity);
+
     /* FUNC: Player::setInventory:count:container:position: @ 0x100021766 */
     InventoryItem* setInventory(Item* item, int64_t quantity, ContainerType container, int64_t slot);
+
+    /* FUNC: Player::addInventory:count: @ 0x100021970 */
+    InventoryItem* addInventory(Item* item, int64_t quantity);
+
+    /* FUNC: Player::getInventory: @ 0x1000219C2 */
+    InventoryItem* getInventory(Item* item);
 
     /* FUNC: Player::inventoryItemInContainer:position: @ 0x100022801 */
     InventoryItem* getInventoryItem(ContainerType container, int64_t slot, int64_t category = 0);
@@ -196,6 +236,9 @@ public:
     /* FUNC: Player::primaryHotbarIndex @ 0x10002DA09 */
     int64_t getActiveHotbarSlot() const { return _activeHotbarSlot; }
 
+    /* FUNC: Player::setUsingPrimaryItem: @ 0x10002DA80 */
+    void setUsingHotbarItem(Item* item);
+
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
 
@@ -204,6 +247,18 @@ public:
 
     /* FUNC: Player::setIsTravelingHorizontally: @ 0x10002DCF5 */
     void setTravelingHorizontally(bool value) { _travelingHorizontally = value; }
+
+    /* FUNC: Player::setMiningBlock: @ 0x10002DB14 */
+    void setMiningBlock(BaseBlock* block);
+
+    /* FUNC: Player::miningBlock @ 0x10002DB03 */
+    BaseBlock* getMiningBlock() const { return _miningBlock; }
+
+    /* FUNC: Player::setMiningLayer: @ 0x10002DB41 */
+    void setMiningLayer(BlockLayer layer) { _miningLayer = layer; }
+
+    /* FUNC: Player::miningLayer @ 0x10002DB31 */
+    BlockLayer getMiningLayer() const { return _miningLayer; }
 
     /* FUNC: Player::admin @ 0x10002DED1 */
     bool isAdmin() const { return _admin; }
@@ -246,8 +301,17 @@ private:
     ax::Map<int16_t, InventoryItem*> _inventory;  // Player::inventory @ 0x100310670
     InventoryItem* _activeHotbarItem;             // Player::activePrimaryInventoryItem @ 0x1003107E8
     int64_t _activeHotbarSlot;                    // Player::primaryHotbarIndex @ 0x1003106A0
+    Item* _usingHotbarItem;                       // Player::usingHotbarItem @ 0x100310808
     bool _zoneTeleporting;                        // Player::isZoneTeleporting @ 0x1003106F8
     bool _travelingHorizontally;                  // Player::isTravelingHorizontally @ 0x100310780
+    bool _mining;                                 // Player::isMining @ 0x100310848
+    BaseBlock* _miningBlock;                      // Player::miningBlock @ 0x1003108E0
+    BlockLayer _miningLayer;                      // Player::miningLayer @ 0x100310908
+    double _lastMiningAttemptAt;                  // Player::lastMiningAttemptAt @ 0x1003108E8
+    BaseBlock* _miningAttemptBlock;               // Player::miningAttemptBlock @ 0x1003108F0
+    int _miningAttempts;                          // Player::miningAttempts @ 0x1003108F8
+    double _nextAllowedPlaceTime;                 // Player::nextAllowedPlaceTime @ 0x100310910
+    BaseBlock* _lastPlacedBlock;                  // Player::lastPlacedAt @ 0x100310918
     bool _admin;                                  // Player::admin @ 0x100310958
     bool _clip;                                   // Player::clip @ 0x100310660
     bool _running;

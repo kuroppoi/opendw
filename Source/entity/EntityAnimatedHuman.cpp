@@ -5,6 +5,8 @@
 #include "event/EventNames.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
+#include "util/MathUtil.h"
+#include "AudioManager.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
 
@@ -18,7 +20,13 @@ namespace opendw
 void EntityAnimatedHuman::onEnter()
 {
     EntityAnimated::onEnter();
-    _toolGlowSlot = getSlot("tool-glow");
+    _toolGlowSlot  = getSlot("tool-glow");
+    _toolBone      = _mainSkeleton->findBone("tool");
+    _toolArmBone   = _mainSkeleton->findBone("arm-upper-f");
+    _toolElbowBone = _mainSkeleton->findBone("arm-lower-f");
+    _toolHandBone  = _mainSkeleton->findBone("hand-f");
+    _mainSkeleton->setPostUpdateWorldTransformsListener(
+        [this](spine::SkeletonAnimation* skeleton) { updateArms(_director->getDeltaTime()); });
     hideTool();
     hideExo();
 
@@ -78,7 +86,7 @@ void EntityAnimatedHuman::update(float deltaTime)
     {
         if (_toolItem->getAction() == Item::Action::MELEE)
         {
-            auto opacity = MAX(0.0F, _toolGlowSlot->getColor().a - time * 2.0F);
+            auto opacity = MAX(0.0F, _toolGlowSlot->getColor().a - deltaTime * 2.0F);
             setSlotOpacity("tool-glow", opacity);
         }
         else
@@ -88,6 +96,12 @@ void EntityAnimatedHuman::update(float deltaTime)
     }
 
     // TODO: update face color
+    // 
+    // 0x100178B9C: Stop gun animation if necessary
+    if (_toolItem && _toolItem->isGun() && utils::gettime() >= _lastAnimatedToolAt + 0.2)
+    {
+        setAnimatingTool(false);
+    }
 }
 
 Size EntityAnimatedHuman::computeContentSize()
@@ -460,6 +474,15 @@ void EntityAnimatedHuman::showHeadOnly()
     animateEye("", 0.0F);
 }
 
+void EntityAnimatedHuman::setAnimatingTool(bool value)
+{
+    if (_animatingTool != value)
+    {
+        _animatingTool    = value;
+        _wasAnimatingTool = true;
+    }
+}
+
 void EntityAnimatedHuman::setToolItem(Item* item)
 {
     if (_toolItem == item)
@@ -487,7 +510,100 @@ void EntityAnimatedHuman::setToolItem(Item* item)
         setSlotOpacity("tool-glow", 0.0F);
     }
 
-    // TODO: updateArms();
+    updateArms(0.0F);
+}
+
+void EntityAnimatedHuman::updateArms(float deltaTime)
+{
+    if (!_toolItem || (!_animatingTool && !_wasAnimatingTool && deltaTime < 1.0F))
+    {
+        return;
+    }
+
+    _wasAnimatingTool = false;
+
+    if (_toolItem->isSwingableTool())
+    {
+        // Swingable tool animation
+        _toolRotation = math_util::lerp(_toolRotation, 0.0F, deltaTime * 7.5F);
+        
+        if (abs(_toolRotation) < 7.0F)
+        {
+            setAnimatingTool(false);
+        }
+
+        _toolArmBone->setRotation(_toolRotation - 180.0F);
+        _toolElbowBone->setRotation(0.0F);
+        _toolHandBone->setRotation(0.0F);
+    }
+    else if (_toolItem->isGun())
+    {
+        // Gun animation
+        auto originY  = (_position.y + _contentSize.height * 0.7F);  // Approximation of arm height
+        auto angle    = atan2f(_toolUsePoint.x - _position.x, _toolUsePoint.y - originY);
+        auto flipX    = _flippedX ? _toolUsePoint.x > _position.x : _toolUsePoint.x < _position.x;
+        auto rotation = MATH_RAD_TO_DEG(angle) - 90.0F;
+
+        if (flipX)
+        {
+            rotation -= 180.0F;
+        }
+
+        if (_flippedX)
+        {
+            rotation += 180.0F;
+        }
+
+        rotation += _toolArmBone->getParent()->getRotation() * (_flippedX ? -1.0F : 1.0F);
+        _toolArmBone->setScaleX(abs(_toolArmBone->getScaleX()) * flipX ? -1.0F : 1.0F);
+        _toolArmBone->setRotation(_flippedX ? rotation : -rotation);
+        _toolElbowBone->setRotation(0.0F);
+        _toolHandBone->setRotation(0.0F);
+    }
+
+    _toolArmBone->updateWorldTransform();
+    _toolElbowBone->updateWorldTransform();
+    _toolHandBone->updateWorldTransform();
+    _toolBone->updateWorldTransform();
+}
+
+void EntityAnimatedHuman::animateTool(const Point& point)
+{
+    _toolUsePoint = point;
+    _lastAnimatedToolAt = utils::gettime();
+
+    if (!_toolItem || !_toolItem->isSwingableTool())
+    {
+        setAnimatingTool(true);  // Gun or other tool
+        return;
+    }
+
+    if (_animatingTool)
+    {
+        return;
+    }
+
+    // Prepare swingable tool animation
+    _animateToolBeganAt = utils::gettime();
+    _toolRotation       = 150.0F;
+    setAnimatingTool(true);
+    updateArms(0.0F);
+    // TODO: fire playerDidSwingTool event
+
+    // 0x1001784CE: Play mining audio
+    if (_targetItem)
+    {
+        // TODO: unskilled thud audio
+        AudioManager::getInstance()->playSfx("mining", _targetItem->getMaterial(), 0.3F, 0.0F, 0.8F);
+    }
+
+    // 0x1001785E2: Apply tool glow
+    auto glow = _toolItem->getGlow();
+
+    if (glow > 0.0F && _toolItem->getAction() == Item::Action::MELEE)
+    {
+        setSlotOpacity("tool-glow", glow);
+    }
 }
 
 void EntityAnimatedHuman::animateEye(const std::string& suffix, float duration)

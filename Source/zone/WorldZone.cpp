@@ -69,13 +69,16 @@ void WorldZone::configure(const ValueMap& data)
 {
     _receivedInitialStatus = false;
 
-    auto config  = _game->getConfig();
-    _documentId  = map_util::getString(data, "id");
-    _name        = map_util::getString(data, "name", "Unknown Zone");
-    _biome       = map_util::getString(data, "biome", "plain");
-    _biomeType   = getBiomeForName(_biome);
-    _biomeConfig = config->getBiomeConfig(_biome);
-    _seed        = map_util::getUInt64(data, "seed", getDefaultSeed());
+    auto config      = _game->getConfig();
+    _documentId      = map_util::getString(data, "id");
+    _name            = map_util::getString(data, "name", "Unknown Zone");
+    _biome           = map_util::getString(data, "biome", "plain");
+    _biomeType       = getBiomeForName(_biome);
+    _biomeConfig     = config->getBiomeConfig(_biome);
+    _member          = map_util::getBool(data, "member");
+    _protected       = map_util::getBool(data, "protected");
+    _protectedReason = map_util::getString(data, "protected_reason");
+    _seed            = map_util::getUInt64(data, "seed", getDefaultSeed());
 
     // NOTE: originally done further down at 0x100040482
     config->loadBiome(_biome);
@@ -707,6 +710,27 @@ BaseBlock* WorldZone::getBlockAt(int16_t x, int16_t y, bool allowChunkAlloc)
 
     // If chunk is nullptr at this stage then we've got bigger problems
     return chunk->getBlockAt(x - chunk->getBlockX(), y - chunk->getBlockY());
+}
+
+BaseBlock* WorldZone::findReachableBlock(int16_t x, int16_t y, BlockLayer layer, bool allowInvulnerable)
+{
+    auto startX = MAX(0, x - 5);
+    auto startY = MIN(_blocksHeight - 1, y + 3);
+
+    for (int16_t i = startX; i <= x; i++)
+    {
+        for (int16_t j = startY; j >= y; j--)
+        {
+            auto block = getBlockAt(i, j);
+
+            if (block && block->isReachableFrom(layer, x, y, allowInvulnerable))
+            {
+                return block;
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 uint64_t WorldZone::getDefaultSeed() const

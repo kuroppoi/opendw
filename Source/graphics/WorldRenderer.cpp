@@ -33,6 +33,11 @@ USING_NS_AX;
 namespace opendw
 {
 
+WorldRenderer::~WorldRenderer()
+{
+    AX_SAFE_RELEASE(_miningCracksAnimation);
+}
+
 WorldRenderer* WorldRenderer::createWithZone(WorldZone* zone)
 {
     CREATE_INIT(WorldRenderer, initWithZone, zone);
@@ -124,8 +129,12 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _foreground->addChild(_animatedGhostlyEntitiesNode, getNextZIndex());
 
     // Create misc nodes
+    _effectsNode = SpriteBatchNode::create("effects+hd2.png");
+    _foreground->addChild(_effectsNode, getNextZIndex());
     _textNode = Node::create();  // Originally SpriteBatchNode but we cannot add labels to those
     _foreground->addChild(_textNode, getNextZIndex());
+    _guiNode = Node::create();
+    _foreground->addChild(_guiNode, getNextZIndex());
     _glowNode = Node::create();
     _foreground->addChild(_glowNode, getNextZIndex());
     _vectorLayer = VectorLayer::create();
@@ -133,6 +142,15 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _physicsDebugNode = PhysicsDebugNode::create();
     _physicsDebugNode->setVisible(false);
     _foreground->addChild(_physicsDebugNode, getNextZIndex());
+
+    // 0x10007DCC9: Create mining cracks animation
+    auto cache = SpriteFrameCache::getInstance();
+    Vector<SpriteFrame*> frames;
+    frames.pushBack(cache->getSpriteFrameByName("crack-1"));
+    frames.pushBack(cache->getSpriteFrameByName("crack-2"));
+    frames.pushBack(cache->getSpriteFrameByName("crack-3"));
+    _miningCracksAnimation = Animation::createWithSpriteFrames(frames, 1.0F);
+    AX_SAFE_RETAIN(_miningCracksAnimation);
 
     // 0x10007DE0F: Precompute corner masks
     _wholenessCornerMasks.reserve(256);
@@ -204,6 +222,7 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
         _continuityCornerMasks.push_back(continuity);
     }
 
+    sMain = this;
     AXLOGI("[WorldRenderer] Initialized");
     return true;
 }
@@ -339,7 +358,7 @@ void WorldRenderer::glowSprite(MaskedSprite* sprite)
         glowSprite->setFlippedX(sprite->isFlippedX());
         glowSprite->setScale(sprite->getScale());
         _glowNode->addChild(glowSprite, 20);
-        ax_util::fadeOutAndRemove(glowSprite, 0.333);
+        ax_util::fadeOutAndRemove(glowSprite, 0.25F);
     }
 }
 
@@ -690,12 +709,26 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
     return entity;
 }
 
-ax::Point WorldRenderer::getNodePointForScreenPoint(const ax::Point& point) const
+Action* WorldRenderer::generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration)
+{
+    auto animate = Animate::create(_miningCracksAnimation);
+    animate->setDuration(duration);
+    auto callFunc = CallFunc::create([=]() { block->completeMining(layer); });
+    auto sequence = Sequence::createWithTwoActions(animate, callFunc);
+    auto sprite   = Sprite::createWithSpriteFrameName("crack-1");
+    math_util::scaleToSize(sprite, Vec2::ONE * BLOCK_SIZE);
+    sprite->setPosition(_zone->getPointAtBlock(block->getX(), block->getY()));
+    _effectsNode->addChild(sprite);
+    sprite->runAction(sequence);
+    return sequence;
+}
+
+Point WorldRenderer::getNodePointForScreenPoint(const Point& point) const
 {
     return _foreground->convertToNodeSpace(point);
 }
 
-ax::Point WorldRenderer::getScreenPointForNodePoint(const ax::Point& point) const
+Point WorldRenderer::getScreenPointForNodePoint(const Point& point) const
 {
     return _foreground->convertToWorldSpace(point);
 }

@@ -11,6 +11,8 @@ enum class MessageIdent : uint8_t
     AUTHENTICATE   = 1,
     MOVE           = 5,
     INVENTORY_USE  = 10,
+    BLOCK_MINE     = 11,
+    BLOCK_PLACE    = 12,
     INVENTORY_MOVE = 14,
     BLOCKS         = 16,
     ZONE_SEARCH    = 23,

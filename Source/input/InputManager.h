@@ -28,6 +28,9 @@ public:
     /* FUNC: InputManager::checkInput: @ 0x1000E950F */
     virtual void checkInput(float deltaTime) = 0;
 
+    /* FUNC: InputManager::usePrimaryItem:atPoint: @ 0x1000E9515 */
+    virtual void useActiveHotbarItem(bool use, const ax::Point& point);
+
     /* FUNC: InputManager::screenPointerPosition @ 0x1000E9677 */
     const ax::Point& getCursorPosition() const { return _cursorPosition; }
 

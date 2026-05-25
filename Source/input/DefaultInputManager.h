@@ -16,6 +16,7 @@ class DefaultInputManager : public InputManager, EventListenerContainer
 {
 public:
     typedef ax::EventKeyboard::KeyCode KeyCode;
+    typedef ax::EventMouse::MouseButton MouseButton;
 
     static DefaultInputManager* createWithGame(GameManager* game);
 
@@ -34,13 +35,20 @@ public:
     /* FUNC: MacManager::ccKeyUp: @ 0x10003EF4B */
     void onKeyReleased(KeyCode keyCode, ax::Event* event);
 
+    /* FUNC: MacManager::ccMouseDown: @ 0x10003F02D */
+    bool onMouseDown(ax::EventMouse* event);
+
+    /* FUNC: MacManager::ccMouseUp: @ 0x10003F197 */
+    bool onMouseUp(ax::EventMouse* event);
+
     bool onMouseMove(ax::EventMouse* event);
 
     /* FUNC: MacManager::ccMouseScroll: @ 0x10003F249 */
     bool onMouseScroll(ax::EventMouse* event);
 
 private:
-    std::unordered_set<KeyCode> _keysPressed;  // MacManager::keysPressed @ 0x100310E70
+    std::unordered_set<KeyCode> _keysPressed;       // MacManager::keysPressed @ 0x100310E70
+    std::unordered_set<MouseButton> _mouseButtons;  // MacManager::mousePressed @ 0x100310E78
 };
 
 }  // namespace opendw

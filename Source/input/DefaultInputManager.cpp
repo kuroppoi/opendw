@@ -1,9 +1,13 @@
 #include "DefaultInputManager.h"
 
+#include "base/InventoryItem.h"
+#include "base/Item.h"
 #include "base/Player.h"
 #include "graphics/Lightmapper.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
+#include "util/ColorUtil.h"
+#include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
@@ -31,6 +35,8 @@ void DefaultInputManager::enterGame()
 
     // Create mouse listener
     auto mouseListener           = EventListenerMouse::create();
+    mouseListener->onMouseDown   = AX_CALLBACK_1(DefaultInputManager::onMouseDown, this);
+    mouseListener->onMouseUp     = AX_CALLBACK_1(DefaultInputManager::onMouseUp, this);
     mouseListener->onMouseMove   = AX_CALLBACK_1(DefaultInputManager::onMouseMove, this);
     mouseListener->onMouseScroll = AX_CALLBACK_1(DefaultInputManager::onMouseScroll, this);
     addEventListener(mouseListener, 11);
@@ -40,12 +46,15 @@ void DefaultInputManager::exitGame()
 {
     removeEventListeners();
     _keysPressed.clear();
+    _mouseButtons.clear();
     InputManager::exitGame();
 }
 
 void DefaultInputManager::checkInput(float deltaTime)
 {
     // TODO: finish
+    auto zone     = _game->getZone();
+    auto renderer = zone->getWorldRenderer();
     Vec2 moveDirection;
     float zoomDirection = 0.0F;
 
@@ -107,7 +116,6 @@ void DefaultInputManager::checkInput(float deltaTime)
 
         // Update world scale
         auto zoomSpeed    = _keysPressed.contains(KeyCode::KEY_ALT) ? 0.25F : 1.0F;
-        auto renderer     = _game->getZone()->getWorldRenderer();
         auto currentScale = renderer->getWorldScale();
         auto worldScale   = currentScale + zoomDirection * zoomSpeed * deltaTime * currentScale;
         renderer->setWorldScale(MAX(0.3F, MIN(1.2F, worldScale)));
@@ -118,10 +126,42 @@ void DefaultInputManager::checkInput(float deltaTime)
     }
 
     // Update last input time
-    // TODO: also check mouse input
-    if (!_keysPressed.empty())
+    if (!_keysPressed.empty() || !_mouseButtons.empty())
     {
         _lastInputAt = utils::gettime();
+    }
+
+
+    // Update place sprite & process mouse input
+    auto worldCursorPos = renderer->getNodePointForScreenPoint(_cursorPosition);
+    auto usingItem      = false;
+
+    if (auto block = zone->getBlockAtNodePoint(worldCursorPos))
+    {
+        auto point  = block->getWorldPosition();
+        auto sprite = _gameGui->getPlaceSprite();
+
+        if (sprite->isVisible())
+        {
+            auto item    = _player->getActiveHotbarItem()->getItem();
+            auto color   = _player->canPlaceItem(item, block) ? "64FF64" : "FF6464";
+            auto offsetX = MIN(sprite->getContentSize().width, BLOCK_SIZE) * 0.5F;
+            auto offsetY = MIN(sprite->getContentSize().height, BLOCK_SIZE) * 0.5F;
+            sprite->setPosition(point.x - offsetX, point.y - offsetY);
+            sprite->setColor(color_util::hexToColor(color));
+            sprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
+        }
+
+        if (_mouseButtons.contains(MouseButton::BUTTON_LEFT))
+        {
+            useActiveHotbarItem(true, worldCursorPos);
+            usingItem = true;
+        }
+    }
+
+    if (!usingItem)
+    {
+        useActiveHotbarItem(false, worldCursorPos);
     }
 }
 
@@ -217,6 +257,22 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
 void DefaultInputManager::onKeyReleased(KeyCode keyCode, Event* event)
 {
     _keysPressed.erase(keyCode);
+}
+
+bool DefaultInputManager::onMouseDown(EventMouse* event)
+{
+    if (!_gameGui->isPointInGui(event->getLocation()))
+    {
+        _mouseButtons.insert(event->getMouseButton());
+    }
+
+    return true;
+}
+
+bool DefaultInputManager::onMouseUp(EventMouse* event)
+{
+    _mouseButtons.erase(event->getMouseButton());
+    return true;
 }
 
 bool DefaultInputManager::onMouseMove(EventMouse* event)

@@ -98,6 +98,13 @@ public:
         NAME_CHANGE
     };
 
+    enum class Fieldable
+    {
+        YES,
+        PLACED,
+        NO
+    };
+
     struct InventoryPosition
     {
         int64_t category;
@@ -129,6 +136,9 @@ public:
 
     /* FUNC: Item::initWithManager:dictionary:name: @ 0x100004A727 */
     bool initWithManager(GameConfig* config, const ax::ValueMap& data, const std::string& name);
+
+    /* FUNC: Item::postProcess @ 0x10004CB55 */
+    void postProcess();
 
     /* FUNC: Item::processSprites @ 0x100004CBEA */
     void processSprites();
@@ -175,6 +185,15 @@ public:
     /* FUNC: Item::tool @ 0x10004D688 */
     bool isTool() const { return _tool; }
 
+    /* FUNC: Item::isMiningTool @ 0x10004D6AC */
+    bool isMiningTool() const;
+
+    /* FUNC: Item::isSwingableTool @ 0x10004D6C6 */
+    bool isSwingableTool() const;
+
+    /* FUNC: Item::isGun @ 0x10004D6FA */
+    bool isGun() const;
+
     /* FUNC: Item::isConsumable @ 0x10004D75F */
     bool isConsumable() const { return _consumable; }
 
@@ -205,6 +224,24 @@ public:
     /* FUNC: Item::borderShadow @ 0x10004E497 */
     bool hasBorderShadow() const { return _borderShadow; }
 
+    /* FUNC: Item::mounted @ 0x10004DEA9 */
+    bool isMounted() const { return _mounted; }
+
+    /* FUNC: Item::placeable @ 0x10004DFA9 */
+    bool isPlaceable() const { return _placeable; }
+
+    /* FUNC: Item::invulnerable @ 0x10004DE43 */
+    bool isInvulnerable() const { return _invulnerable; }
+
+    /* FUNC: Item::placeover @ 0x10004DE54 */
+    bool canPlaceover() const { return _placeover; }
+
+    /* FUNC: Item::isDiggable @ 0x10004DF98 */
+    bool isDiggable() const { return _diggable; }
+
+    /* FUNC: Item::reach @ 0x10004DF22 */
+    bool hasReach() const { return _reach; }
+
     /* FUNC: Item::power @ 0x10004DECB */
     float getPower() const { return _power; }
 
@@ -219,6 +256,9 @@ public:
 
     /* FUNC: Item::light @ 0x10004E0EE */
     float getLight() const { return _light; }
+
+    /* FUNC: Item::placeMod @ 0x10004E28A */
+    uint8_t getPlaceMod() const { return _placeMod; }
 
     /* FUNC: Item::isUsable @ 0x10004D7C9 */
     bool isUsable() const { return _useMask != 0; }
@@ -241,6 +281,12 @@ public:
     /* FUNC: Item::field @ 0x10004DF44 */
     int32_t getField() const { return _field; }
 
+    /* FUNC: Item::fieldPlace @ 0x10004DF55 */
+    bool canPlaceInField() const { return _fieldPlace; }
+
+    /* FUNC: Item::fieldable @ 0x10004DF88 */
+    Fieldable getFieldable() const { return _fieldable; }
+
     /* FUNC: Item::fieldDamageType @ 0x10004DF66 */
     DamageType getFieldDamageType() const { return _fieldDamageType; }
 
@@ -252,6 +298,12 @@ public:
 
     /* FUNC: Item::isMirrorable @ 0x10004D726 */
     bool isMirrorable() const { return _mirrorable; }
+
+    /* FUNC: Item::inventoryItem @ 0x10004E246 */
+    Item* getInventoryItem() const { return _inventoryItem; }
+
+    /* FUNC: Item::decayInventoryItem @ 0x10004E257 */
+    Item* getDecayInventoryItem() const { return _decayInventoryItem; }
 
     /* FUNC: Item::setParentItem: @ 0x10004E436 */
     void setParentItem(Item* item) { _parentItem = item; }
@@ -384,18 +436,29 @@ private:
     bool _center;                                    // Item::center @ 0x100311270
     bool _shadow;                                    // Item::shadow @ 0x100311258
     bool _borderShadow;                              // Item::borderShadow @ 0x1003112B0
+    bool _mounted;                                   // Item::mounted @ 0x100311260
+    bool _placeable;                                 // Item::isPlaceable @ 0x100311470
+    bool _invulnerable;                              // Item::invulnerable @ 0x100311230
+    bool _placeover;                                 // Item::placeover = 0x100311238
+    bool _diggable;                                  // Item::isDiggable @ 0x1003112D0
+    bool _reach;                                     // Item::reach @ 0x100311278
     float _power;                                    // Item::power @ 0x100311288
     float _rate;                                     // Item::rate @ 0x100311290
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8
+    uint8_t _placeMod;                               // Item::placeMod @ 0x100311410
     uint64_t _useMask;                               // Item::useMask @ 0x100311428
     Shape _shape;                                    // Item::shape @ 0x100311218
     std::string _shapeDefinition;                    // Item::shapeDefinition @ 0x100311220
     int32_t _field;                                  // Item::field @ 0x1003112B8
+    bool _fieldPlace;                                // Item::fieldPlace @ 0x1003112C0
+    Fieldable _fieldable;                            // Item::fieldable @ 0x1003112C8
     DamageType _fieldDamageType;                     // Item::fieldDamageType @ 0x1003112D8
     ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
     ax::Point _lightPosition;                        // Item::lightPosition @ 0x1003113C8
+    Item* _inventoryItem;                            // Item::inventoryItem @ 0x100311498
+    Item* _decayInventoryItem;                       // Item::decayInventoryItem @ 0x1003114A0
     Item* _parentItem;                               // Item::parentItem @ 0x100311528
     Item* _useChangeItem;                            // Item::useChangeItem @ 0x100311530
     std::vector<Item*> _changeItems;                 // Item::changeItems @ 0x100311528

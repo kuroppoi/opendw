@@ -158,7 +158,16 @@ void EntityAnimated::setSlot(const std::string& name, const std::string& attachm
 
     if (slot)
     {
-        _mainSkeleton->setAttachment(name, attachment);
+#if _AX_DEBUG
+        if (!_mainSkeleton->getAttachment(name, attachment))
+        {
+            _mainSkeleton->setAttachment(name, "");
+        }
+        else
+#endif
+        {
+            _mainSkeleton->setAttachment(name, attachment);
+        }
     }
 }
 

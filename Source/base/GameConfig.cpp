@@ -98,6 +98,12 @@ bool GameConfig::initWithData(const ValueMap& data)
         }
     }
 
+    // 0x10004FC97: Post process items
+    for (auto& entry : _itemsByName)
+    {
+        entry.second->postProcess();
+    }
+
     AXLOGI("[GameConfig] Configured {} items in {:.2f}s", itemCount, utils::gettime() - itemStart);
 
     // 0x10004FDBD: Configure entities
