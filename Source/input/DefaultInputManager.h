@@ -7,6 +7,8 @@
 namespace opendw
 {
 
+class Item;
+
 /*
  * CLASS: MacManager : InputManager @ 0x100316DB0
  *
@@ -38,6 +40,8 @@ public:
     /* FUNC: MacManager::setCursor: @ 0x10003F39B */
     void setCursor(const std::string& cursor);
 
+    void onActiveHotbarItemChanged(Item* item);
+
     /* FUNC: MacManager::ccKeyDown: @ 0x10003E0D5 */
     void onKeyPressed(KeyCode keyCode, ax::Event* event);
 
@@ -61,6 +65,8 @@ private:
     std::unordered_set<KeyCode> _keysPressed;       // MacManager::keysPressed @ 0x100310E70
     std::unordered_set<MouseButton> _mouseButtons;  // MacManager::mousePressed @ 0x100310E78
     ax::Sprite* _cursorSprite;                      // MacManager::cursorSprite @ 0x100310E88
+    ax::Sprite* _placeSprite;
+    bool _placeSpriteVisible;
 };
 
 }  // namespace opendw

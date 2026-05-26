@@ -15,7 +15,6 @@ class IconBar;
 class InventoryItemSprite;
 class InventoryItem;
 class ItemContainer;
-class Item;
 class SpriteButton;
 class TeleportPanel;
 class WorldZone;
@@ -30,9 +29,6 @@ struct ZoneSearchInfo;
 class GameGui : public ax::Node, EventListenerContainer
 {
 public:
-    /* FUNC: GameGui::dealloc @ 0x10006A37F */
-    virtual ~GameGui() override;
-
     /* FUNC: GameGui::main @ 0x1000592A8 */
     static GameGui* getMain() { return sMain; }
 
@@ -130,9 +126,6 @@ public:
     /* FUNC: GameGui::guiWindowPosition: @ 0x1000675DA */
     ax::Point getGuiWindowPosition(bool alignRight) const;
 
-    /* FUNC: GameGui::placeSprite @ 0x10006A696 */
-    ax::Sprite* getPlaceSprite() const { return _placeSprite; }
-
     /* FUNC: GameGui::setMouseSprite: @ 0x1000603E0 */
     void setActiveItemSprite(InventoryItemSprite* sprite);
 
@@ -159,9 +152,6 @@ public:
 
     /* FUNC: GameGui::playerCountDidChange @ 0x10005EC12 */
     void onPlayerCountChanged();
-
-    /* FUNC: GameGui::activeItemDidChange: @ 0x100060588 */
-    void onActiveHotbarItemChanged(Item* item);
 
     /* FUNC: GameGui::playerAppearanceDidChange: @ 0x100064497 */
     void onPlayerAppearanceChanged(const ax::ValueMap& data);
@@ -219,7 +209,6 @@ private:
     SpriteButton* _consoleButton;                          // GameGui::consoleButton @ 0x100311918
     ItemContainer* _primaryHotbar;                         // GameGui::primaryHotbar @ 0x100311920
     ax::Node* _topSpriteLayer;                             // GameGui::mouseSpriteLayer @ 0x100311938
-    ax::Sprite* _placeSprite;                              // GameGui::placeSprite @ 0x100311930
     InventoryItemSprite* _activeItemSprite;                // GameGui::mouseSprite @ 0x1003119E8
     TeleportPanel* _teleportPanel;                         // GameGui::teleportPanel @ 0x100311A58
     double _lastAlertShownAt;                              // GameGui::lastAlertShownAt @ 0x100311978

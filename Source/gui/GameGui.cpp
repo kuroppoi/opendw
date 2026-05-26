@@ -6,7 +6,6 @@
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
-#include "graphics/WorldRenderer.h"
 #include "gui/widget/IconBar.h"
 #include "gui/widget/InventoryItemSprite.h"
 #include "gui/widget/ItemContainer.h"
@@ -33,11 +32,6 @@ USING_NS_AX;
 
 namespace opendw
 {
-
-GameGui::~GameGui()
-{
-    AX_SAFE_RELEASE(_placeSprite);
-}
 
 GameGui* GameGui::createWithZone(WorldZone* zone)
 {
@@ -223,13 +217,6 @@ bool GameGui::initWithZone(WorldZone* zone)
     addChild(_primaryHotbar, 4, "hotbar");
     _containers.insert(ContainerType::HOTBAR, _primaryHotbar);
 
-    // 0x10005B822: Create place sprite
-    _placeSprite = Sprite::create();
-    _placeSprite->retain();
-    _placeSprite->setOpacity(128);
-    _placeSprite->setVisible(false);
-    _placeSprite->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
-
     // 0x10005B891: Create top sprite layer
     _topSpriteLayer = Node::create();
     addChild(_topSpriteLayer, 10);
@@ -256,7 +243,6 @@ void GameGui::onEnter()
     addEventListener(events::kDeathMessageChanged, EVENT_CALLBACK_REF(std::string*, onDeathMessageChanged));
     addEventListener(events::kPlayerEntered, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
     addEventListener(events::kPlayerExited, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
-    addEventListener(events::kActiveHotbarItemChanged, EVENT_CALLBACK(Item*, onActiveHotbarItemChanged));
 
     // Create touch listener
     auto touchListener = EventListenerTouchOneByOne::create();
@@ -712,48 +698,6 @@ void GameGui::onPlayerCountChanged()
 {
     auto count = _zone->getPeerCount();
     _socialLabel->setString(std::to_string(count + 1));
-}
-
-void GameGui::onActiveHotbarItemChanged(Item* item)
-{
-    // TODO: mask support
-
-    if (!item || !item->isPlaceable())
-    {
-        _placeSprite->setVisible(false);
-        return;
-    }
-
-    auto frame = item->getBackground();
-
-    if (!frame)
-    {
-        frame = item->getSpriteFrame();
-
-        if (!frame)
-        {
-            _placeSprite->setVisible(false);
-            return;
-        }
-    }
-
-    _placeSprite->setSpriteFrame(frame);
-
-    if (item->isTileable())
-    {
-        Rect rect        = frame->getRect();
-        rect.size.width  = MIN(rect.size.width, BLOCK_SIZE);
-        rect.size.height = MIN(rect.size.height, BLOCK_SIZE);
-        _placeSprite->setTextureRect(rect);
-    }
-
-    _placeSprite->setVisible(true);
-
-    // Add to gui node if parentless
-    if (!_placeSprite->getParent())
-    {
-        _zone->getWorldRenderer()->getGuiNode()->addChild(_placeSprite, 10);
-    }
 }
 
 void GameGui::onPlayerAppearanceChanged(const ValueMap& data)

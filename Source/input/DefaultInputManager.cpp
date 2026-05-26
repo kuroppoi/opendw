@@ -22,6 +22,7 @@ namespace opendw
 DefaultInputManager::~DefaultInputManager()
 {
     AX_SAFE_RELEASE(_cursorSprite);
+    AX_SAFE_RELEASE(_placeSprite);
 }
 
 DefaultInputManager* DefaultInputManager::createWithGame(GameManager* game)
@@ -36,9 +37,17 @@ bool DefaultInputManager::initWithGame(GameManager* game)
         return false;
     }
 
+    // Create cursor sprite
     _cursorSprite = Sprite::create("guiv2.png");
     _cursorSprite->retain();
     _cursorSprite->setScale(0.7F);
+    
+    // Create place sprite
+    _placeSprite = Sprite::create();
+    _placeSprite->retain();
+    _placeSprite->setOpacity(128);
+    _placeSprite->setVisible(false);
+    _placeSprite->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     return true;
 }
 
@@ -48,6 +57,9 @@ void DefaultInputManager::enterGame()
     _director->getRenderView()->setCursorVisible(false);
     _cursorSprite->setVisible(false);
     _gameGui->addChild(_cursorSprite, 999);
+
+    addEventListener(events::kCursorEntered, EVENT_CALLBACK_REF(bool*, onCursorEntered));
+    addEventListener(events::kActiveHotbarItemChanged, EVENT_CALLBACK(Item*, onActiveHotbarItemChanged));
 
     // Create keyboard listener
     auto keyboardListener           = EventListenerKeyboard::create();
@@ -62,7 +74,6 @@ void DefaultInputManager::enterGame()
     mouseListener->onMouseMove   = AX_CALLBACK_1(DefaultInputManager::onMouseMove, this);
     mouseListener->onMouseScroll = AX_CALLBACK_1(DefaultInputManager::onMouseScroll, this);
     addEventListener(mouseListener, 11);
-    addEventListener(events::kCursorEntered, EVENT_CALLBACK_REF(bool*, onCursorEntered));
 }
 
 void DefaultInputManager::exitGame()
@@ -163,11 +174,12 @@ void DefaultInputManager::checkInput(float deltaTime)
     }
 
     // Determine cursor sprite
+    auto cursorInGui      = _gameGui->isPointInGui(_cursorPosition);
     auto worldCursorPos   = renderer->getNodePointForScreenPoint(_cursorPosition);
     auto activeHotbarItem = _player->getActiveHotbarItem();
     std::string cursor    = "pointer";
 
-    if (activeHotbarItem && !_gameGui->isPointInGui(_cursorPosition))
+    if (activeHotbarItem && !cursorInGui)
     {
         auto item = activeHotbarItem->getItem();
 
@@ -184,22 +196,22 @@ void DefaultInputManager::checkInput(float deltaTime)
     setCursor(cursor);
 
     // Update place sprite & process mouse input
+    _placeSprite->setVisible(_placeSpriteVisible && !cursorInGui);
     auto usingItem = false;
 
     if (auto block = zone->getBlockAtNodePoint(worldCursorPos))
     {
         auto point  = block->getWorldPosition();
-        auto sprite = _gameGui->getPlaceSprite();
 
-        if (sprite->isVisible() && activeHotbarItem)
+        if (_placeSprite->isVisible() && activeHotbarItem)
         {
             auto item    = activeHotbarItem->getItem();
             auto color   = _player->canPlaceItem(item, block) ? "64FF64" : "FF6464";
-            auto offsetX = MIN(sprite->getContentSize().width, BLOCK_SIZE) * 0.5F;
-            auto offsetY = MIN(sprite->getContentSize().height, BLOCK_SIZE) * 0.5F;
-            sprite->setPosition(point.x - offsetX, point.y - offsetY);
-            sprite->setColor(color_util::hexToColor(color));
-            sprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
+            auto offsetX = MIN(_placeSprite->getContentSize().width, BLOCK_SIZE) * 0.5F;
+            auto offsetY = MIN(_placeSprite->getContentSize().height, BLOCK_SIZE) * 0.5F;
+            _placeSprite->setPosition(point.x - offsetX, point.y - offsetY);
+            _placeSprite->setColor(color_util::hexToColor(color));
+            _placeSprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
         }
 
         if (_mouseButtons.contains(MouseButton::BUTTON_LEFT))
@@ -212,6 +224,47 @@ void DefaultInputManager::checkInput(float deltaTime)
     if (!usingItem)
     {
         useActiveHotbarItem(false, worldCursorPos);
+    }
+}
+
+void DefaultInputManager::onActiveHotbarItemChanged(Item* item)
+{
+    if (item && item->isPlaceable())
+    {
+        // Determine frame to use
+        auto frame = item->getBackground();
+
+        if (!frame)
+        {
+            frame = item->getSpriteFrame();
+
+            if (!frame)
+            {
+                _placeSpriteVisible = false;
+                return;
+            }
+        }
+
+        _placeSpriteVisible = true;
+        _placeSprite->setSpriteFrame(frame);
+
+        if (item->isTileable())
+        {
+            Rect rect        = frame->getRect();
+            rect.size.width  = MIN(rect.size.width, BLOCK_SIZE);
+            rect.size.height = MIN(rect.size.height, BLOCK_SIZE);
+            _placeSprite->setTextureRect(rect);
+        }
+    }
+    else
+    {
+        _placeSpriteVisible = false;
+    }
+
+    // Add to world renderer's gui node if parentless
+    if (!_placeSprite->getParent())
+    {
+        WorldRenderer::getMain()->getGuiNode()->addChild(_placeSprite, 10);
     }
 }
 
