@@ -240,8 +240,18 @@ void DefaultInputManager::onActiveHotbarItemChanged(Item* item)
 
             if (!frame)
             {
-                _placeSpriteVisible = false;
-                return;
+                auto& animation = item->getSpriteAnimation();
+
+                if (!animation.empty())
+                {
+                    frame = animation[0];
+                }
+
+                if (!frame)
+                {
+                    _placeSpriteVisible = false;
+                    return;
+                }
             }
         }
 
