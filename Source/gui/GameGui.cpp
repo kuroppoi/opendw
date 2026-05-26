@@ -574,7 +574,7 @@ void GameGui::showBigAlert(const Value& data)
 
 bool GameGui::isPointInGui(const Point& point) const
 {
-    if (_gameMenu || _teleportPanel->isVisible())
+    if (_gameMenu || _teleportPanel->isVisible() || _draggingItemSprite)
     {
         return true;
     }

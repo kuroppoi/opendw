@@ -3,6 +3,7 @@
 #include "base/InventoryItem.h"
 #include "base/Item.h"
 #include "base/Player.h"
+#include "event/EventNames.h"
 #include "graphics/Lightmapper.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
@@ -18,14 +19,35 @@ USING_NS_AX;
 namespace opendw
 {
 
+DefaultInputManager::~DefaultInputManager()
+{
+    AX_SAFE_RELEASE(_cursorSprite);
+}
+
 DefaultInputManager* DefaultInputManager::createWithGame(GameManager* game)
 {
     CREATE_INIT(DefaultInputManager, initWithGame, game);
 }
 
+bool DefaultInputManager::initWithGame(GameManager* game)
+{
+    if (!InputManager::initWithGame(game))
+    {
+        return false;
+    }
+
+    _cursorSprite = Sprite::create("guiv2.png");
+    _cursorSprite->retain();
+    _cursorSprite->setScale(0.7F);
+    return true;
+}
+
 void DefaultInputManager::enterGame()
 {
     InputManager::enterGame();
+    _director->getRenderView()->setCursorVisible(false);
+    _cursorSprite->setVisible(false);
+    _gameGui->addChild(_cursorSprite, 999);
 
     // Create keyboard listener
     auto keyboardListener           = EventListenerKeyboard::create();
@@ -40,6 +62,7 @@ void DefaultInputManager::enterGame()
     mouseListener->onMouseMove   = AX_CALLBACK_1(DefaultInputManager::onMouseMove, this);
     mouseListener->onMouseScroll = AX_CALLBACK_1(DefaultInputManager::onMouseScroll, this);
     addEventListener(mouseListener, 11);
+    addEventListener(events::kCursorEntered, EVENT_CALLBACK_REF(bool*, onCursorEntered));
 }
 
 void DefaultInputManager::exitGame()
@@ -47,6 +70,14 @@ void DefaultInputManager::exitGame()
     removeEventListeners();
     _keysPressed.clear();
     _mouseButtons.clear();
+    _cursorSprite->removeFromParent();
+
+    // getRenderView() can return nullptr if the window has been closed already
+    if (auto view = _director->getRenderView())
+    {
+        view->setCursorVisible(true);
+    }
+
     InputManager::exitGame();
 }
 
@@ -131,19 +162,38 @@ void DefaultInputManager::checkInput(float deltaTime)
         _lastInputAt = utils::gettime();
     }
 
+    // Determine cursor sprite
+    auto worldCursorPos   = renderer->getNodePointForScreenPoint(_cursorPosition);
+    auto activeHotbarItem = _player->getActiveHotbarItem();
+    std::string cursor    = "pointer";
+
+    if (activeHotbarItem && !_gameGui->isPointInGui(_cursorPosition))
+    {
+        auto item = activeHotbarItem->getItem();
+
+        if (item->isMiningTool() && _player->canDigAt(worldCursorPos))
+        {
+            cursor = "dig";
+        }
+        else if (item->isPlaceable())
+        {
+            cursor = "place";
+        }
+    }
+
+    setCursor(cursor);
 
     // Update place sprite & process mouse input
-    auto worldCursorPos = renderer->getNodePointForScreenPoint(_cursorPosition);
-    auto usingItem      = false;
+    auto usingItem = false;
 
     if (auto block = zone->getBlockAtNodePoint(worldCursorPos))
     {
         auto point  = block->getWorldPosition();
         auto sprite = _gameGui->getPlaceSprite();
 
-        if (sprite->isVisible())
+        if (sprite->isVisible() && activeHotbarItem)
         {
-            auto item    = _player->getActiveHotbarItem()->getItem();
+            auto item    = activeHotbarItem->getItem();
             auto color   = _player->canPlaceItem(item, block) ? "64FF64" : "FF6464";
             auto offsetX = MIN(sprite->getContentSize().width, BLOCK_SIZE) * 0.5F;
             auto offsetY = MIN(sprite->getContentSize().height, BLOCK_SIZE) * 0.5F;
@@ -254,6 +304,13 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
     _keysPressed.insert(keyCode);
 }
 
+void DefaultInputManager::setCursor(const std::string& cursor)
+{
+    auto frameName = std::format("cursors/{}", cursor.empty() ? "pointer" : cursor);
+    _cursorSprite->setSpriteFrame(frameName);
+    _cursorSprite->setAnchorPoint(cursor == "pointer" ? Point(0.1F, 0.8F) : Point::ANCHOR_MIDDLE);  // Approximation
+}
+
 void DefaultInputManager::onKeyReleased(KeyCode keyCode, Event* event)
 {
     _keysPressed.erase(keyCode);
@@ -278,6 +335,8 @@ bool DefaultInputManager::onMouseUp(EventMouse* event)
 bool DefaultInputManager::onMouseMove(EventMouse* event)
 {
     _cursorPosition.set(event->getCursorX(), event->getCursorY());
+    _cursorSprite->setPosition(_cursorPosition);
+    _cursorSprite->setVisible(true);
     return false;
 }
 
@@ -297,6 +356,11 @@ bool DefaultInputManager::onMouseScroll(EventMouse* event)
     }
 
     return false;
+}
+
+void DefaultInputManager::onCursorEntered(bool entered)
+{
+    _cursorSprite->setVisible(entered);
 }
 
 }  // namespace opendw

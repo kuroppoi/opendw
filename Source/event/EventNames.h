@@ -5,6 +5,7 @@ namespace opendw::events
 {
 
 inline static const auto kActiveHotbarItemChanged = "activeItemDidChange";
+inline static const auto kCursorEntered           = "cursorEnteredWindow";
 inline static const auto kDeathMessageChanged     = "deathMessageDidChange";
 inline static const auto kGuiWindowChangedPanel   = "guiWindowChangedPanel";
 inline static const auto kPlayerAppearanceChanged = "playerDidChangeAppearance";
