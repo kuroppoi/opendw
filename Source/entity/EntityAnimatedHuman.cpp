@@ -96,7 +96,7 @@ void EntityAnimatedHuman::update(float deltaTime)
     }
 
     // TODO: update face color
-    // 
+    
     // 0x100178B9C: Stop gun animation if necessary
     if (_toolItem && _toolItem->isGun() && utils::gettime() >= _lastAnimatedToolAt + 0.2)
     {
@@ -569,10 +569,16 @@ void EntityAnimatedHuman::updateArms(float deltaTime)
 
 void EntityAnimatedHuman::animateTool(const Point& point)
 {
-    _toolUsePoint = point;
     _lastAnimatedToolAt = utils::gettime();
+    _toolUsePoint       = point;
 
-    if (!_toolItem || !_toolItem->isSwingableTool())
+    if (!_toolItem)
+    {
+        setAnimatingTool(false);
+        return;
+    }
+
+    if (!_toolItem->isSwingableTool())
     {
         setAnimatingTool(true);  // Gun or other tool
         return;
@@ -580,24 +586,21 @@ void EntityAnimatedHuman::animateTool(const Point& point)
 
     if (_animatingTool)
     {
-        return;
+        return;  // Already animating
     }
 
-    // Prepare swingable tool animation
-    _animateToolBeganAt = utils::gettime();
-    _toolRotation       = 150.0F;
+    // Handle tool swing
+    _lastSwungToolAt = utils::gettime();
+    _toolRotation    = 150.0F;
     setAnimatingTool(true);
     updateArms(0.0F);
-    // TODO: fire playerDidSwingTool event
 
-    // 0x1001784CE: Play mining audio
-    if (_targetItem)
+    if (_playerAvatar && _targetItem)
     {
-        // TODO: unskilled thud audio
         AudioManager::getInstance()->playSfx("mining", _targetItem->getMaterial(), 0.3F, 0.0F, 0.8F);
     }
 
-    // 0x1001785E2: Apply tool glow
+    // Apply tool glow
     auto glow = _toolItem->getGlow();
 
     if (glow > 0.0F && _toolItem->getAction() == Item::Action::MELEE)

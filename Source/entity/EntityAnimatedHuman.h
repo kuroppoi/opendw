@@ -69,7 +69,7 @@ public:
     void animateEye(const std::string& suffix, float duration);
 
     /* FUNC: EntityAnimatedHuman::animateToolBeganAt @ 0x100179437 */
-    double getAnimateToolBeganAt() const { return _animateToolBeganAt; }
+    double getLastSwungToolAt() const { return _lastSwungToolAt; }
 
 protected:
     spine::Bone* _toolBone;             // EntityAnimatedHuman::toolBone @ 0x100315028
@@ -94,7 +94,7 @@ protected:
     bool _animatingTool;                // EntityAnimatedHuman::animatingTool @ 0x1003150D8
     bool _wasAnimatingTool;             // EntityAnimatedHuman::wasAnimatingTool @ 0x1003150E0
     double _lastAnimatedToolAt;         // EntityAnimatedHuman::lastAnimatedToolAt @ 0x100315110
-    double _animateToolBeganAt;         // EntityAnimatedHuman::animateToolBeganAt @ 0x100315118
+    double _lastSwungToolAt;            // EntityAnimatedHuman::animateToolBeganAt @ 0x100315118
     double _nextEyeChangeAt;            // EntityAnimatedHuman::nextEyeChangeAt @ 0x100315130
     bool _lastEyeWasBlink;              // EntityAnimatedHuman::lastEyeWasBlink @ 0x100315138
     Item* _topsItem;

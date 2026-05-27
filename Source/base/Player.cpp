@@ -618,34 +618,51 @@ bool Player::useActiveHotbarItem(const Point& point)
 
 bool Player::useInventoryItem(InventoryItem* invItem, const Point& point)
 {
-    // TODO: finish
+    auto result     = false;
+    auto mining     = false;
+    Item* usingItem = nullptr;
 
-    if (!invItem || !_avatar->isAlive())
+    if (invItem && _avatar->isAlive())
     {
-        setUsingHotbarItem(nullptr);
-        return false;
+        auto item = invItem->getItem();
+        usingItem = item;
+
+        if (item->isPlaceable())
+        {
+            result    = tryToPlaceInventoryItem(invItem, point);
+            usingItem = nullptr;
+        }
+        else if (item->isMiningTool())
+        {
+            result = tryToMineBlockAtNodePoint(point, invItem);
+            mining = true;
+        }
+        else if (item->isTool())
+        {
+            // TODO: implement other tools
+            result = true;
+            _avatar->animateTool(point);
+        }
+        else if (item->getAction() == Item::Action::SHIELD)
+        {
+            // TODO: implement shields
+        }
     }
 
-    auto item = invItem->getItem();
+    // TODO: secondary
+    setUsingPrimaryItem(usingItem);
 
-    if (item->isPlaceable())
+    if (!mining)
     {
-        return tryToPlaceInventoryItem(invItem, point);
-    }
-    else if (item->isMiningTool())
-    {
-        setUsingHotbarItem(item);
-        return tryToMineBlockAtNodePoint(point, invItem);
-    }
-    else if (item->isGun())
-    {
-        // TODO: implement shooting
-        setUsingHotbarItem(item);
-        _avatar->animateTool(point);
-        return true;
+        _avatar->setTargetItem(nullptr);
+
+        if (_miningBlock)
+        {
+            _miningBlock->cancelMining();
+        }
     }
 
-    return false;
+    return result;
 }
 
 BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* invItem)
@@ -697,7 +714,7 @@ BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* 
     // 0x100024695: Process mining attempt
     auto toolSwung = true;
 
-    if (utils::gettime() >= _lastMiningAttemptAt + 0.1 && utils::gettime() < _avatar->getAnimateToolBeganAt() + 0.1)
+    if (utils::gettime() >= _lastMiningAttemptAt + 0.1 && utils::gettime() < _avatar->getLastSwungToolAt() + 0.1)
     {
         _lastMiningAttemptAt = utils::gettime();
 
@@ -1250,12 +1267,21 @@ void Player::setActiveHotbarSlot(int64_t slot)
     GameGui::getMain()->updateHotbar();
 }
 
-void Player::setUsingHotbarItem(Item* item)
+void Player::setUsingPrimaryItem(Item* item)
 {
-    if (_usingHotbarItem != item)
+    if (_usingPrimaryItem != item)
     {
-        _usingHotbarItem = item;
+        _usingPrimaryItem = item;
         sendInventoryUseMessage(item);
+    }
+}
+
+void Player::setUsingSecondaryItem(Item* item)
+{
+    if (_usingSecondaryItem != item)
+    {
+        _usingSecondaryItem = item;
+        sendInventoryUseMessage(item, true);
     }
 }
 

@@ -197,7 +197,7 @@ void DefaultInputManager::checkInput(float deltaTime)
 
     // Update place sprite & process mouse input
     _placeSprite->setVisible(_placeSpriteVisible && !cursorInGui);
-    auto usingItem = false;
+    InventoryItem* usingItem = nullptr;
 
     if (auto block = zone->getBlockAtNodePoint(worldCursorPos))
     {
@@ -216,15 +216,11 @@ void DefaultInputManager::checkInput(float deltaTime)
 
         if (_mouseButtons.contains(MouseButton::BUTTON_LEFT))
         {
-            useActiveHotbarItem(true, worldCursorPos);
-            usingItem = true;
+            usingItem = activeHotbarItem;
         }
     }
 
-    if (!usingItem)
-    {
-        useActiveHotbarItem(false, worldCursorPos);
-    }
+    _player->useInventoryItem(usingItem, worldCursorPos);
 }
 
 void DefaultInputManager::onActiveHotbarItemChanged(Item* item)

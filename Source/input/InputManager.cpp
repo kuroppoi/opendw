@@ -29,34 +29,4 @@ void InputManager::enterGame()
     _gameGui = GameGui::getMain();
 }
 
-void InputManager::useActiveHotbarItem(bool use, const Point& point)
-{
-    // TODO: finish
-    auto mining = false;
-
-    if (use)
-    {
-        _player->useActiveHotbarItem(point);
-
-        if (auto item = _player->getActiveHotbarItem())
-        {
-            mining = item->getItem()->isMiningTool();
-        }
-    }
-    else
-    {
-        _player->setUsingHotbarItem(nullptr);
-    }
-
-    if (!mining)
-    {
-        auto block = _player->getMiningBlock();
-
-        if (block)
-        {
-            block->cancelMining();
-        }
-    }
-}
-
 }  // namespace opendw

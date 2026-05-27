@@ -237,7 +237,10 @@ public:
     int64_t getActiveHotbarSlot() const { return _activeHotbarSlot; }
 
     /* FUNC: Player::setUsingPrimaryItem: @ 0x10002DA80 */
-    void setUsingHotbarItem(Item* item);
+    void setUsingPrimaryItem(Item* item);
+
+    /* FUNC: Player::setUsingSecondaryItem: @ 0x10002DAA1 */
+    void setUsingSecondaryItem(Item* item);
 
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
@@ -301,7 +304,8 @@ private:
     ax::Map<int16_t, InventoryItem*> _inventory;  // Player::inventory @ 0x100310670
     InventoryItem* _activeHotbarItem;             // Player::activePrimaryInventoryItem @ 0x1003107E8
     int64_t _activeHotbarSlot;                    // Player::primaryHotbarIndex @ 0x1003106A0
-    Item* _usingHotbarItem;                       // Player::usingHotbarItem @ 0x100310808
+    Item* _usingPrimaryItem;                      // Player::usingPrimaryItem @ 0x100310808
+    Item* _usingSecondaryItem;                    // Player::usingSecondaryItem @ 0x100310810
     bool _zoneTeleporting;                        // Player::isZoneTeleporting @ 0x1003106F8
     bool _travelingHorizontally;                  // Player::isTravelingHorizontally @ 0x100310780
     bool _mining;                                 // Player::isMining @ 0x100310848
