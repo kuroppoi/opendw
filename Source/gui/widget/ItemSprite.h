@@ -19,6 +19,8 @@ public:
 
     virtual void activate() {}
 
+    virtual void getTooltipComponents(std::vector<ax::Node*>& output) {};
+
     Item* getItem() const { return _item; }
 
 protected:

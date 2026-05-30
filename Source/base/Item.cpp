@@ -36,15 +36,18 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _data             = data;
     _category         = map_util::getString(data, "category");
     _name             = name;
+    _title            = map_util::getString(data, "title");
     _code             = map_util::getUInt32(data, "code");
     _layer            = getLayerForName(map_util::getString(data, "layer"));
     _modType          = getModTypeForName(map_util::getString(data, "mod"));
     _action           = getActionForName(map_util::getString(data, "action"));
     _specialPlacement = getSpecialPlacementForName(map_util::getString(data, "special_placement"));
+    _inventoryType    = map_util::getString(data, "inventory_type");
+    _tooltip          = map_util::getString(data, "tooltip");
     _material         = map_util::getString(data, "material");
     _tool             = _category == "tools";
     _consumable       = _category == "consumables";
-    _accessory        = _category == "accessories" || map_util::getString(data, "inventory_type") == "accessory";
+    _accessory        = _category == "accessories" || _inventoryType == "accessory";
     _placeable        = !_tool && !_consumable && !_accessory && _layer != BlockLayer::NONE;  // Custom criteria
     _invulnerable     = map_util::getBool(data, "invulnerable");
     _placeover        = map_util::getBool(data, "placeover");

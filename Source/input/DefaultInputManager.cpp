@@ -194,6 +194,7 @@ void DefaultInputManager::checkInput(float deltaTime)
     }
 
     setCursor(cursor);
+    _gameGui->showInventoryTooltipForPoint(_cursorPosition);
 
     // Update place sprite & process mouse input
     _placeSprite->setVisible(_placeSpriteVisible && !cursorInGui);

@@ -15,6 +15,8 @@ class IconBar;
 class InventoryItemSprite;
 class InventoryItem;
 class ItemContainer;
+class ItemSprite;
+class Panel;
 class SpriteButton;
 class TeleportPanel;
 class WorldZone;
@@ -63,6 +65,15 @@ public:
 
     /* FUNC: GameGui::inventoryContainerWithScreenPoint: @ 0x10005EFAA */
     ItemContainer* getItemContainerAtScreenPoint(const ax::Point& point) const;
+
+    /* FUNC: GameGui::updateTooltip: @ 0x10005F403 */
+    void updateInventoryTooltip();
+
+    /* FUNC: GameGui::showInventoryTooltipForPoint: @ 0x10005F570 */
+    void showInventoryTooltipForPoint(const ax::Point& point);
+
+    /* FUNC: GameGui::showInventoryTooltip: @ 0x10005F7F8 */
+    void showInventoryTooltip(ItemSprite* sprite);
 
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
@@ -210,6 +221,8 @@ private:
     ItemContainer* _primaryHotbar;                         // GameGui::primaryHotbar @ 0x100311920
     ax::Node* _topSpriteLayer;                             // GameGui::mouseSpriteLayer @ 0x100311938
     InventoryItemSprite* _activeItemSprite;                // GameGui::mouseSprite @ 0x1003119E8
+    Panel* _inventoryTooltip;                              // GameGui::inventoryTooltip @ 0x1003119C8
+    ItemSprite* _inventoryTooltipOwner;                    // GameGui::inventoryTooltipNode @ 0x1003119D0
     TeleportPanel* _teleportPanel;                         // GameGui::teleportPanel @ 0x100311A58
     double _lastAlertShownAt;                              // GameGui::lastAlertShownAt @ 0x100311978
     std::string _lastAlertShown;                           // GameGui::lastAlertShown @ 0x100311A10

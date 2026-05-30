@@ -221,6 +221,11 @@ bool GameGui::initWithZone(WorldZone* zone)
     _topSpriteLayer = Node::create();
     addChild(_topSpriteLayer, 10);
 
+    // Create inventory tooltip
+    _inventoryTooltip = Panel::createWithStyle("small/white");
+    _inventoryTooltip->setVisible(false);
+    addChild(_inventoryTooltip, 8);
+
     AXLOGI("[GameGui] Initialized");
     sMain = this;
     return true;
@@ -296,6 +301,7 @@ void GameGui::clear()
     _pendingAlerts.clear();
     _topSpriteLayer->removeAllChildren();
     _activeItemSprite = nullptr;
+    _inventoryTooltipOwner = nullptr;
 }
 
 void GameGui::updateInventoryItem(InventoryItem* item)
@@ -373,6 +379,97 @@ ItemContainer* GameGui::getItemContainerAtScreenPoint(const Point& point) const
     }
 
     return nullptr;
+}
+
+void GameGui::updateInventoryTooltip()
+{
+    if (_inventoryTooltipOwner)
+    {
+        _inventoryTooltip->setPosition(_inventoryTooltipOwner->getWorldPosition() - Vec2::UNIT_Y * _itemSize * 0.5F);
+        auto viewOffset  = _director->getVisibleOrigin();
+        auto visibleSize = _director->getVisibleSize();
+        auto right       = ceilf(visibleSize.width + viewOffset.x) - 5.0F;
+        auto width       = _inventoryTooltip->getContentSize().width;
+        auto maxX        = _inventoryTooltip->getPositionX() + width * 0.5F;
+        // NOTE: The magic number 80.0 is the panel's border width * 2 + tip width
+        _inventoryTooltip->setTip(Panel::Edge::TOP, MAX(0.5F, 0.5F + (maxX - right) / (width - 80.0F)));
+        _inventoryTooltip->anchorToTip();
+    }
+}
+
+void GameGui::showInventoryTooltipForPoint(const Point& point)
+{
+    if (!_draggingItemSprite)
+    {
+        auto container = getItemContainerAtScreenPoint(point);
+
+        if (container)
+        {
+            auto item = container->getItemAtScreenPoint(point);
+
+            if (item)
+            {
+                showInventoryTooltip(item);
+                return;
+            }
+        }
+    }
+
+    showInventoryTooltip(nullptr);
+}
+
+void GameGui::showInventoryTooltip(ItemSprite* sprite)
+{
+    if (_inventoryTooltipOwner == sprite)
+    {
+        return;
+    }
+
+    _inventoryTooltipOwner = sprite;  // Weak ref
+
+    if (!sprite)
+    {
+        _inventoryTooltip->setVisible(false);
+        return;
+    }
+
+    // Create tooltip components
+    auto titleLabel = Label::createWithBMFont("console.fnt", sprite->getItem()->getTitle());
+    titleLabel->setScale(0.75F);
+    titleLabel->setColor(Color3B::BLACK);
+    std::vector<Node*> components;
+    sprite->getTooltipComponents(components);
+    components.push_back(titleLabel);
+
+    // Create content pane
+    auto content = Node::create();
+    auto padding = 10.0F;
+    auto width   = 0.0F;
+    auto height  = 0.0F;
+
+    for (ssize_t i = 0; i < components.size(); i++)
+    {
+        auto component = components[i];
+        component->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
+        component->setPosition(0.0F, height);
+        content->addChild(component);
+        width = MAX(width, math_util::getScaledWidth(component));
+        height += math_util::getScaledHeight(component);
+
+        if (i + 1 < components.size())
+        {
+            height += padding;
+        }
+    }
+
+    _inventoryTooltip->removeChildByName("content");
+    _inventoryTooltip->setSize(width + padding * 2.0F, height + padding * 2.0F);
+    _inventoryTooltip->addChild(content, 1, "content");
+    auto& size = _inventoryTooltip->getContentSize();
+    content->setPosition(size.width * 0.5F, padding);
+    _inventoryTooltip->setVisible(true);
+    _inventoryTooltip->updateLayout();
+    updateInventoryTooltip();
 }
 
 void GameGui::toggleGameMenu()
@@ -857,6 +954,7 @@ void GameGui::onWindowResized()
     _consoleButton->setPosition(left, bottom);
     _primaryHotbar->setPosition(right - _panelMargin, top - _panelMargin);
     _guiWindow->updatePosition();
+    updateInventoryTooltip();
 }
 
 }  // namespace opendw

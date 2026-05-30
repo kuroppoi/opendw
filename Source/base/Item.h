@@ -155,6 +155,9 @@ public:
     /* FUNC: Item::name @ 0x10004DD8C */
     const std::string& getName() const { return _name; }
 
+    /* FUNC: Item::title @ 0x10004DD9D */
+    const std::string& getTitle() const { return _title; }
+
     /* FUNC: Item::code @ 0x10004DD5B */
     uint16_t getCode() const { return _code; }
 
@@ -172,6 +175,12 @@ public:
 
     /* FUNC: Item::specialPlacement @ 0x10004E4E8 */
     SpecialPlacement getSpecialPlacement() const { return _specialPlacement; }
+
+    /* FUNC: Item::inventoryType @ 0x10004E268 */
+    const std::string& getInventoryType() const { return _inventoryType; }
+
+    /* FUNC: Item::tooltip @ 0x10004E279 */
+    const std::string& getTooltip() const { return _tooltip; }
 
     /* FUNC: Item::material @ 0x10004DDE0 */
     const std::string& getMaterial() const { return _material; }
@@ -418,12 +427,15 @@ private:
     ax::ValueMap _data;                              // Item::config @ 0x1003111C0
     std::string _category;                           // Item::category @ 0x1003111D0
     std::string _name;                               // Item::name @ 0x1003111E8
+    std::string _title;                              // Item::title @ 0x1003111F0
     uint16_t _code;                                  // Item::code @ 0x1003111E0
     BlockLayer _layer;                               // Item::layer @ 0x1003111D8
     ModType _modType;                                // Item::mod @ 0x100311388
     Action _action;                                  // Item::action @ 0x100311398
     InventoryPosition _inventoryPosition;            // Item::inventoryPosition @ 0x100311310
     SpecialPlacement _specialPlacement;              // Item::specialPlacement @ 0x100311468
+    std::string _inventoryType;                      // Item::inventoryType @ 0x1003113A8
+    std::string _tooltip;                            // Item::tooltip @ 0x1003113B0
     std::string _material;                           // Item::material @ 0x1003111F8
     int16_t _width;                                  // Item::width @ 0x100311370
     int16_t _height;                                 // Item::height @ 0x100311378
