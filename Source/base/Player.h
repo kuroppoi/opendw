@@ -88,6 +88,9 @@ public:
     /* FUNC: Player::useItem:atPoint:fromContainer: @ 0x10002365D */
     bool useInventoryItem(InventoryItem* invItem, const ax::Point& point);
 
+    /* FUNC: Player::tryToUseBlockAtNodePoint: @ 0x100024300 */
+    BaseBlock* tryToUseBlockAtNodePoint(const ax::Point& point);
+
     /* FUNC: Player::tryToMineBlockAtNodePoint:withItem: @ 0x100024470 */
     BaseBlock* tryToMineBlockAtNodePoint(const ax::Point& point, InventoryItem* invItem);
 

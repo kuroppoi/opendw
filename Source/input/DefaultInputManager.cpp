@@ -380,7 +380,14 @@ bool DefaultInputManager::onMouseDown(EventMouse* event)
 {
     if (!_gameGui->isPointInGui(event->getLocation()))
     {
-        _mouseButtons.insert(event->getMouseButton());
+        auto button = event->getMouseButton();
+        _mouseButtons.insert(button);
+
+        if (button == MouseButton::BUTTON_LEFT)
+        {
+            auto point = WorldRenderer::getMain()->getNodePointForScreenPoint(event->getLocation());
+            _player->tryToUseBlockAtNodePoint(point);
+        }
     }
 
     return true;

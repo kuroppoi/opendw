@@ -665,6 +665,27 @@ bool Player::useInventoryItem(InventoryItem* invItem, const Point& point)
     return result;
 }
 
+BaseBlock* Player::tryToUseBlockAtNodePoint(const Point& point)
+{
+    if (_avatar->isAlive() && canDigAt(point))
+    {
+        auto zone  = _game->getZone();
+        auto block = zone->getBlockAtNodePoint(point);
+
+        if (block)
+        {
+            block = zone->findReachableBlock(block->getX(), block->getY(), BlockLayer::FRONT, true);
+
+            if (block)
+            {
+                block->useLayer(block->getTopUsableLayer());
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* invItem)
 {
     BaseBlock* target = nullptr;

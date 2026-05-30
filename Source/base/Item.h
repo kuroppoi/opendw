@@ -55,15 +55,26 @@ enum class DamageType : uint8_t
 enum class UseType : uint8_t
 {
     NONE,
+    CHANGE,
     CLIMB,
+    PROTECTED,
+    PUBLIC,
     SIGN,
+    CONTAINER,
+    ZONE_TELEPORT,
+    GECK,
+    COMPOSTER,
     FLY,
     PROPEL,
     HOVER,
+    EXPIATOR,
     MINIGAME,
+    WARMTH,
     MOVE,
+    SWITCH,
     SUPPRESS,
-    FIELD_DISPLAY
+    FIELD_DISPLAY,
+    UNKNOWN
 };
 
 /*
@@ -269,6 +280,9 @@ public:
     /* FUNC: Item::placeMod @ 0x10004E28A */
     uint8_t getPlaceMod() const { return _placeMod; }
 
+    /* FUNC: Item::use @ 0x10004E3F1 */
+    const ax::ValueMap& getUse() const { return _use; }
+
     /* FUNC: Item::isUsable @ 0x10004D7C9 */
     bool isUsable() const { return _useMask != 0; }
 
@@ -460,6 +474,7 @@ private:
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8
     uint8_t _placeMod;                               // Item::placeMod @ 0x100311410
+    ax::ValueMap _use;                               // Item::use @ 0x100311418
     uint64_t _useMask;                               // Item::useMask @ 0x100311428
     Shape _shape;                                    // Item::shape @ 0x100311218
     std::string _shapeDefinition;                    // Item::shapeDefinition @ 0x100311220

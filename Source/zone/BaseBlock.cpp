@@ -646,6 +646,102 @@ void BaseBlock::processPhysical()
     space->add(_physical);
 }
 
+BlockLayer BaseBlock::getTopUsableLayer() const
+{
+    if (_front > 0 && _frontItem->isUsable())
+    {
+        return BlockLayer::FRONT;
+    }
+
+    if (_back > 0 && _backItem->isUsable())
+    {
+        return BlockLayer::BACK;
+    }
+
+    return BlockLayer::NONE;
+}
+
+void BaseBlock::useLayer(BlockLayer layer, bool sendMessage)
+{
+    auto item = getItemForLayer(layer);
+
+    if (!item)
+    {
+        return;
+    }
+
+    // 0x100031020: Check permission
+    if (item->isUsableType(UseType::PROTECTED))
+    {
+        auto metaBlock = _zone->getMetaBlockAt(_x, _y);
+
+        if (metaBlock && !metaBlock->isOwnedByPlayer())
+        {
+            if (item->isUsableType(UseType::PUBLIC))
+            {
+                sendUseMessageForLayer(layer);
+            }
+
+            return;
+        }
+    }
+
+    // TODO: teleport
+
+    if (item->isUsableType(UseType::ZONE_TELEPORT))
+    {
+        // TODO: zone teleport
+        return;
+    }
+
+    // 0x1000311AF: Handle simple use types
+    auto simpleTypes = {UseType::CONTAINER, UseType::GECK,   UseType::COMPOSTER, UseType::EXPIATOR,
+                        UseType::WARMTH,    UseType::SWITCH, UseType::UNKNOWN};
+
+    for (auto type : simpleTypes)
+    {
+        if (item->isUsableType(type))
+        {
+            sendUseMessageForLayer(layer);
+            break;
+        }
+    }
+
+    // 0x1000312B5: Handle advanced use types
+    for (auto& entry : item->getUse())
+    {
+        auto& key   = entry.first;
+        auto& value = entry.second;
+
+        if (value.getType() == Value::Type::MAP)
+        {
+            auto& map = value.asValueMap();
+
+            if (key == "change")
+            {
+                auto name = map_util::getString(map, "name");
+                auto mod  = map_util::getUInt32(map, "mod value");
+                auto item = GameConfig::getMain()->getItemForName(name);
+
+                if (item)
+                {
+                    setLayer(layer, item->getCode(), mod);
+                }
+
+                if (sendMessage)
+                {
+                    sendUseMessageForLayer(layer);
+                }
+            }
+        }
+    }
+}
+
+void BaseBlock::sendUseMessageForLayer(BlockLayer layer, const Value& data)
+{
+    GameManager::getInstance()->sendMessage(MessageIdent::BLOCK_USE, _x, _y, static_cast<uint8_t>(layer) - 1, data);
+}
+
 void BaseBlock::startMining(BlockLayer layer, Item* tool)
 {
     if (_miningAction)

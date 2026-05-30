@@ -128,6 +128,15 @@ public:
     /* FUNC: BaseBlock::processPhysical @ 0x1000308D9 */
     void processPhysical();
 
+    /* FUNC: BaseBlock::topUsableLayer @ 0x100030F1A */
+    BlockLayer getTopUsableLayer() const;
+
+    /* FUNC: BaseBlock::useLayer:sendMessage: @ 0x100030FA2 */
+    void useLayer(BlockLayer layer, bool sendMessage = true);
+
+    /* FUNC: BaseBlock::sendUseMessageForLayer:data: @ 0x100031627 */
+    void sendUseMessageForLayer(BlockLayer layer, const ax::Value& data = ax::Value::Null);
+
     /* FUNC: BaseBlock::startMining:withItem: @ 0x100031862 */
     void startMining(BlockLayer layer, Item* tool);
 

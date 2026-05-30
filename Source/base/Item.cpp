@@ -72,6 +72,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _field            = map_util::getInt32(data, "field");
     _fieldPlace       = map_util::getBool(data, "field_place");
     _placeMod         = map_util::getUInt32(data, "place_mod");
+    _use              = map_util::getMap(data, "use");
     _spriteZ          = map_util::getInt32(data, "sprite_z");
 
     // 0x10004A98C: Configure physics shape
@@ -541,26 +542,46 @@ DamageType Item::getDamageTypeForName(const std::string& name)
 
 UseType Item::getUseTypeForName(const std::string& name)
 {
-    if (name == "climb")
+    if (name == "change")
+        return UseType::CHANGE;
+    else if (name == "climb")
         return UseType::CLIMB;
+    else if (name == "protected")
+        return UseType::PROTECTED;
+    else if (name == "public")
+        return UseType::PUBLIC;
     else if (name == "sign")
         return UseType::SIGN;
+    else if (name == "container")
+        return UseType::CONTAINER;
+    else if (name == "zone teleport")
+        return UseType::ZONE_TELEPORT;
+    else if (name == "geck")
+        return UseType::GECK;
+    else if (name == "composter")
+        return UseType::COMPOSTER;
     else if (name == "fly")
         return UseType::FLY;
     else if (name == "propel")
         return UseType::PROPEL;
     else if (name == "hover")
         return UseType::HOVER;
+    else if (name == "expiator")
+        return UseType::EXPIATOR;
     else if (name == "minigame")
         return UseType::MINIGAME;
+    else if (name == "warmth")
+        return UseType::WARMTH;
     else if (name == "move")
         return UseType::MOVE;
+    else if (name == "switch")
+        return UseType::SWITCH;
     else if (name == "suppress")
         return UseType::SUPPRESS;
     else if (name == "field_display")
         return UseType::FIELD_DISPLAY;
 
-    return UseType::NONE;
+    return UseType::UNKNOWN;
 }
 
 Item::Action Item::getActionForName(const std::string& name)
