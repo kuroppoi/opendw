@@ -9,6 +9,7 @@ namespace opendw
 class BaseBlock;
 class CavernRenderer;
 class Entity;
+class Item;
 class Lightmapper;
 class MaskedSprite;
 class SkyRenderer;
@@ -92,8 +93,14 @@ public:
     /* FUNC: WorldRenderer::addEntity:name:details: @ 0x1000825E0 */
     Entity* addEntity(int32_t code, const std::string& name, const ax::ValueMap& details);
 
+    /* FUNC: WorldRenderer::emote:color:quick:atPosition: @ 0x1000832B7 */
+    ax::Label* emote(const std::string& text, const ax::Color3B& color, bool quick, const ax::Point& position);
+
     /* FUNC: WorldRenderer::generateMiningCracks:forLayer:duration: @ 0x100084065 */
     ax::Action* generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration);
+
+    /* FUNC: WorldRenderer::emitItemAnimation:fromPoint: @ 0x100084BDF */
+    void emitItemAnimation(Item* item, const ax::Point& position, ssize_t count = 1);
 
     /* FUNC: WorldRenderer::setWorldScale: @ 0x100082B33 */
     void setWorldScale(float scale) { _worldScale = scale; }

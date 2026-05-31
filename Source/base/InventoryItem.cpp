@@ -2,10 +2,14 @@
 
 #include "base/Item.h"
 #include "base/Player.h"
+#include "entity/EntityAnimatedAvatar.h"
+#include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
 #include "network/tcp/MessageIdent.h"
 #include "GameManager.h"
 #include "CommonDefs.h"
+
+USING_NS_AX;
 
 namespace opendw
 {
@@ -70,6 +74,13 @@ void InventoryItem::updateServer()
     }
 }
 
+void InventoryItem::emit(ssize_t count)
+{
+    auto position = Player::getMain()->getPosition();
+    position.y += BLOCK_SIZE * 2.0F;
+    WorldRenderer::getMain()->emitItemAnimation(_item, position, count);
+}
+
 bool InventoryItem::shouldNotifyOnIncrease() const
 {
     return _item->getCode() != 512;  // ground/earth
@@ -93,13 +104,27 @@ void InventoryItem::moveToContainer(ContainerType container, int64_t slot, int64
 
 void InventoryItem::setQuantity(int64_t quantity)
 {
-    // TODO: show feedback if new quantity is greater
-
-    if (_quantity != quantity)
+    if (_quantity == quantity)
     {
-        _quantity = quantity;
-        update();
+        return;
     }
+
+    // Notify if quantity increased
+    if (quantity > _quantity)
+    {
+        auto gained = quantity - _quantity;
+
+        if (shouldNotifyOnIncrease())
+        {
+            auto text = std::format("+{} {}", gained, _item->getTitle());
+            Player::getMain()->getAvatar()->emote(text, Color3B::WHITE, true, true);
+        }
+
+        emit(MIN(10, gained));
+    }
+
+    _quantity = quantity;
+    update();
 }
 
 void InventoryItem::setPosition(int64_t slot, int64_t category)

@@ -13,6 +13,7 @@
 #include "graphics/SkyRenderer.h"
 #include "graphics/VectorLayer.h"
 #include "graphics/WorldLayerRenderer.h"
+#include "gui/widget/MultiLabel.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/ChipmunkSpace.h"
 #include "physics/PhysicsDebugNode.h"
@@ -709,6 +710,24 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
     return entity;
 }
 
+Label* WorldRenderer::emote(const std::string& text, const Color3B& color, bool quick, const Point& position)
+{
+    auto label = MultiLabel::createWithBMFont("console.fnt", text);
+    label->setScale(0.8F);
+    label->setColor(color);
+    label->setOpacity(222);
+    label->setPosition(position);
+    _textNode->addChild(label);
+    auto duration  = quick ? 1.5F : 3.0;
+    auto delayTime = DelayTime::create(duration - 0.5F);
+    auto fadeOut   = FadeOut::create(0.5F);
+    auto callFunc  = CallFuncN::create(&Node::removeFromParent);
+    auto sequence  = Sequence::create({delayTime, fadeOut, callFunc});
+    auto moveBy    = MoveBy::create(duration, Vec2::UNIT_Y * (quick ? 25.0F : 40.0F));
+    label->runAction(Spawn::createWithTwoActions(moveBy, sequence));
+    return label;
+}
+
 Action* WorldRenderer::generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration)
 {
     auto animate = Animate::create(_miningCracksAnimation);
@@ -721,6 +740,46 @@ Action* WorldRenderer::generateMiningCracks(BaseBlock* block, BlockLayer layer, 
     _effectsNode->addChild(sprite);
     sprite->runAction(sequence);
     return sequence;
+}
+
+void WorldRenderer::emitItemAnimation(Item* item, const Point& position, ssize_t count)
+{
+    if (_zone->getState() != WorldZone::State::ACTIVE)
+    {
+        return; 
+    }
+
+    if (auto frame = item->getInventoryFrame())
+    {
+        for (ssize_t i = 0; i < count; i++)
+        {
+            auto sprite = Sprite::createWithSpriteFrame(frame);
+            sprite->setPosition(position);
+            sprite->setScale(0.5F);
+            // FIXME: Needs to use ONE_MINUS_CONSTANT_COLOR which isn't supported
+            sprite->setBlendFunc({backend::BlendFactor::ONE, backend::BlendFactor::ONE_MINUS_SRC_COLOR});
+            _guiNode->addChild(sprite);
+            auto moveBy = MoveBy::create(0.5F, Vec2::UNIT_Y * BLOCK_SIZE * 1.1F);
+
+            if (i > 0)
+            {
+                // Use action for delay so we don't have to use a scheduler
+                sprite->setOpacity(0);
+                auto delayTime = DelayTime::create(i * 0.075F);
+                auto fadeIn    = FadeIn::create(0.0F);
+                auto fadeOut   = FadeOut::create(0.5F);
+                auto callFunc  = CallFuncN::create(&Node::removeFromParent);
+                auto sequence  = Sequence::createWithTwoActions(fadeOut, callFunc);
+                auto spawn     = Spawn::createWithTwoActions(moveBy, sequence);
+                sprite->runAction(Sequence::create({delayTime, fadeIn, spawn}));
+            }
+            else
+            {
+                ax_util::fadeOutAndRemove(sprite);
+                sprite->runAction(moveBy);
+            }
+        }
+    }
 }
 
 Point WorldRenderer::getNodePointForScreenPoint(const Point& point) const

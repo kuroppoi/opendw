@@ -26,6 +26,9 @@ public:
 
     /* FUNC: InventoryItem::updateServer @ 0x10006D7B5 */
     void updateServer();
+    
+    /* FUNC: InventoryItem::emit @ 0x10006D983 */
+    void emit(ssize_t count);
 
     /* FUNC: InventoryItem::shouldNotifyOnIncrease @ 0x10006D290 */
     bool shouldNotifyOnIncrease() const;
