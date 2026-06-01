@@ -426,7 +426,9 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
 
     if (background)
     {
-        placeSprite(block, nullptr, background, _layer == BlockLayer::BASE || center || tileable, true);
+        // BUGFIX: Allow backgrounds to be properly rotated or mirrored
+        placeSprite(block, nullptr, background, _layer == BlockLayer::BASE || center || tileable, true,
+                    modType == ModType::ROTATION ? modType : ModType::NONE, mod);
     }
 
     // Place continuity animation sprite (independent of sprite continuity)
