@@ -623,30 +623,39 @@ bool Player::useInventoryItem(InventoryItem* invItem, const Point& point)
     auto mining     = false;
     Item* usingItem = nullptr;
 
-    if (invItem && _avatar->isAlive())
+    if (_avatar->isAlive() && !point.isZero())
     {
-        auto item = invItem->getItem();
-        usingItem = item;
+        if (invItem)
+        {
+            auto item = invItem->getItem();
+            usingItem = item;
 
-        if (item->isPlaceable())
-        {
-            result    = tryToPlaceInventoryItem(invItem, point);
-            usingItem = nullptr;
+            if (item->isPlaceable())
+            {
+                result    = tryToPlaceInventoryItem(invItem, point);
+                usingItem = nullptr;
+            }
+            else if (item->isMiningTool())
+            {
+                result = tryToMineBlockAtNodePoint(point, invItem);
+                mining = true;
+            }
+            else if (item->isTool())
+            {
+                // TODO: implement other tools
+                result = true;
+                _avatar->animateTool(point);
+            }
+            else if (item->getAction() == Item::Action::SHIELD)
+            {
+                // TODO: implement shields
+            }
         }
-        else if (item->isMiningTool())
+        else
         {
+            // Mining with bare hands
             result = tryToMineBlockAtNodePoint(point, invItem);
             mining = true;
-        }
-        else if (item->isTool())
-        {
-            // TODO: implement other tools
-            result = true;
-            _avatar->animateTool(point);
-        }
-        else if (item->getAction() == Item::Action::SHIELD)
-        {
-            // TODO: implement shields
         }
     }
 
