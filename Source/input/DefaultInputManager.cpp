@@ -74,6 +74,11 @@ void DefaultInputManager::enterGame()
     mouseListener->onMouseMove   = AX_CALLBACK_1(DefaultInputManager::onMouseMove, this);
     mouseListener->onMouseScroll = AX_CALLBACK_1(DefaultInputManager::onMouseScroll, this);
     addEventListener(mouseListener, 11);
+
+    // Create touch listener
+    auto touchListener = EventListenerTouchOneByOne::create();
+    touchListener->onTouchBegan = AX_CALLBACK_2(DefaultInputManager::onTouchBegan, this);
+    addEventListener(touchListener, 11);
 }
 
 void DefaultInputManager::exitGame()
@@ -381,13 +386,28 @@ bool DefaultInputManager::onMouseDown(EventMouse* event)
     if (!_gameGui->isPointInGui(event->getLocation()))
     {
         auto button = event->getMouseButton();
-        _mouseButtons.insert(button);
 
-        if (button == MouseButton::BUTTON_LEFT)
+        // Left mouse button is managed by onTouchBegan
+        if (button != MouseButton::BUTTON_LEFT)
         {
-            auto point = WorldRenderer::getMain()->getNodePointForScreenPoint(event->getLocation());
-            _player->tryToUseBlockAtNodePoint(point);
+            _mouseButtons.insert(button);
         }
+    }
+
+    return true;
+}
+
+bool DefaultInputManager::onTouchBegan(Touch* touch, Event* event)
+{
+    // This is a little bit silly, but it's an easy way for us to effectively allow
+    // touch events to swallow left mouse button presses at input manager level.
+    auto location = touch->getLocation();
+
+    if (!_gameGui->isPointInGui(touch->getLocation()))
+    {
+        _mouseButtons.insert(MouseButton::BUTTON_LEFT);
+        auto point = WorldRenderer::getMain()->getNodePointForScreenPoint(location);
+        _player->tryToUseBlockAtNodePoint(point);
     }
 
     return true;

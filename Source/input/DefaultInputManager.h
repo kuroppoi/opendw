@@ -50,6 +50,7 @@ public:
 
     /* FUNC: MacManager::ccMouseDown: @ 0x10003F02D */
     bool onMouseDown(ax::EventMouse* event);
+    bool onTouchBegan(ax::Touch* touch, ax::Event* event);
 
     /* FUNC: MacManager::ccMouseUp: @ 0x10003F197 */
     bool onMouseUp(ax::EventMouse* event);
