@@ -180,10 +180,8 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
 
 void Item::postProcess()
 {
-    auto inventoryItem      = map_util::getString(_data, "inventory");
-    auto decayInventoryItem = map_util::getString(_data, "decay_inventory");
-    _inventoryItem          = inventoryItem.empty() ? this : _config->getItemForName(inventoryItem);
-    _decayInventoryItem     = decayInventoryItem.empty() ? this : _config->getItemForName(decayInventoryItem);
+    _inventoryItem      = _config->getItemForName(map_util::getString(_data, "inventory", _name));
+    _decayInventoryItem = _config->getItemForName(map_util::getString(_data, "decay_inventory", _name));
 }
 
 void Item::processSprites()
