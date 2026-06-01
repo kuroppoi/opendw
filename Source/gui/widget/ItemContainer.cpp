@@ -381,6 +381,46 @@ bool ItemContainer::isItemVisible(ItemSprite* sprite) const
     return slot >= start && slot < end;
 }
 
+int64_t ItemContainer::getNextAvailableSlot(int64_t category) const
+{
+    // Find which slots are occupied
+    std::vector<int64_t> occupiedSlots;
+
+    for (auto child : _itemSpriteNode->getChildren())
+    {
+        auto sprite = static_cast<ItemSprite*>(child);
+
+        if (sprite->_container.category == category)
+        {
+            occupiedSlots.push_back(sprite->_container.slot);
+        }
+    }
+
+    std::sort(occupiedSlots.begin(), occupiedSlots.end());
+
+    // Find first unoccupied slot
+    int64_t result = 0;
+
+    for (auto slot : occupiedSlots)
+    {
+        if (slot > result)
+        {
+            return result;  // There's a gap, meaning the slot is unoccupied
+        }
+        else
+        {
+            result++;
+        }
+    }
+
+    return result >= getTotalSlotCount() ? -1 : result;
+}
+
+int64_t ItemContainer::getTotalSlotCount() const
+{
+    return _slotCount * MAX(1, _pageCount);
+}
+
 int64_t ItemContainer::getSlotAtScreenPoint(const Point& point) const
 {
     auto nodePoint = _inventoryBatch->convertToNodeSpace(point);
@@ -406,7 +446,7 @@ ItemSprite* ItemContainer::getItemAtScreenPoint(const Point& point) const
 
 ItemSprite* ItemContainer::getItemAtSlot(int64_t slot, int64_t category) const
 {
-    if (slot < 0 || slot >= _slotCount * MAX(1, _pageCount))
+    if (slot < 0 || slot >= getTotalSlotCount())
     {
         return nullptr;
     }

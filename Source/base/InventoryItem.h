@@ -36,6 +36,9 @@ public:
     /* FUNC: InventoryItem::moveToContainer:position: @ 0x10006D33A */
     void moveToContainer(ContainerType container, int64_t slot, int64_t category = 0);
 
+    /* FUNC: InventoryItem::moveToInitialPosition @ 0x10006D529 */
+    void moveToInitialPosition();
+
     /* FUNC: InventoryItem::isInInventory @ 0x10006D89D */
     bool isInInventory() const { return _container == ContainerType::INVENTORY; }
 

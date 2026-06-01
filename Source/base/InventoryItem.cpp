@@ -6,6 +6,7 @@
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
 #include "network/tcp/MessageIdent.h"
+#include "zone/WorldZone.h"
 #include "GameManager.h"
 #include "CommonDefs.h"
 
@@ -30,25 +31,27 @@ bool InventoryItem::initWithItem(Item* item, int64_t quantity, ContainerType con
 
 void InventoryItem::update()
 {
+    auto gui    = GameGui::getMain();
+    auto player = Player::getMain();
+
     if (_quantity < 1)
     {
         _container = ContainerType::NONE;
     }
     else if (_container == ContainerType::NONE || _slot == -1)
     {
-        // TODO: moveToInitialPosition();
+        gui->updateInventoryItem(this);  // It might still be in an ItemContainer, so we make sure to remove it first
+        moveToInitialPosition();
     }
 
     // Update active item if item moved from or to the active hotbar slot
-    auto player = Player::getMain();
-
     if ((_container == ContainerType::HOTBAR && _slot == player->getActiveHotbarSlot()) ||
         player->getActiveHotbarItem() == this)
     {
         player->updateActiveHotbarItem();
     }
 
-    GameGui::getMain()->updateInventoryItem(this);
+    gui->updateInventoryItem(this);
 }
 
 static const char* getServerContainerForType(ContainerType type)
@@ -90,9 +93,17 @@ void InventoryItem::moveToContainer(ContainerType container, int64_t slot, int64
 {
     // TODO: update accessories
 
-    if (_container == container && _slot == slot && _category == category)
+    if (_container == container)
     {
-        return;
+        if (_slot == slot && _category == category)
+        {
+            return;
+        }
+        else if (_container == ContainerType::INVENTORY)
+        {
+            update();
+            return;
+        }
     }
 
     _container = container;
@@ -100,6 +111,48 @@ void InventoryItem::moveToContainer(ContainerType container, int64_t slot, int64
     _category  = category;
     update();
     updateServer();
+}
+
+void InventoryItem::moveToInitialPosition()
+{
+    _category = 0;  // Managed by arrangeInventory
+
+    if (WorldZone::getMain()->getState() != WorldZone::State::ACTIVE)
+    {
+        _container = ContainerType::INVENTORY;
+        _slot      = 0;
+        return;
+    }
+
+    auto player = Player::getMain();
+
+    // Try accessory bar
+    if (_item->isEquippableAccessory())
+    {
+        _slot = player->getNextInventorySlot(ContainerType::ACCESSORY);
+
+        if (_slot != -1)
+        {
+            _container = ContainerType::ACCESSORY;
+            updateServer();
+            return;
+        }
+    }
+
+    // Try hotbar
+    _slot = player->getNextInventorySlot(ContainerType::HOTBAR);
+
+    if (_slot != -1)
+    {
+        _container = ContainerType::HOTBAR;
+        updateServer();
+    }
+    else
+    {
+        _container = ContainerType::INVENTORY;
+        _slot      = 0;
+        player->arrangeInventory(_item);
+    }
 }
 
 void InventoryItem::setQuantity(int64_t quantity)

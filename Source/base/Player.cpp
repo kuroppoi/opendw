@@ -6,6 +6,7 @@
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
+#include "gui/widget/ItemContainer.h"
 #include "gui/GameGui.h"
 #include "input/InputManager.h"
 #include "network/tcp/MessageIdent.h"
@@ -1218,6 +1219,17 @@ InventoryItem* Player::getInventory(Item* item)
     _inventory.insert(code, result);
     result->update();
     return result;
+}
+
+int64_t Player::getNextInventorySlot(ContainerType type)
+{
+    if (type == ContainerType::INVENTORY)
+    {
+        return 0;
+    }
+
+    auto container = GameGui::getMain()->getItemContainerForType(type);
+    return container ? container->getNextAvailableSlot() : -1;
 }
 
 InventoryItem* Player::getInventoryItem(ContainerType container, int64_t slot, int64_t category)

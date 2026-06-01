@@ -42,6 +42,9 @@ public:
 
     bool isItemVisible(ItemSprite* sprite) const;
 
+    int64_t getNextAvailableSlot(int64_t category = 0) const;
+    int64_t getTotalSlotCount() const;
+
     int64_t getSlotAtScreenPoint(const ax::Point& point) const;
     ItemSprite* getItemAtScreenPoint(const ax::Point& point) const;
     ItemSprite* getItemAtSlot(int64_t slot, int64_t category = -1) const;

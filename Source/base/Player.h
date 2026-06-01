@@ -220,6 +220,9 @@ public:
     /* FUNC: Player::getInventory: @ 0x1000219C2 */
     InventoryItem* getInventory(Item* item);
 
+    /* FUNC: Player::nextInventoryPosition: @ 0x100021B58 */
+    int64_t getNextInventorySlot(ContainerType type);
+
     /* FUNC: Player::inventoryItemInContainer:position: @ 0x100022801 */
     InventoryItem* getInventoryItem(ContainerType container, int64_t slot, int64_t category = 0);
 
