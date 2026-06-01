@@ -53,6 +53,9 @@ public:
     /* FUNC: Entity::animateViolentDeath @ 0x1000BF10B */
     virtual void animateViolentDeath();
 
+    /* FUNC: Entity::emote:color:quick:replaceLast: @ 0x1000BF992 */
+    virtual void emote(const std::string& text, const ax::Color3B& color, bool quick = false, bool replaceLast = false);
+
     /* FUNC: Entity::setFlipX: @ 0x1000BC034 */
     virtual void setFlippedX(bool flippedX);
 
@@ -151,6 +154,8 @@ protected:
     bool _playerAvatar;                      // Entity::isPlayerAvatar @ 0x100312930
     bool _grounded;                          // Entity::grounded @ 0x100312948
     double _lastGroundedAt;                  // Entity::lastGroundedAt @ 0x100312950
+    ax::Label* _lastEmote;                   // Entity:lastEmote @ 0x1003129E0
+    double _lastEmoteAt;                     // Entity::lastEmoteAt @ 0x1003129E8
     Physical* _physical;                     // NOTE: Originally inherited from GameObject
 };
 

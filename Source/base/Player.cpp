@@ -1,10 +1,12 @@
 #include "Player.h"
 
 #include "base/GameConfig.h"
+#include "base/InventoryItem.h"
 #include "base/Item.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
+#include "gui/widget/ItemContainer.h"
 #include "gui/GameGui.h"
 #include "input/InputManager.h"
 #include "network/tcp/MessageIdent.h"
@@ -25,9 +27,13 @@
 #define JUMP_COOLDOWN          0.3
 #define STEAM_RESTORE_COOLDOWN 0.5
 #define BASE_MAX_STEAM         20.0F
-#define AGILITY_LEVEL          10  // TODO: skills
-#define ENGINEERING_LEVEL      9   // TODO: skills
-#define STAMINA_LEVEL          10  // TODO: skills
+
+// TODO: skills
+#define AGILITY_LEVEL     10
+#define ENGINEERING_LEVEL 9
+#define STAMINA_LEVEL     10
+#define MINING_LEVEL      3
+#define BUILDING_LEVEL    5
 
 USING_NS_AX;
 
@@ -37,6 +43,7 @@ namespace opendw
 Player::~Player()
 {
     AX_SAFE_RELEASE(_avatar);
+    AX_SAFE_RELEASE(_miningBlock);
 }
 
 Player* Player::createWithGame(GameManager* game)
@@ -46,16 +53,12 @@ Player* Player::createWithGame(GameManager* game)
 
 bool Player::initWithGame(GameManager* game)
 {
-    _game             = game;
-    _username         = "Unknown player";
-    _entityId         = -1;
-    _respawnStartedAt = 0.0;
-    _health           = 5.0F;
-    _lastUsedSteamAt  = 0.0;
-    _steamCooldownAt  = 0.0;
-    _zoneTeleporting  = false;
-    _clip             = true;
-    sMain             = this;
+    _game     = game;
+    _username = "Unknown player";
+    _entityId = -1;
+    _health   = 5.0F;
+    _clip     = true;
+    sMain     = this;
     return true;
 }
 
@@ -151,6 +154,12 @@ void Player::reset()
     AXLOGI("[Player] reset");
     _physical = nullptr;  // Managed by avatar, no need to release
     AX_SAFE_RELEASE_NULL(_avatar);
+    _inventory.clear();
+    _activeHotbarItem = nullptr;
+    _activeHotbarSlot = 0;
+    AX_SAFE_RELEASE_NULL(_miningBlock);
+    _miningAttemptBlock = nullptr;
+    _lastPlacedBlock    = nullptr;
 }
 
 void Player::update(float deltaTime)
@@ -496,6 +505,8 @@ void Player::update(float deltaTime)
     {
         setSteam(_steam + deltaTime);
     }
+
+    _mining = false;
 }
 
 void Player::useFlyAccessory(Item* item, float deltaTime)
@@ -588,6 +599,379 @@ void Player::sendMoveMessage()
     _nextMoveMessageTime = time + MOVE_MESSAGE_INTERVAL;
 }
 
+void Player::sendInventoryUseMessage(Item* item, bool secondary, bool onlyIfAllowed)
+{
+    if (onlyIfAllowed && item && item->isGun() && !hasSteam())
+    {
+        return;
+    }
+
+    auto type   = secondary ? 1 : 0;
+    auto code   = item ? item->getCode() : 0;
+    auto status = item ? 1 : 2;
+    _game->sendMessage(MessageIdent::INVENTORY_USE, type, code, status);
+}
+
+bool Player::useActiveHotbarItem(const Point& point)
+{
+    return useInventoryItem(_activeHotbarItem, point);
+}
+
+bool Player::useInventoryItem(InventoryItem* invItem, const Point& point)
+{
+    auto result     = false;
+    auto mining     = false;
+    Item* usingItem = nullptr;
+
+    if (invItem && _avatar->isAlive())
+    {
+        auto item = invItem->getItem();
+        usingItem = item;
+
+        if (item->isPlaceable())
+        {
+            result    = tryToPlaceInventoryItem(invItem, point);
+            usingItem = nullptr;
+        }
+        else if (item->isMiningTool())
+        {
+            result = tryToMineBlockAtNodePoint(point, invItem);
+            mining = true;
+        }
+        else if (item->isTool())
+        {
+            // TODO: implement other tools
+            result = true;
+            _avatar->animateTool(point);
+        }
+        else if (item->getAction() == Item::Action::SHIELD)
+        {
+            // TODO: implement shields
+        }
+    }
+
+    // TODO: secondary
+    setUsingPrimaryItem(usingItem);
+
+    if (!mining)
+    {
+        _avatar->setTargetItem(nullptr);
+
+        if (_miningBlock)
+        {
+            _miningBlock->cancelMining();
+        }
+    }
+
+    return result;
+}
+
+BaseBlock* Player::tryToUseBlockAtNodePoint(const Point& point)
+{
+    if (_avatar->isAlive() && canDigAt(point))
+    {
+        auto zone  = _game->getZone();
+        auto block = zone->getBlockAtNodePoint(point);
+
+        if (block)
+        {
+            block = zone->findReachableBlock(block->getX(), block->getY(), BlockLayer::FRONT, true);
+
+            if (block)
+            {
+                block->useLayer(block->getTopUsableLayer());
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* invItem)
+{
+    BaseBlock* target = nullptr;
+    Item* targetItem  = nullptr;
+    auto layer        = BlockLayer::NONE;
+    auto zone         = _game->getZone();
+
+    // 0x100024487: Find block to mine at target point
+    if (canDigAt(point))
+    {
+        if (auto block = zone->getBlockAtNodePoint(point))
+        {
+            auto x = block->getX();
+            auto y = block->getY();
+
+            if (target = zone->findReachableBlock(x, y, BlockLayer::FRONT))
+            {
+                targetItem = target->getFrontItem();
+                layer      = BlockLayer::FRONT;
+            }
+            else if (target = zone->findReachableBlock(x, y, BlockLayer::BACK))
+            {
+                targetItem = target->getBackItem();
+                layer      = BlockLayer::BACK;
+            }
+        }
+    }
+
+    _avatar->setTargetItem(targetItem);  // BUGFIX: Don't replay previous audio when mining air
+    auto item    = invItem ? invItem->getItem() : nullptr;
+    auto digging = item && item->getAction() == Item::Action::DIG && targetItem && targetItem->isDiggable();
+
+    // 0x1000245AD: Update mining state (allow bare-handed mining)
+    if (!item || item->isTool())
+    {
+        _mining = true;
+    }
+
+    // 0x1000245F2: Animate tool
+    if (_mining)
+    {
+        _avatar->animateTool();
+    }
+
+    // TODO: generate mining debris
+
+    // 0x100024695: Process mining attempt
+    auto toolSwung = true;
+
+    if (utils::gettime() >= _lastMiningAttemptAt + 0.1 && utils::gettime() < _avatar->getLastSwungToolAt() + 0.1)
+    {
+        _lastMiningAttemptAt = utils::gettime();
+
+        if (_miningAttemptBlock != target)
+        {
+            _miningAttempts     = 1;
+            _miningAttemptBlock = target;  // Weak ref
+        }
+        else
+        {
+            _miningAttempts++;
+        }
+    }
+    else
+    {
+        toolSwung = false;
+    }
+
+    // Return here if there is no valid mining target
+    if (!target)
+    {
+        if (_miningBlock)
+        {
+            _miningBlock->cancelMining();
+        }
+
+        return nullptr;
+    }
+
+    // 0x1000247F5: Check protection
+    if (!digging && target->isProtectedByField())
+    {
+        // TODO: show protective field hint
+
+        if (toolSwung)
+        {
+            auto sprite = target->getBottomSpriteForLayer(layer);
+            zone->getWorldRenderer()->glowSprite(sprite);
+
+            // 0x100024892: Show protected field alert
+            if (_miningAttempts == 3)
+            {
+                std::string alert = "This block is protected by a force field";
+
+                if (zone->isProtected() && !zone->isMember())
+                {
+                    auto& reason = zone->getProtectedReason();
+                    alert        = reason.empty() ? "This world is protected" : reason;
+                }
+
+                alert = std::format("{}{}", alert,
+                                    targetItem->isDiggable() ? ", but you can use a shovel to dig through it." : ".");
+                Value data(alert);
+                _game->notify(NotificationType::ALERT, data);
+            }
+        }
+
+        return target;
+    }
+
+    // TODO: check mining skill
+    // TODO: check mining suppression
+
+    // 0x100024AB2: Begin mining the block
+    if (_miningBlock != target || _miningLayer != layer)
+    {
+        if (_miningBlock)
+        {
+            _miningBlock->cancelMining();
+        }
+
+        if (item && item->getAction() == Item::Action::SMASH && targetItem->getModType() == ModType::DECAY)
+        {
+            auto x   = target->getX();
+            auto y   = target->getY();
+            auto mod = target->getModForLayer(layer);
+            target->setModForLayer(layer, MAX(2, MIN(4, mod + 1)));
+            _game->sendMessage(MessageIdent::BLOCK_MINE, x, y, static_cast<uint8_t>(layer) - 1, targetItem->getCode(), 0);
+        }
+        else
+        {
+            target->startMining(layer, item);
+        }
+    }
+
+    setMiningBlock(target);
+    setMiningLayer(layer);
+    return target;
+}
+
+bool Player::tryToPlaceInventoryItem(InventoryItem* invItem, const Point& point)
+{
+    // Check cooldown
+    if (utils::gettime() < _nextAllowedPlaceTime)
+    {
+        return false;
+    }
+
+    // Check item quantity
+    if (!invItem || invItem->getQuantity() <= 0)
+    {
+        return false;
+    }
+
+    auto block = _game->getZone()->getBlockAtNodePoint(point);
+    auto item  = invItem->getItem();
+
+    if (block && canPlaceItem(item, block))
+    {
+        // TODO: check biome restriction
+        // TODO: check placing skill
+        // TODO: check placing cost (only used by butler bots)
+        // TODO: check spacing
+
+        auto x     = block->getX();
+        auto y     = block->getY();
+        auto layer = item->getLayer();
+        auto code  = item->getCode();
+        auto mod   = layer == BlockLayer::LIQUID ? 5 : item->getPlaceMod();
+
+        // TODO: handle rotation
+        if (item->isMirrorable() && _lookDirection == -1)
+        {
+            mod = 4;
+        }
+
+        block->setLayer(layer, code, mod);
+        invItem->setQuantity(invItem->getQuantity() - 1);
+        _game->sendMessage(MessageIdent::BLOCK_PLACE, x, y, static_cast<uint8_t>(layer) - 1, code, mod);
+        AudioManager::getInstance()->playButtonSfx();
+        _lastPlacedBlock = block;  // Weak ref
+        // TODO: fire event
+        return true;
+    }
+
+    if (block != _lastPlacedBlock)
+    {
+        AudioManager::getInstance()->playSfx("error", 1.0F, 0.0F, 0.3F);
+    }
+
+    _nextAllowedPlaceTime = utils::gettime() + 0.1;
+    return false;
+}
+
+bool Player::canDigAt(const Point& point) const
+{
+    auto zone   = _game->getZone();
+    auto origin = zone->getBlockAtNodePoint(getPhysicalCenter());
+    auto target = zone->getBlockAtNodePoint(point);
+
+    if (!origin || !target)
+    {
+        return false;
+    }
+
+    auto distance = (int)math_util::getDistance(origin->getX(), origin->getY(), target->getX(), target->getY());
+
+    if (distance > 2)
+    {
+        return false;  // Too far away
+    }
+
+    if (distance < 2)
+    {
+        return true;
+    }
+
+    // Shitty ray cast
+    for (auto i = 0; i < 4; i++)
+    {
+        auto offset = (i % 2) ? 1 : -1;
+        auto y      = i >= 2;  // Whether we're checking the Y axis
+
+        if ((y ? origin->getY() : origin->getX()) + offset * 2 == (y ? target->getY() : target->getX()))
+        {
+            auto block = zone->getBlockAt(origin->getX() + (y ? 0 : offset), origin->getY() + (y ? offset : 0));
+
+            if (!block || block->isWhole())
+            {
+                return false;  // Target is obstructed
+            }
+        }
+    }
+
+    return true;  // No obstructions
+}
+
+bool Player::canPlaceItem(Item* item, BaseBlock* block) const
+{
+    // 0x100027AA6: Check protection
+    if (!item->canPlaceInField() && block->isProtectedByField())
+    {
+        return false;
+    }
+
+    // 0x100027ABE: Check reach
+    if (item->hasReach() && !canDigAt(block->getWorldPosition()))
+    {
+        return false;
+    }
+
+    // 0x100027AFB: Check placing range
+    auto position = getBlockPosition();
+    auto distance = math_util::getDistance(position.x, position.y, block->getX(), block->getY());
+
+    if (distance >= getPlacingRange())
+    {
+        return false;
+    }
+
+    // 0x100027B37: Check if block is occupied
+    auto width  = MAX(1, item->getWidth());
+    auto height = MAX(1, item->getHeight());
+
+    if (item->isTileable() || (width == 1 && height == 1))
+    {
+        return block->canPlace(item);
+    }
+
+    for (auto x = block->getX(); x < block->getX() + width; x++)
+    {
+        for (auto y = block->getY(); y > block->getY() - height; y--)
+        {
+            auto target = _game->getZone()->getBlockAt(x, y);
+
+            if (!target || !target->canPlace(item))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 void Player::onFeetCollideWithBlock(BaseBlock* block)
 {
     // TODO: finish
@@ -636,6 +1020,17 @@ float Player::getFlyingSpeed() const
     return speed * power;
 }
 
+float Player::getPlacingRange() const
+{
+    // TODO: check for building extender
+    return MathUtil::lerp(4.0F, 12.0F, (float)BUILDING_LEVEL / 15.0F);
+}
+
+float Player::getMiningSpeed() const
+{
+    return MathUtil::lerp(1.0F, 1.75F, (float)MINING_LEVEL / 15.0F);
+}
+
 void Player::setPosition(const Point& position)
 {
     _physical->setPosition(position);
@@ -651,6 +1046,11 @@ Point Player::getBlockPosition() const
 {
     auto position = _physical->getPosition();
     return _game->getZone()->getBlockPointAtNodePoint({position.x, position.y + BLOCK_SIZE * 0.2F});
+}
+
+Point Player::getPhysicalCenter() const
+{
+    return getPosition() + Vec2::UNIT_Y * _avatar->getContentSize().height * 0.5F;
 }
 
 void Player::setLookDirection(int8_t direction)
@@ -750,6 +1150,196 @@ float Player::getSteamEfficiency() const
 float Player::getSteamCooldownDuration() const
 {
     return math_util::lerp(4.0F, 1.0F, ENGINEERING_LEVEL / 10.0F);
+}
+
+InventoryItem* Player::setInventory(Item* item, int64_t quantity)
+{
+    auto invItem = getInventory(item);
+    invItem->setQuantity(quantity);
+    return invItem;
+}
+
+InventoryItem* Player::setInventory(Item* item, int64_t quantity, ContainerType container, int64_t slot)
+{
+    auto code = item->getCode();
+    auto it   = _inventory.find(code);
+    InventoryItem* result;
+
+    if (it == _inventory.end())
+    {
+        // Create new inventory item
+        // BUGFIX: Show quantity notification for newly obtained items
+        if (quantity > 0 && _game->getZone()->getState() == WorldZone::State::ACTIVE)
+        {
+            result = InventoryItem::createWithItem(item, 0, container, slot);
+            result->setQuantity(quantity);
+        }
+        else
+        {
+            result = InventoryItem::createWithItem(item, quantity, container, slot);
+            result->update();
+        }
+
+        _inventory.insert(code, result);
+    }
+    else
+    {
+        // Update existing inventory item
+        result = (*it).second;
+        result->setQuantity(quantity);
+        result->moveToContainer(container, slot);
+    }
+
+    if (container == ContainerType::HOTBAR && _activeHotbarSlot == slot)
+    {
+        updateActiveHotbarItem();
+    }
+
+    return result;
+}
+
+InventoryItem* Player::addInventory(Item* item, int64_t quantity)
+{
+    auto invItem = getInventory(item);
+    invItem->setQuantity(invItem->getQuantity() + quantity);
+    return invItem;
+}
+
+InventoryItem* Player::getInventory(Item* item)
+{
+    auto code = item->getCode();
+    auto it   = _inventory.find(code);
+
+    if (it != _inventory.end())
+    {
+        return (*it).second;
+    }
+
+    auto result = InventoryItem::createWithItem(item, 0, ContainerType::NONE);
+    _inventory.insert(code, result);
+    result->update();
+    return result;
+}
+
+int64_t Player::getNextInventorySlot(ContainerType type)
+{
+    if (type == ContainerType::INVENTORY)
+    {
+        return 0;
+    }
+
+    auto container = GameGui::getMain()->getItemContainerForType(type);
+    return container ? container->getNextAvailableSlot() : -1;
+}
+
+InventoryItem* Player::getInventoryItem(ContainerType container, int64_t slot, int64_t category)
+{
+    // It's faster than it looks... probably
+    for (auto& entry : _inventory)
+    {
+        auto item = entry.second;
+
+        if (item->getContainer() == container && item->getSlot() == slot && item->getCategory() == category)
+        {
+            return item;
+        }
+    }
+
+    return nullptr;
+}
+
+static bool compareInventoryItem(InventoryItem* a, InventoryItem* b)
+{
+    return b->getItem()->getInventoryPosition().slot > a->getItem()->getInventoryPosition().slot;
+}
+
+void Player::arrangeInventory(Item* item)
+{
+    arrangeInventory(item->getInventoryPosition().category);
+}
+
+void Player::arrangeInventory(int64_t category)
+{
+    // Create a vector of all inventory items in the target category
+    std::vector<InventoryItem*> itemsInCategory;
+
+    for (auto& entry : _inventory)
+    {
+        if (entry.second->isInInventory() && entry.second->getItem()->getInventoryPosition().category == category)
+        {
+            itemsInCategory.push_back(entry.second);
+        }
+    }
+
+    // Sort items in ascending slot order
+    std::sort(itemsInCategory.begin(), itemsInCategory.end(), compareInventoryItem);
+
+    // Update position based on index in the sorted vector
+    for (ssize_t i = 0; i < itemsInCategory.size(); i++)
+    {
+        itemsInCategory[i]->setPosition(i, category);
+    }
+}
+
+void Player::updateActiveHotbarItem()
+{
+    _activeHotbarItem = getInventoryItem(ContainerType::HOTBAR, _activeHotbarSlot);
+    auto item = _activeHotbarItem ? _activeHotbarItem->getItem() : nullptr;
+    int16_t code;
+
+    if (item && item->isTool())
+    {
+        _avatar->setToolItem(item);
+        code = item->getCode();
+    }
+    else
+    {
+        _avatar->setToolItem(nullptr);
+        code = 0;
+    }
+
+    _game->sendMessage(MessageIdent::INVENTORY_USE, 0, code, 0);  // Primary, Item, Select
+    auto eventDispatcher = Director::getInstance()->getEventDispatcher();
+    eventDispatcher->dispatchCustomEvent(events::kActiveHotbarItemChanged, item);
+}
+
+void Player::setActiveHotbarSlot(int64_t slot)
+{
+    _activeHotbarSlot = slot < 0 ? kHotbarItemCount - 1 : slot >= kHotbarItemCount ? 0 : slot;
+    updateActiveHotbarItem();
+    GameGui::getMain()->updateHotbar();
+}
+
+void Player::setUsingPrimaryItem(Item* item)
+{
+    if (_usingPrimaryItem != item)
+    {
+        _usingPrimaryItem = item;
+        sendInventoryUseMessage(item);
+    }
+}
+
+void Player::setUsingSecondaryItem(Item* item)
+{
+    if (_usingSecondaryItem != item)
+    {
+        _usingSecondaryItem = item;
+        sendInventoryUseMessage(item, true);
+    }
+}
+
+void Player::setMiningBlock(BaseBlock* block)
+{
+    if (_miningBlock != block)
+    {
+        if (_miningBlock)
+        {
+            AX_SAFE_RELEASE(_miningBlock);
+        }
+
+        _miningBlock = block;
+        AX_SAFE_RETAIN(_miningBlock);
+    }
 }
 
 void Player::setClip(bool clip)

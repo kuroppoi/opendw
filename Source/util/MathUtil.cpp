@@ -64,10 +64,18 @@ Rect getRectIntersection(const Rect& rectA, const Rect& rectB)
     return Rect(minX, minY, width, height);
 }
 
-void scaleToSize(Node* node, const Size& size)
+void scaleToSize(Node* node, const Size& size, bool retainAspectRatio)
 {
     auto& nodeSize = node->getContentSize();
-    node->setScale(size.width / nodeSize.width, size.height / nodeSize.height);
+
+    if (retainAspectRatio)
+    {
+        node->setScale(MIN(size.width / nodeSize.width, size.height / nodeSize.height));
+    }
+    else
+    {
+        node->setScale(size.width / nodeSize.width, size.height / nodeSize.height);
+    }
 }
 
 Size getScaledSize(Node* node)

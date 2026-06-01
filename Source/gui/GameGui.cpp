@@ -1,13 +1,18 @@
 #include "GameGui.h"
 
 #include "base/GameConfig.h"
+#include "base/InventoryItem.h"
+#include "base/Item.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
 #include "gui/widget/IconBar.h"
+#include "gui/widget/InventoryItemSprite.h"
+#include "gui/widget/ItemContainer.h"
 #include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
 #include "gui/widget/SpriteButton.h"
+#include "gui/GameGuiWindow.h"
 #include "gui/TeleportPanel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"
@@ -21,7 +26,6 @@
 #define GUI_SCALE          1.0F  // TOOD: should be a setting
 #define HUD_BUTTON_OPACITY 230   // TODO: should be a setting
 #define HUD_BUTTON_SCALE   0.5F
-#define PANEL_MARGIN       10.0F
 #define MIN_ALERT_INTERVAL 1.5
 
 USING_NS_AX;
@@ -55,8 +59,16 @@ bool GameGui::initWithZone(WorldZone* zone)
         return false;
     }
 
-    _zone     = zone;
-    _gameMenu = nullptr;
+    _zone          = zone;
+    _gameMenu      = nullptr;
+    _panelMargin   = 10.0F;
+    _panelPadding  = 20.0F;
+    _itemMargin    = 2.0F;
+    _itemSize      = 70.0F;
+    _inventoryRows = 4;
+    _inventoryCols = 6;
+    _craftingRows  = 6;
+    _craftingCols  = 6;
 
     // Create announcements node
     _announcementsNode = Node::create();
@@ -113,6 +125,13 @@ bool GameGui::initWithZone(WorldZone* zone)
     _hudButtonsNode = Node::create();
     addChild(_hudButtonsNode, 8);
 
+    // 0x10005A2D4: Create gui window
+    auto slotSize   = _itemSize + _itemMargin;
+    auto windowSize = Size(_inventoryCols * slotSize + _panelPadding * 2.0F + 28.0F,
+                           (_inventoryRows + 1) * slotSize + _panelPadding * 3.0F + 273.0F);
+    _guiWindow = GameGuiWindow::createWithGui(this, windowSize);
+    addChild(_guiWindow, 7);
+
     // TODO: temp
     auto defaultCallback = [=]() { showAlert("Sorry, this feature isn't quite ready yet."); };
 
@@ -167,7 +186,8 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     // 0x10005A843: Create inventory button
     _inventoryButton = createTopHudButton("inventory", false, 20.0F, color_util::hexToColor("C1B09D"));
-    _inventoryButton->setCallback(defaultCallback);
+    _inventoryButton->setCallback(
+        [this]() { _guiWindow->toggle(GameGuiWindow::PanelType::INVENTORY); });  // 0x10005C7A7
     _hudButtonsNode->addChild(_inventoryButton);
 
     // 0x10005AF75: Create map button
@@ -189,6 +209,22 @@ bool GameGui::initWithZone(WorldZone* zone)
     _consoleButton->getForegroundSprite()->setPositionX(_consoleButton->getForegroundSprite()->getPositionX() - 20.0F);
     _consoleButton->getForegroundSprite()->setColor(_consoleButton->getColor());
     _hudButtonsNode->addChild(_consoleButton);
+    
+    // 0x10005B452: Create hotbar
+    _primaryHotbar = ItemContainer::createWithGui(this, 1, Player::kHotbarItemCount);
+    _primaryHotbar->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
+    _primaryHotbar->updateLayout();
+    addChild(_primaryHotbar, 4, "hotbar");
+    _containers.insert(ContainerType::HOTBAR, _primaryHotbar);
+
+    // 0x10005B891: Create top sprite layer
+    _topSpriteLayer = Node::create();
+    addChild(_topSpriteLayer, 10);
+
+    // Create inventory tooltip
+    _inventoryTooltip = Panel::createWithStyle("small/white");
+    _inventoryTooltip->setVisible(false);
+    addChild(_inventoryTooltip, 8);
 
     AXLOGI("[GameGui] Initialized");
     sMain = this;
@@ -203,6 +239,7 @@ void GameGui::onEnter()
 #endif
     addEventListener(events::kNotifyAlert, EVENT_CALLBACK_REF(Value*, showAlert));
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
+    addEventListener(events::kGuiWindowChangedPanel, AX_CALLBACK_0(GameGui::onGuiWindowPanelChanged, this));
     addEventListener(events::kPlayerAppearanceChanged, EVENT_CALLBACK_REF(ValueMap*, onPlayerAppearanceChanged));
     addEventListener(events::kPlayerHealthChanged, EVENT_CALLBACK_EX(float*, onHealthChanged, data[1], data[2]));
     addEventListener(events::kSteamChanged, EVENT_CALLBACK_REF(float*, onSteamChanged));
@@ -211,6 +248,14 @@ void GameGui::onEnter()
     addEventListener(events::kDeathMessageChanged, EVENT_CALLBACK_REF(std::string*, onDeathMessageChanged));
     addEventListener(events::kPlayerEntered, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
     addEventListener(events::kPlayerExited, AX_CALLBACK_0(GameGui::onPlayerCountChanged, this));
+
+    // Create touch listener
+    auto touchListener = EventListenerTouchOneByOne::create();
+    touchListener->setSwallowTouches(true);
+    touchListener->onTouchBegan = AX_CALLBACK_2(GameGui::onTouchBegan, this);
+    touchListener->onTouchMoved = AX_CALLBACK_2(GameGui::onTouchMoved, this);
+    touchListener->onTouchEnded = AX_CALLBACK_2(GameGui::onTouchEnded, this);
+    addEventListener(touchListener, 2);
     onWindowResized();
 }
 
@@ -247,11 +292,202 @@ void GameGui::ready()
 
 void GameGui::clear()
 {
+    for (auto& entry : _containers)
+    {
+        entry.second->removeAllSprites();
+    }
+
+    _itemSprites.clear();
     _pendingAlerts.clear();
+    _topSpriteLayer->removeAllChildren();
+    _activeItemSprite = nullptr;
+    _inventoryTooltipOwner = nullptr;
+}
+
+void GameGui::updateInventoryItem(InventoryItem* item)
+{
+    auto code = item->getItem()->getCode();
+    auto it   = _itemSprites.find(code);
+    InventoryItemSprite* sprite;
+
+    if (it == _itemSprites.end())
+    {
+        sprite = InventoryItemSprite::createWithItem(item);
+        _itemSprites.insert(code, sprite);
+    }
+    else
+    {
+        sprite = (*it).second;
+    }
+
+    auto container = getItemContainerForType(item->getContainer());
+
+    if (container)
+    {
+        container->addSprite(sprite, item->getSlot(), item->getCategory());
+    }
+    else
+    {
+        sprite->removeFromContainer();
+    }
+
+    sprite->updateQuantity();
+}
+
+void GameGui::setItemContainerForType(ContainerType type, ItemContainer* container)
+{
+    _containers.insert(type, container);
+}
+
+ItemContainer* GameGui::getItemContainerForType(ContainerType type) const
+{
+    auto it = _containers.find(type);
+    return it == _containers.end() ? nullptr : (*it).second;
+}
+
+ContainerType GameGui::getTypeForItemContainer(ItemContainer* container) const
+{
+    for (auto& entry : _containers)
+    {
+        if (entry.second == container)
+        {
+            return entry.first;
+        }
+    }
+
+    return ContainerType::NONE;
+}
+
+ItemContainer* GameGui::getItemContainerAtScreenPoint(const Point& point) const
+{
+    for (auto& entry : _containers)
+    {
+        auto container = entry.second;
+
+        if (!ax_util::isNodeVisible(container))
+        {
+            continue;
+        };
+
+        Rect rect;
+        rect.size = container->getContentSize();
+
+        if (rect.containsPoint(container->convertToNodeSpace(point)))
+        {
+            return container;
+        }
+    }
+
+    return nullptr;
+}
+
+void GameGui::updateInventoryTooltip()
+{
+    if (_inventoryTooltipOwner)
+    {
+        _inventoryTooltip->setPosition(_inventoryTooltipOwner->getWorldPosition() - Vec2::UNIT_Y * _itemSize * 0.5F);
+        auto viewOffset  = _director->getVisibleOrigin();
+        auto visibleSize = _director->getVisibleSize();
+        auto right       = ceilf(visibleSize.width + viewOffset.x) - 5.0F;
+        auto width       = _inventoryTooltip->getContentSize().width;
+        auto maxX        = _inventoryTooltip->getPositionX() + width * 0.5F;
+        // NOTE: The magic number 80.0 is the panel's border width * 2 + tip width
+        _inventoryTooltip->setTip(Panel::Edge::TOP, MAX(0.5F, 0.5F + (maxX - right) / (width - 80.0F)));
+        _inventoryTooltip->anchorToTip();
+    }
+}
+
+void GameGui::showInventoryTooltipForPoint(const Point& point)
+{
+    if (!_draggingItemSprite)
+    {
+        auto container = getItemContainerAtScreenPoint(point);
+
+        if (container)
+        {
+            auto item = container->getItemAtScreenPoint(point);
+
+            if (item)
+            {
+                showInventoryTooltip(item);
+                return;
+            }
+        }
+    }
+
+    showInventoryTooltip(nullptr);
+}
+
+void GameGui::showInventoryTooltip(ItemSprite* sprite)
+{
+    if (_inventoryTooltipOwner == sprite)
+    {
+        return;
+    }
+
+    _inventoryTooltipOwner = sprite;  // Weak ref
+
+    if (!sprite)
+    {
+        _inventoryTooltip->setVisible(false);
+        return;
+    }
+
+    // Create tooltip components
+    auto titleLabel = Label::createWithBMFont("console.fnt", sprite->getItem()->getTitle());
+    titleLabel->setScale(0.75F);
+    titleLabel->setColor(Color3B::BLACK);
+    std::vector<Node*> components;
+    sprite->getTooltipComponents(components);
+    components.push_back(titleLabel);
+
+    // Create content pane
+    auto content = Node::create();
+    auto padding = 10.0F;
+    auto width   = 0.0F;
+    auto height  = 0.0F;
+
+    for (ssize_t i = 0; i < components.size(); i++)
+    {
+        auto component = components[i];
+        component->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
+        component->setPosition(0.0F, height);
+        content->addChild(component);
+        width = MAX(width, math_util::getScaledWidth(component));
+        height += math_util::getScaledHeight(component);
+
+        if (i + 1 < components.size())
+        {
+            height += padding;
+        }
+    }
+
+    _inventoryTooltip->removeChildByName("content");
+    _inventoryTooltip->setSize(width + padding * 2.0F, height + padding * 2.0F);
+    _inventoryTooltip->addChild(content, 1, "content");
+    auto& size = _inventoryTooltip->getContentSize();
+    content->setPosition(size.width * 0.5F, padding);
+    _inventoryTooltip->setVisible(true);
+    _inventoryTooltip->updateLayout();
+    updateInventoryTooltip();
 }
 
 void GameGui::toggleGameMenu()
 {
+    // Close active window first
+    // NOTE: Originally done by input manager
+    if (_guiWindow->getActivePanelType() != GameGuiWindow::PanelType::NONE)
+    {
+        _guiWindow->hide();
+        return;
+    }
+
+    if (_teleportPanel->isVisible())
+    {
+        hideTeleportInterface();
+        return;
+    }
+
     if (_gameMenu)
     {
         _gameMenu->removeFromParent();
@@ -303,6 +539,7 @@ void GameGui::toggleProtectorRangeVisibility()
 
 void GameGui::setHudVisible(bool visible)
 {
+    _primaryHotbar->setVisible(visible);
     _hudNode->setVisible(visible);
     _hudButtonsNode->setVisible(visible);
     _profileButton->setVisible(visible);
@@ -311,6 +548,7 @@ void GameGui::setHudVisible(bool visible)
 void GameGui::showTeleportInterface(BaseBlock* block)
 {
     // TODO: finish
+    _guiWindow->hide();
     setHudVisible(false);
     _teleportPanel->showFromBlock(block);
     _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportActivated);
@@ -417,6 +655,33 @@ void GameGui::showBigAlert(const Value& data)
     }
 }
 
+bool GameGui::isPointInGui(const Point& point) const
+{
+    if (_gameMenu || _teleportPanel->isVisible() || _draggingItemSprite)
+    {
+        return true;
+    }
+
+    Node* nodes[] = {_profileButton, _inventoryButton, _craftingButton, _socialButton, _worldButton,
+                     _shopButton,    _primaryHotbar,   _consoleButton,  _mapButton,    _guiWindow};
+
+    for (auto& node : nodes)
+    {
+        if (ax_util::isNodeVisible(node))
+        {
+            Rect rect;
+            rect.size = node->getContentSize();
+
+            if (rect.containsPoint(node->convertToNodeSpace(point)))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 const char* GameGui::getRespawnMessage() const
 {
 #ifdef AX_PLATFORM_PC
@@ -435,6 +700,67 @@ std::string GameGui::getPositionDescription() const
     auto depth     = (int16_t)(position.y - (_zone->getBiomeType() == Biome::DEEP ? -1000.0F : 200.0F));
     auto test      = depth > 0 ? ":down:" : ":up:";
     return std::format("{} {} {}{}m", abs(x), longitude, test, abs(depth));
+}
+
+Point GameGui::getGuiWindowPosition(bool alignRight) const
+{
+    auto x = alignRight ? _primaryHotbar->getBoundingBox().getMinX() : _profileButton->getPositionX() + _panelMargin;
+    auto y = _profileButton->getBoundingBox().getMinY() + 10.0F;
+    return Point(x, y);
+}
+
+void GameGui::setActiveItemSprite(InventoryItemSprite* sprite)
+{
+    if (_activeItemSprite == sprite)
+    {
+        return;
+    }
+
+    // Reset current item sprite
+    if (_activeItemSprite)
+    {
+        _topSpriteLayer->removeChild(_activeItemSprite, false);
+        _activeItemSprite->getInventoryItem()->update();
+    }
+
+    // Set new item sprite
+    if (sprite)
+    {
+        auto parent = sprite->getParent();
+
+        if (parent)
+        {
+            auto position = parent->convertToWorldSpace(sprite->getPosition());
+            parent->removeChild(sprite, false);
+            sprite->setPosition(_topSpriteLayer->convertToNodeSpace(position));
+        }
+
+        _topSpriteLayer->addChild(sprite);
+    }
+
+    _activeItemSprite = sprite;
+}
+
+void GameGui::updateHotbar()
+{
+    auto cache           = SpriteFrameCache::getInstance();
+    auto slotFrame       = cache->getSpriteFrameByName("inventory-slot");
+    auto activeSlotFrame = cache->getSpriteFrameByName("inventory-slot-highlighted");
+    auto activeSlot      = Player::getMain()->getActiveHotbarSlot();
+    auto& slotSprites    = _primaryHotbar->getSlotSprites();
+
+    for (auto i = 0; i < slotSprites.size(); i++)
+    {
+        auto sprite = slotSprites[i];
+        sprite->setSpriteFrame(i == activeSlot ? activeSlotFrame : slotFrame);
+    }
+}
+
+void GameGui::onGuiWindowPanelChanged()
+{
+    auto type = _guiWindow->getActivePanelType();
+    _inventoryButton->setSpriteFrame(type == GameGuiWindow::PanelType::INVENTORY ? "hud/bubble-top-highlight"
+                                                                                 : "hud/bubble-top");
 }
 
 void GameGui::onHealthChanged(float health, float maxHealth)
@@ -477,6 +803,131 @@ void GameGui::onPlayerAppearanceChanged(const ValueMap& data)
     _avatarPicture->showHeadOnly();
 }
 
+bool GameGui::onTouchBegan(Touch* touch, Event* event)
+{
+    auto point     = touch->getLocation();
+    auto container = getItemContainerAtScreenPoint(point);
+
+    if (container)
+    {
+        auto item = container->getItemAtScreenPoint(point);
+
+        if (item)
+        {
+            item->activate();
+
+            if (container == _primaryHotbar)
+            {
+                item->setScale(item->getScale() * 1.05F);  // TODO: find out how this actually happens
+                AudioManager::getInstance()->playButtonSfx();
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+void GameGui::onTouchMoved(Touch* touch, Event* event)
+{
+    if (_activeItemSprite)
+    {
+        _activeItemSprite->setPosition(_topSpriteLayer->convertToNodeSpace(touch->getLocation()));
+        _draggingItemSprite = true;
+    }
+}
+
+void GameGui::onTouchEnded(Touch* touch, Event* event)
+{
+    if (!_activeItemSprite)
+    {
+        return;
+    }
+
+    auto source = _activeItemSprite->getInventoryItem();
+
+    // Update hotbar selection
+    if (!_draggingItemSprite)
+    {
+        if (source->getContainer() == ContainerType::HOTBAR)
+        {
+            Player::getMain()->setActiveHotbarSlot(source->getSlot());
+        }
+
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    _draggingItemSprite = false;
+
+    if (source->getContainer() == ContainerType::NONE || source->getContainer() == ContainerType::HIDDEN)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    // Drag item to new container
+    auto point     = _topSpriteLayer->convertToNodeSpace(touch->getLocation());
+    auto container = getItemContainerAtScreenPoint(point);
+
+    if (!container)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    auto type = getTypeForItemContainer(container);
+
+    // Items are sorted; don't do anything if we're dragging from inventory to inventory
+    if (type == ContainerType::INVENTORY && source->getContainer() == ContainerType::INVENTORY)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    auto slot = container->getSlotAtScreenPoint(point);
+
+    if (slot == -1)
+    {
+        setActiveItemSprite(nullptr);
+        return;
+    }
+
+    auto item = source->getItem();
+
+    // If there's already an item in the target slot, swap the items
+    if (auto sprite = static_cast<InventoryItemSprite*>(container->getItemAtSlot(slot)))
+    {
+        sprite->getInventoryItem()->moveToContainer(source->getContainer(), source->getSlot());
+        auto category = sprite->getItem()->getInventoryPosition().category;
+
+        // Arrange inventory for this category unless it's the same category as the dragged item
+        if ((type == ContainerType::INVENTORY || source->getContainer() == ContainerType::INVENTORY) &&
+            category != item->getInventoryPosition().category)
+        {
+            Player::getMain()->arrangeInventory(category);
+        }
+    }
+
+    auto oldContainer = source->getContainer();
+    source->moveToContainer(type, slot);
+
+    if (oldContainer == ContainerType::INVENTORY)
+    {
+        // Rearrange source inventory container
+        Player::getMain()->arrangeInventory(item);
+    }
+    else if (type == ContainerType::INVENTORY)
+    {
+        // Rearrange destination inventory container
+        Player::getMain()->arrangeInventory(item);
+        container->updatePageCount();  // Ensures page count is updated properly
+    }
+
+    setActiveItemSprite(nullptr);
+}
+
 void GameGui::onWindowResized()
 {
     auto viewOffset  = _director->getVisibleOrigin();
@@ -489,9 +940,9 @@ void GameGui::onWindowResized()
 
     // Update elements
     _profileButton->setPosition(left, top);
-    _nameLabel->setPosition(_profileButton->getPositionX() + math_util::getScaledWidth(_profileButton) + PANEL_MARGIN, top - PANEL_MARGIN);
-    _zoneLabel->setPosition(_nameLabel->getPositionX(), _nameLabel->getPositionY() - math_util::getScaledHeight(_nameLabel) - 5.0F);
-    _positionLabel->setPosition(_zoneLabel->getPositionX(), _zoneLabel->getPositionY() - math_util::getScaledHeight(_zoneLabel) - 5.0F);
+    _nameLabel->setPosition(_profileButton->getBoundingBox().getMaxX() + _panelMargin, top - _panelMargin);
+    _zoneLabel->setPosition(_nameLabel->getPositionX(), _nameLabel->getBoundingBox().getMinY() - 5.0F);
+    _positionLabel->setPosition(_zoneLabel->getPositionX(), _zoneLabel->getBoundingBox().getMinY() - 5.0F);
     auto buttonWidth  = math_util::getScaledWidth(_shopButton);  // Should be the same for all buttons
     auto buttonOffset = buttonWidth - buttonWidth * 0.15F;       // Chop
     _shopButton->setPosition(right - 100.0F, top);
@@ -501,6 +952,9 @@ void GameGui::onWindowResized()
     _inventoryButton->setPosition(_craftingButton->getPositionX() - buttonOffset, top);
     _mapButton->setPosition(right, bottom);
     _consoleButton->setPosition(left, bottom);
+    _primaryHotbar->setPosition(right - _panelMargin, top - _panelMargin);
+    _guiWindow->updatePosition();
+    updateInventoryTooltip();
 }
 
 }  // namespace opendw

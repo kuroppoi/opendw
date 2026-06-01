@@ -50,6 +50,7 @@ bool GameConfig::initWithData(const ValueMap& data)
         {
             // Only inherit certain properties
             // TODO: not everything is inherited yet
+            useChange["use"]       = {{"change", Value(map_util::mapOf("name", item->getName(), "mod value", 0))}};
             useChange["size"]      = array_util::arrayOf(item->getWidth(), item->getHeight());
             useChange["code"]      = ++_maxItemCode;
             useChange["inventory"] = item->getName();
@@ -96,6 +97,12 @@ bool GameConfig::initWithData(const ValueMap& data)
 
             item->setChangeItems(changeItems);
         }
+    }
+
+    // 0x10004FC97: Post process items
+    for (auto& entry : _itemsByName)
+    {
+        entry.second->postProcess();
     }
 
     AXLOGI("[GameConfig] Configured {} items in {:.2f}s", itemCount, utils::gettime() - itemStart);

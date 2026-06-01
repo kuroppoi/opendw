@@ -19,6 +19,12 @@ public:
     /* FUNC: MetaBlock::initWithX:y:item:metadata: @ 0x1000F8CED */
     bool initWithData(int16_t x, int16_t y, Item* item, const ax::ValueMap& metadata);
 
+    /* FUNC: MetaBlock::ownedByPlayer @ 0x1000F8E0A */
+    bool isOwnedByPlayer() const;
+
+    /* FUNC: MetaBlock::ownedByPlayerOrFollower @ 0x1000F8E55 */
+    bool isOwnedByPlayerOrFollower() const;
+
     /* FUNC: MetaBlock::x @ 0x1000F8F9B */
     int16_t getX() const { return _x; }
 

@@ -7,8 +7,10 @@
 #include "entity/EntityConfig.h"
 #include "entity/EntityFramed.h"
 #include "entity/MutableEntityConfig.h"
+#include "graphics/WorldRenderer.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/Physical.h"
+#include "util/AxUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "zone/WorldZone.h"
@@ -28,6 +30,7 @@ Entity::~Entity()
     }
 
     AX_SAFE_RELEASE(_physical);
+    AX_SAFE_RELEASE(_lastEmote);
 }
 
 Entity* Entity::createWithConfig(EntityConfig* config, const std::string& name, const ValueMap& details)
@@ -384,6 +387,31 @@ void Entity::animateViolentDeath()
         auto pitch  = random(0.85F, 1.15F);
         AudioManager::getInstance()->playSfx(sound, _position, pitch, 0.5F);
     }
+}
+
+void Entity::emote(const std::string& text, const Color3B& color, bool quick, bool replaceLast)
+{
+    // TODO: onscreen
+    if (replaceLast && _lastEmote)
+    {
+        if (_lastEmote->getParent() && utils::gettime() >= _lastEmoteAt + 0.1)
+        {
+            _lastEmote->stopAllActions();
+            ax_util::fadeOutAndRemove(_lastEmote, 0.2F);
+        }
+    }
+
+    AX_SAFE_RELEASE_NULL(_lastEmote);
+    auto position = _position + Vec2::UNIT_Y * _contentSize.height;
+
+    if (_nameLabel)
+    {
+        position.y += math_util::getScaledHeight(_nameLabel);
+    }
+
+    _lastEmote = WorldRenderer::getMain()->emote(text, color, quick, position);
+    AX_SAFE_RETAIN(_lastEmote);
+    _lastEmoteAt = utils::gettime();
 }
 
 void Entity::setFlippedX(bool flippedX)

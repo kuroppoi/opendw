@@ -13,9 +13,11 @@
 #include "graphics/SkyRenderer.h"
 #include "graphics/VectorLayer.h"
 #include "graphics/WorldLayerRenderer.h"
+#include "gui/widget/MultiLabel.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/ChipmunkSpace.h"
 #include "physics/PhysicsDebugNode.h"
+#include "util/AxUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
@@ -25,11 +27,17 @@
 #define MAX_BLOCK_RENDER_FRAME 0.1
 #define FX_PROCESS_INTERVAL    0.2
 #define LIQUID_CYCLE_INTERVAL  0.333
+#define GLOW_SPRITE_ITERATIONS 3
 
 USING_NS_AX;
 
 namespace opendw
 {
+
+WorldRenderer::~WorldRenderer()
+{
+    AX_SAFE_RELEASE(_miningCracksAnimation);
+}
 
 WorldRenderer* WorldRenderer::createWithZone(WorldZone* zone)
 {
@@ -122,13 +130,28 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _foreground->addChild(_animatedGhostlyEntitiesNode, getNextZIndex());
 
     // Create misc nodes
+    _effectsNode = SpriteBatchNode::create("effects+hd2.png");
+    _foreground->addChild(_effectsNode, getNextZIndex());
     _textNode = Node::create();  // Originally SpriteBatchNode but we cannot add labels to those
     _foreground->addChild(_textNode, getNextZIndex());
+    _guiNode = Node::create();
+    _foreground->addChild(_guiNode, getNextZIndex());
+    _glowNode = Node::create();
+    _foreground->addChild(_glowNode, getNextZIndex());
     _vectorLayer = VectorLayer::create();
     _foreground->addChild(_vectorLayer, getNextZIndex());
     _physicsDebugNode = PhysicsDebugNode::create();
     _physicsDebugNode->setVisible(false);
     _foreground->addChild(_physicsDebugNode, getNextZIndex());
+
+    // 0x10007DCC9: Create mining cracks animation
+    auto cache = SpriteFrameCache::getInstance();
+    Vector<SpriteFrame*> frames;
+    frames.pushBack(cache->getSpriteFrameByName("crack-1"));
+    frames.pushBack(cache->getSpriteFrameByName("crack-2"));
+    frames.pushBack(cache->getSpriteFrameByName("crack-3"));
+    _miningCracksAnimation = Animation::createWithSpriteFrames(frames, 1.0F);
+    AX_SAFE_RETAIN(_miningCracksAnimation);
 
     // 0x10007DE0F: Precompute corner masks
     _wholenessCornerMasks.reserve(256);
@@ -200,6 +223,7 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
         _continuityCornerMasks.push_back(continuity);
     }
 
+    sMain = this;
     AXLOGI("[WorldRenderer] Initialized");
     return true;
 }
@@ -315,6 +339,28 @@ void WorldRenderer::updateBlocks()
     _visibleRect  = Rect(origin, size);
     arrangeBlockSprites();
     renderBlockSprites();
+}
+
+void WorldRenderer::glowSprite(MaskedSprite* sprite)
+{
+    if (!sprite)
+    {
+        return;
+    }
+
+    // NOTE: Doesn't work well with masks
+    for (auto i = 0; i < GLOW_SPRITE_ITERATIONS; i++)
+    {
+        auto glowSprite = Sprite::createWithTexture(sprite->getTexture());
+        glowSprite->setBlendFunc({backend::BlendFactor::ONE_MINUS_SRC_ALPHA, backend::BlendFactor::ONE});
+        glowSprite->setTextureRect(sprite->getTextureRect());
+        glowSprite->setPosition(sprite->getPosition());
+        glowSprite->setRotation(sprite->getRotation());
+        glowSprite->setFlippedX(sprite->isFlippedX());
+        glowSprite->setScale(sprite->getScale());
+        _glowNode->addChild(glowSprite, 20);
+        ax_util::fadeOutAndRemove(glowSprite, 0.25F);
+    }
 }
 
 void WorldRenderer::loadBiome(const std::string& biome)
@@ -664,12 +710,84 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
     return entity;
 }
 
-ax::Point WorldRenderer::getNodePointForScreenPoint(const ax::Point& point) const
+Label* WorldRenderer::emote(const std::string& text, const Color3B& color, bool quick, const Point& position)
+{
+    auto label = MultiLabel::createWithBMFont("console.fnt", text);
+    label->setScale(0.8F);
+    label->setColor(color);
+    label->setOpacity(222);
+    label->setPosition(position);
+    _textNode->addChild(label);
+    auto duration  = quick ? 1.5F : 3.0;
+    auto delayTime = DelayTime::create(duration - 0.5F);
+    auto fadeOut   = FadeOut::create(0.5F);
+    auto callFunc  = CallFuncN::create(&Node::removeFromParent);
+    auto sequence  = Sequence::create({delayTime, fadeOut, callFunc});
+    auto moveBy    = MoveBy::create(duration, Vec2::UNIT_Y * (quick ? 25.0F : 40.0F));
+    label->runAction(Spawn::createWithTwoActions(moveBy, sequence));
+    return label;
+}
+
+Action* WorldRenderer::generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration)
+{
+    auto animate = Animate::create(_miningCracksAnimation);
+    animate->setDuration(duration);
+    auto callFunc = CallFunc::create([=]() { block->completeMining(layer); });
+    auto sequence = Sequence::createWithTwoActions(animate, callFunc);
+    auto sprite   = Sprite::createWithSpriteFrameName("crack-1");
+    math_util::scaleToSize(sprite, Vec2::ONE * BLOCK_SIZE);
+    sprite->setPosition(_zone->getPointAtBlock(block->getX(), block->getY()));
+    _effectsNode->addChild(sprite);
+    sprite->runAction(sequence);
+    return sequence;
+}
+
+void WorldRenderer::emitItemAnimation(Item* item, const Point& position, ssize_t count)
+{
+    if (_zone->getState() != WorldZone::State::ACTIVE)
+    {
+        return; 
+    }
+
+    if (auto frame = item->getInventoryFrame())
+    {
+        for (ssize_t i = 0; i < count; i++)
+        {
+            auto sprite = Sprite::createWithSpriteFrame(frame);
+            sprite->setPosition(position);
+            sprite->setScale(0.5F);
+            // FIXME: Needs to use ONE_MINUS_CONSTANT_COLOR which isn't supported
+            sprite->setBlendFunc({backend::BlendFactor::ONE, backend::BlendFactor::ONE_MINUS_SRC_COLOR});
+            _guiNode->addChild(sprite);
+            auto moveBy = MoveBy::create(0.5F, Vec2::UNIT_Y * BLOCK_SIZE * 1.1F);
+
+            if (i > 0)
+            {
+                // Use action for delay so we don't have to use a scheduler
+                sprite->setOpacity(0);
+                auto delayTime = DelayTime::create(i * 0.075F);
+                auto fadeIn    = FadeIn::create(0.0F);
+                auto fadeOut   = FadeOut::create(0.5F);
+                auto callFunc  = CallFuncN::create(&Node::removeFromParent);
+                auto sequence  = Sequence::createWithTwoActions(fadeOut, callFunc);
+                auto spawn     = Spawn::createWithTwoActions(moveBy, sequence);
+                sprite->runAction(Sequence::create({delayTime, fadeIn, spawn}));
+            }
+            else
+            {
+                ax_util::fadeOutAndRemove(sprite);
+                sprite->runAction(moveBy);
+            }
+        }
+    }
+}
+
+Point WorldRenderer::getNodePointForScreenPoint(const Point& point) const
 {
     return _foreground->convertToNodeSpace(point);
 }
 
-ax::Point WorldRenderer::getScreenPointForNodePoint(const ax::Point& point) const
+Point WorldRenderer::getScreenPointForNodePoint(const Point& point) const
 {
     return _foreground->convertToWorldSpace(point);
 }

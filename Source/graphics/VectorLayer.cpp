@@ -14,13 +14,13 @@
 
 USING_NS_AX;
 
-static const auto kMinigameRangeColor   = Color3B(0xBF, 0x0C, 0x19);
-static const auto kSuppressorFieldColor = Color3B(0x3F, 0xFF, 0x3F);
-static const auto kFriendlyFieldColor   = Color3B(0xFF, 0xE5, 0x33);
-static const auto kNeutralFieldColor    = Color3B::WHITE;
-
 namespace opendw
 {
+
+static const Color3B kMinigameRangeColor   = {0xBF, 0x0C, 0x19};
+static const Color3B kSuppressorFieldColor = {0x3F, 0xFF, 0x3F};
+static const Color3B kFriendlyFieldColor   = {0xFF, 0xE5, 0x33};
+static const Color3B kNeutralFieldColor    = {0xFF, 0xFF, 0xFF};
 
 void VectorLayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
 {
@@ -54,8 +54,7 @@ void VectorLayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flags
 
                 if (radius > 0.0F && radius < field)
                 {
-                    // TODO: check player followers & protector permissions
-                    auto friendly = !block->getPlayerId().compare(Player::getMain()->getPlayerId());
+                    auto friendly = block->isOwnedByPlayerOrFollower();
                     auto color = suppress ? kSuppressorFieldColor : friendly ? kFriendlyFieldColor : kNeutralFieldColor;
 
                     if (solid)

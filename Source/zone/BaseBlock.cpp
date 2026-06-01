@@ -1,20 +1,31 @@
 #include "BaseBlock.h"
 
 #include "base/GameConfig.h"
+#include "base/InventoryItem.h"
 #include "base/Item.h"
+#include "base/Player.h"
+#include "entity/EntityAnimatedAvatar.h"
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/WorldLayerRenderer.h"
 #include "graphics/WorldRenderer.h"
+#include "network/tcp/MessageIdent.h"
 #include "physics/ChipmunkSpace.h"
 #include "physics/Physical.h"
+#include "util/MapUtil.h"
+#include "util/MathUtil.h"
+#include "zone/MetaBlock.h"
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
 
+#define EARTH_DUG                519
 #define GLASS                    599
 #define BALLOON                  607
 #define BALLOON_STRIPED          678
 #define SPECIAL_FRONT_CONTINUITY 1
+#define CRACKS_ACTION_TAG        1
+#define SCALE_ACTION_TAG         2
+
 
 USING_NS_AX;
 
@@ -26,6 +37,7 @@ BaseBlock::~BaseBlock()
     // If this triggers then there is a bug in our zone cleanup loop that needs to be addressed
     AXASSERT(_sprites.empty(), "Sprites were not recycled properly!");
     AXASSERT(_accessories.empty(), "Accessories were not recycled properly!");
+    AX_SAFE_RELEASE(_miningAction);
     sBlocksAllocated--;
 }
 
@@ -36,12 +48,13 @@ BaseBlock* BaseBlock::createWithZone(WorldZone* zone, int16_t x, int16_t y)
 
 bool BaseBlock::initWithZone(WorldZone* zone, int16_t x, int16_t y)
 {
-    _zone      = zone;
-    _x         = x;
-    _y         = y;
-    _placing   = true;
-    _rendering = false;
-    _physical  = nullptr;
+    _zone         = zone;
+    _x            = x;
+    _y            = y;
+    _placing      = true;
+    _rendering    = false;
+    _physical     = nullptr;
+    _miningAction = nullptr;
     sBlocksAllocated++;
     return true;
 }
@@ -633,6 +646,222 @@ void BaseBlock::processPhysical()
     space->add(_physical);
 }
 
+BlockLayer BaseBlock::getTopUsableLayer() const
+{
+    if (_front > 0 && _frontItem->isUsable())
+    {
+        return BlockLayer::FRONT;
+    }
+
+    if (_back > 0 && _backItem->isUsable())
+    {
+        return BlockLayer::BACK;
+    }
+
+    return BlockLayer::NONE;
+}
+
+void BaseBlock::useLayer(BlockLayer layer, bool sendMessage)
+{
+    auto item = getItemForLayer(layer);
+
+    if (!item)
+    {
+        return;
+    }
+
+    // 0x100031020: Check permission
+    if (item->isUsableType(UseType::PROTECTED))
+    {
+        auto metaBlock = _zone->getMetaBlockAt(_x, _y);
+
+        if (metaBlock && !metaBlock->isOwnedByPlayer())
+        {
+            if (item->isUsableType(UseType::PUBLIC))
+            {
+                sendUseMessageForLayer(layer);
+            }
+
+            return;
+        }
+    }
+
+    // TODO: teleport
+
+    if (item->isUsableType(UseType::ZONE_TELEPORT))
+    {
+        // TODO: zone teleport
+        return;
+    }
+
+    // 0x1000311AF: Handle simple use types
+    auto simpleTypes = {UseType::CONTAINER, UseType::GECK,   UseType::COMPOSTER, UseType::EXPIATOR,
+                        UseType::WARMTH,    UseType::SWITCH, UseType::UNKNOWN};
+
+    for (auto type : simpleTypes)
+    {
+        if (item->isUsableType(type))
+        {
+            sendUseMessageForLayer(layer);
+            break;
+        }
+    }
+
+    // 0x1000312B5: Handle advanced use types
+    for (auto& entry : item->getUse())
+    {
+        auto& key   = entry.first;
+        auto& value = entry.second;
+
+        if (value.getType() == Value::Type::MAP)
+        {
+            auto& map = value.asValueMap();
+
+            if (key == "change")
+            {
+                auto name = map_util::getString(map, "name");
+                auto mod  = map_util::getUInt32(map, "mod value");
+                auto item = GameConfig::getMain()->getItemForName(name);
+
+                if (item)
+                {
+                    setLayer(layer, item->getCode(), mod);
+                }
+
+                if (sendMessage)
+                {
+                    sendUseMessageForLayer(layer);
+                }
+            }
+        }
+    }
+}
+
+void BaseBlock::sendUseMessageForLayer(BlockLayer layer, const Value& data)
+{
+    GameManager::getInstance()->sendMessage(MessageIdent::BLOCK_USE, _x, _y, static_cast<uint8_t>(layer) - 1, data);
+}
+
+void BaseBlock::startMining(BlockLayer layer, Item* tool)
+{
+    if (_miningAction)
+    {
+        return;
+    }
+
+    auto player    = Player::getMain();
+    auto power     = tool ? tool->getPower() : 1.0F;
+    auto speed     = player->getMiningSpeed();
+    auto duration  = 0.5F / (MAX(FLT_EPSILON, power * speed));
+    auto item      = getItemForLayer(layer);
+    auto& material = item->getMaterial();
+    duration *= material == "metal" ? 1.8F : material == "stone" ? 1.4F : 1.0F;
+
+    if (tool && tool->getAction() == Item::Action::DIG)
+    {
+        if (item->getCode() == EARTH_DUG)
+        {
+            return;
+        }
+
+        duration *= item->isDiggable() ? 0.654F : 2.5F;
+    }
+
+    if (tool && tool->getUseMask() > 0)
+    {
+        duration = clampf(duration, 0.4F, 999.0F);
+    }
+
+    if (auto sprite = getTopSpriteForLayer(layer))
+    {
+        if (item->isOpaque())
+        {
+            _miningAction = WorldRenderer::getMain()->generateMiningCracks(this, layer, duration);
+            _miningAction->setTag(CRACKS_ACTION_TAG);
+            // No need to run here
+        }
+        else
+        {
+            auto scaleBy  = ScaleBy::create(0.12F, 0.9F);
+            auto scaleTo  = ScaleTo::create(0.03F, 1.0F);
+            auto sequence = Sequence::createWithTwoActions(scaleBy, scaleTo);
+            auto repeat   = Repeat::create(sequence, abs(duration / 0.15F));
+            auto callFunc = CallFunc::create([=]() { completeMining(layer); });
+            _miningAction = Sequence::createWithTwoActions(repeat, callFunc);
+            _miningAction->setTag(SCALE_ACTION_TAG);
+            sprite->runAction(_miningAction);
+        }
+
+        AX_SAFE_RETAIN(_miningAction);
+    }
+}
+
+void BaseBlock::cancelMining()
+{
+    cleanupMiningAction();
+    auto player = Player::getMain();
+    player->setMiningBlock(nullptr);
+    player->getAvatar()->setTargetItem(nullptr);
+}
+
+void BaseBlock::completeMining(BlockLayer layer)
+{
+    auto game   = GameManager::getInstance();
+    auto player = game->getPlayer();
+    AX_ASSERT(player->getMiningBlock() == this && player->getMiningLayer() == layer);
+    cancelMining();
+    auto tool = player->getActiveHotbarItem() ? player->getActiveHotbarItem()->getItem() : nullptr;
+    auto item = getItemForLayer(layer);
+    auto mod  = getModForLayer(layer);
+    auto code = item->getParentItem() ? item->getParentItem()->getCode() : item->getCode();
+    game->sendMessage(MessageIdent::BLOCK_MINE, _x, _y, static_cast<uint8_t>(layer) - 1, code, mod);
+
+    if (tool && tool->getAction() == Item::Action::DIG && item->isDiggable())
+    {
+        setLayer(layer, EARTH_DUG, 0);
+    }
+    else
+    {
+        setLayer(layer, 0, 0);
+        auto modType = item->getModType();
+        auto inventory =
+            modType == ModType::DECAY && mod > 0 ? item->getDecayInventoryItem() : item->getInventoryItem();
+
+        if (inventory)
+        {
+            auto quantity = modType == ModType::STACK ? MAX(1, mod) : 1;
+            player->addInventory(inventory, quantity);
+        }
+    }
+
+    // TODO: track statistic
+    // TODO: fire events
+}
+
+void BaseBlock::cleanupMiningAction()
+{
+    if (!_miningAction)
+    {
+        return;
+    }
+
+    auto target = _miningAction->getTarget();
+    AX_ASSERT(target);
+
+    switch (_miningAction->getTag())
+    {
+    case CRACKS_ACTION_TAG:
+        target->removeFromParent();
+        break;
+    case SCALE_ACTION_TAG:
+        target->stopAction(_miningAction);
+        target->setScale(1.0F);
+        break;
+    }
+
+    AX_SAFE_RELEASE_NULL(_miningAction);
+}
+
 void BaseBlock::pushSprite(MaskedSprite* sprite)
 {
     _sprites.pushBack(sprite);
@@ -714,19 +943,133 @@ MaskedSprite* BaseBlock::getSpriteWithTag(int tag) const
 
 MaskedSprite* BaseBlock::getTopSpriteForLayer(BlockLayer layer) const
 {
-    MaskedSprite* topSprite = nullptr;
+    MaskedSprite* result = nullptr;
 
     for (auto& sprite : _sprites)
     {
-        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getParent()->getParent());
+        AX_ASSERT(sprite->getUserData());
+        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getUserData());
 
-        if (renderer->getLayer() == layer && (!topSprite || sprite->getLocalZOrder() >= topSprite->getLocalZOrder()))
+        if (renderer->getLayer() == layer && (!result || sprite->getLocalZOrder() > result->getLocalZOrder()))
         {
-            topSprite = sprite;
+            result = sprite;
         }
     }
 
-    return topSprite;
+    return result;
+}
+
+MaskedSprite* BaseBlock::getBottomSpriteForLayer(BlockLayer layer) const
+{
+    MaskedSprite* result = nullptr;
+
+    for (auto& sprite : _sprites)
+    {
+        AX_ASSERT(sprite->getUserData());
+        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getUserData());
+
+        if (renderer->getLayer() == layer && (!result || sprite->getLocalZOrder() < result->getLocalZOrder()))
+        {
+            result = sprite;
+        }
+    }
+
+    return result;
+}
+
+bool BaseBlock::canPlace(Item* item) const
+{
+    auto layer = item->getLayer();
+
+    // 0x100030E25: Check front occupation
+    if (_front > 0)
+    {
+        if (!_frontItem->canPlaceover())
+        {
+            if (layer == BlockLayer::FRONT || _frontItem->isWhole())
+            {
+                return false;
+            }
+        }
+    }
+
+    // 0x100030E5B: Check for wall if item is wall mounted
+    if (item->isMounted() && _back == 0 && _base < 2)
+    {
+        return false;
+    }
+
+    // 0x100030E8D: Check back occupation
+    if (layer == BlockLayer::BACK && _back > 0 && !_backItem->canPlaceover())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool BaseBlock::isProtectedByField() const
+{
+    // TODO: awesome mode, validations, karma level
+    auto item      = _front > 0 ? _frontItem : _backItem;
+    auto fieldable = item->getFieldable();
+
+    // Check fieldability
+    if (fieldable == Item::Fieldable::NO || (_front > 0 && fieldable == Item::Fieldable::PLACED && _frontNatural))
+    {
+        return false;
+    }
+
+    // Check zone-level protection
+    if (_zone->isProtected() && !_zone->isMember())
+    {
+        return true;
+    }
+
+    // Check self protection
+    if (item->getField() > 0)
+    {
+        auto metaBlock = _zone->getMetaBlockAt(_x, _y);
+
+        if (!metaBlock || !metaBlock->isOwnedByPlayer())
+        {
+            return true;
+        }
+    }
+
+    // Check field protection
+    for (auto& entry : _zone->getFieldMetaBlocks())
+    {
+        auto metaBlock  = entry.second;
+
+        if (metaBlock->getItem()->getField() > 1)
+        {
+            auto permission = metaBlock->isOwnedByPlayer() || (map_util::getInt32(metaBlock->getMetadata(), "t") == 1 &&
+                                                               metaBlock->isOwnedByPlayerOrFollower());
+
+            if (!permission && math_util::getDistance(_x, _y, metaBlock->getX(), metaBlock->getY()) <=
+                                   metaBlock->getItem()->getField())
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool BaseBlock::isReachableFrom(BlockLayer layer, int16_t x, int16_t y, bool allowInvulnerable) const
+{
+    auto item = getItemForLayer(layer);
+
+    if (item->getCode() == 0 || (item->isInvulnerable() && !allowInvulnerable))
+    {
+        return false;
+    }
+
+    auto distanceX = x - _x;
+    auto distanceY = _y - y;
+    return distanceX >= 0 && distanceX < item->getWidth() && distanceY >= 0 && distanceY < item->getHeight();
 }
 
 bool BaseBlock::isOpaque() const
@@ -775,6 +1118,11 @@ BaseBlock* BaseBlock::getLeft() const
 BaseBlock* BaseBlock::getRight() const
 {
     return _zone->getBlockAt(_x + 1, _y);
+}
+
+bool BaseBlock::isWhole() const
+{
+    return _frontItem->isWhole();
 }
 
 void BaseBlock::getNeighbors(BaseBlock* neighbors[8]) const

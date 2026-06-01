@@ -128,6 +128,27 @@ public:
     /* FUNC: BaseBlock::processPhysical @ 0x1000308D9 */
     void processPhysical();
 
+    /* FUNC: BaseBlock::topUsableLayer @ 0x100030F1A */
+    BlockLayer getTopUsableLayer() const;
+
+    /* FUNC: BaseBlock::useLayer:sendMessage: @ 0x100030FA2 */
+    void useLayer(BlockLayer layer, bool sendMessage = true);
+
+    /* FUNC: BaseBlock::sendUseMessageForLayer:data: @ 0x100031627 */
+    void sendUseMessageForLayer(BlockLayer layer, const ax::Value& data = ax::Value::Null);
+
+    /* FUNC: BaseBlock::startMining:withItem: @ 0x100031862 */
+    void startMining(BlockLayer layer, Item* tool);
+
+    /* FUNC: BaseBlock::cancelMining @ 0x100031C78 */
+    void cancelMining();
+
+    /* FUNC: BaseBlock::completeMining @ 0x100031CEA */
+    void completeMining(BlockLayer layer);
+
+    /* FUNC: BaseBlock::cleanupMiningAction @ 0x100032140 */
+    void cleanupMiningAction();
+
     /* FUNC: BaseBlock::pushSprite:accessory: @ 0x100032381 */
     void pushSprite(MaskedSprite* sprite);
     void pushAccessory(ax::Node* node);
@@ -144,6 +165,18 @@ public:
     /* FUNC: BaseBlock::topSpriteForLayer: @ 0x100032436 */
     MaskedSprite* getTopSpriteForLayer(BlockLayer layer) const;
 
+    /* FUNC: BaseBlock::bottomSpriteForLayer: @ 0x100032525 */
+    MaskedSprite* getBottomSpriteForLayer(BlockLayer layer) const;
+    
+    /* FUNC: BaseBlock::canPlace: @ 0x100030E14 */
+    bool canPlace(Item* item) const;
+
+    /* FUNC: BaseBlock::protectedByField @ 0x100032B70 */
+    bool isProtectedByField() const;
+
+    /* FUNC: BaseBlock::reachable:fromDistance:allowInvulnerable: @ 0x10003175A */
+    bool isReachableFrom(BlockLayer layer, int16_t x, int16_t y, bool allowInvulnerable = false) const;
+
     /* FUNC: BaseBlock::above @ 0x10002E68E */
     BaseBlock* getAbove() const;
 
@@ -155,6 +188,9 @@ public:
 
     /* FUNC: BaseBlock::right @ 0x10002E72D */
     BaseBlock* getRight() const;
+
+    /* FUNC: BaseBlock::isWhole @ 0x10002F603 */
+    bool isWhole() const;
 
     /* FUNC: BaseBlock::setX: @ 0x1000330F9 */
     void setX(int16_t x) { _x = x; }
@@ -292,6 +328,7 @@ private:
     uint8_t _frontModContinuity;         // BaseBlock::frontModContinuity @ 0x100310B28
     uint16_t _liquidity;                 // BaseBlock::liquidity @ 0x100310B30
     Physical* _physical;                 // BaseBlock::physical @ 0x100310B38
+    ax::Action* _miningAction;           // BaseBlock::miningAction @ 0x100310B50
     float _currentLightR;                // BaseBlock::currentLightR @ 0x100310B88
     float _currentLightG;                // BaseBlock::currentLightG @ 0x100310B90
     float _currentLightB;                // BaseBlock::currentLightB @ 0x100310B98

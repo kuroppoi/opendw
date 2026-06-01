@@ -1,7 +1,10 @@
 #include "InputManager.h"
 
+#include "base/InventoryItem.h"
+#include "base/Item.h"
 #include "base/Player.h"
 #include "gui/GameGui.h"
+#include "zone/BaseBlock.h"
 #include "GameManager.h"
 
 USING_NS_AX;

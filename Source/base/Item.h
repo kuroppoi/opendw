@@ -55,15 +55,26 @@ enum class DamageType : uint8_t
 enum class UseType : uint8_t
 {
     NONE,
+    CHANGE,
     CLIMB,
+    PROTECTED,
+    PUBLIC,
     SIGN,
+    CONTAINER,
+    ZONE_TELEPORT,
+    GECK,
+    COMPOSTER,
     FLY,
     PROPEL,
     HOVER,
+    EXPIATOR,
     MINIGAME,
+    WARMTH,
     MOVE,
+    SWITCH,
     SUPPRESS,
-    FIELD_DISPLAY
+    FIELD_DISPLAY,
+    UNKNOWN
 };
 
 /*
@@ -72,11 +83,43 @@ enum class UseType : uint8_t
 class Item : public ax::Object
 {
 public:
-    enum class Shape : uint8_t
+    enum class Shape
     {
         NONE,
         BOX,
         POLYGONAL
+    };
+
+    enum class Action
+    {
+        NONE,
+        MINE,
+        DIG,
+        SMASH,
+        GUN,
+        SHIELD,
+        HEAL,
+        REFILL,
+        TELEPORT,
+        STEALTH,
+        EXOLEG,
+        MELEE,
+        SKILL_RESET,
+        REVIVE,
+        NAME_CHANGE
+    };
+
+    enum class Fieldable
+    {
+        YES,
+        PLACED,
+        NO
+    };
+
+    struct InventoryPosition
+    {
+        int64_t category;
+        int64_t slot;
     };
 
     typedef std::vector<ax::SpriteFrame*> SpriteList;
@@ -105,6 +148,9 @@ public:
     /* FUNC: Item::initWithManager:dictionary:name: @ 0x100004A727 */
     bool initWithManager(GameConfig* config, const ax::ValueMap& data, const std::string& name);
 
+    /* FUNC: Item::postProcess @ 0x10004CB55 */
+    void postProcess();
+
     /* FUNC: Item::processSprites @ 0x100004CBEA */
     void processSprites();
 
@@ -114,8 +160,14 @@ public:
     /* FUNC: Item::config @ 0x10004DD4A */
     const ax::ValueMap& getData() const { return _data; }
 
+    /* FUNC: Item::category @ 0x10004DD6B */
+    const std::string& getCategory() const { return _category; }
+
     /* FUNC: Item::name @ 0x10004DD8C */
     const std::string& getName() const { return _name; }
+
+    /* FUNC: Item::title @ 0x10004DD9D */
+    const std::string& getTitle() const { return _title; }
 
     /* FUNC: Item::code @ 0x10004DD5B */
     uint16_t getCode() const { return _code; }
@@ -126,8 +178,20 @@ public:
     /* FUNC: Item::mod @ 0x10004DDF1 */
     ModType getModType() const { return _modType; }
 
+    /* FUNC: Item::action @ 0x10004DE12 */
+    Action getAction() const { return _action; }
+
+    /* FUNC: Item::inventoryPosition @ 0x10004E00F */
+    const InventoryPosition& getInventoryPosition() const { return _inventoryPosition; }
+
     /* FUNC: Item::specialPlacement @ 0x10004E4E8 */
     SpecialPlacement getSpecialPlacement() const { return _specialPlacement; }
+
+    /* FUNC: Item::inventoryType @ 0x10004E268 */
+    const std::string& getInventoryType() const { return _inventoryType; }
+
+    /* FUNC: Item::tooltip @ 0x10004E279 */
+    const std::string& getTooltip() const { return _tooltip; }
 
     /* FUNC: Item::material @ 0x10004DDE0 */
     const std::string& getMaterial() const { return _material; }
@@ -137,6 +201,27 @@ public:
 
     /* FUNC: Item::height @ 0x10004E144 */
     int16_t getHeight() const { return _height; }
+
+    /* FUNC: Item::tool @ 0x10004D688 */
+    bool isTool() const { return _tool; }
+
+    /* FUNC: Item::isMiningTool @ 0x10004D6AC */
+    bool isMiningTool() const;
+
+    /* FUNC: Item::isSwingableTool @ 0x10004D6C6 */
+    bool isSwingableTool() const;
+
+    /* FUNC: Item::isGun @ 0x10004D6FA */
+    bool isGun() const;
+
+    /* FUNC: Item::isConsumable @ 0x10004D75F */
+    bool isConsumable() const { return _consumable; }
+
+    /* FUNC: Item::isAccessory @ 0x10004D770 */
+    bool isAccessory() const { return _accessory; }
+
+    /* FUNC: Item::isEquippableAccessory @ 0x10004D781 */
+    bool isEquippableAccessory() const;
 
     /* FUNC: Item::visible @ 0x10004DE32 */
     bool isVisible() const { return _visible; }
@@ -159,6 +244,24 @@ public:
     /* FUNC: Item::borderShadow @ 0x10004E497 */
     bool hasBorderShadow() const { return _borderShadow; }
 
+    /* FUNC: Item::mounted @ 0x10004DEA9 */
+    bool isMounted() const { return _mounted; }
+
+    /* FUNC: Item::placeable @ 0x10004DFA9 */
+    bool isPlaceable() const { return _placeable; }
+
+    /* FUNC: Item::invulnerable @ 0x10004DE43 */
+    bool isInvulnerable() const { return _invulnerable; }
+
+    /* FUNC: Item::placeover @ 0x10004DE54 */
+    bool canPlaceover() const { return _placeover; }
+
+    /* FUNC: Item::isDiggable @ 0x10004DF98 */
+    bool isDiggable() const { return _diggable; }
+
+    /* FUNC: Item::reach @ 0x10004DF22 */
+    bool hasReach() const { return _reach; }
+
     /* FUNC: Item::power @ 0x10004DECB */
     float getPower() const { return _power; }
 
@@ -173,6 +276,12 @@ public:
 
     /* FUNC: Item::light @ 0x10004E0EE */
     float getLight() const { return _light; }
+
+    /* FUNC: Item::placeMod @ 0x10004E28A */
+    uint8_t getPlaceMod() const { return _placeMod; }
+
+    /* FUNC: Item::use @ 0x10004E3F1 */
+    const ax::ValueMap& getUse() const { return _use; }
 
     /* FUNC: Item::isUsable @ 0x10004D7C9 */
     bool isUsable() const { return _useMask != 0; }
@@ -195,6 +304,12 @@ public:
     /* FUNC: Item::field @ 0x10004DF44 */
     int32_t getField() const { return _field; }
 
+    /* FUNC: Item::fieldPlace @ 0x10004DF55 */
+    bool canPlaceInField() const { return _fieldPlace; }
+
+    /* FUNC: Item::fieldable @ 0x10004DF88 */
+    Fieldable getFieldable() const { return _fieldable; }
+
     /* FUNC: Item::fieldDamageType @ 0x10004DF66 */
     DamageType getFieldDamageType() const { return _fieldDamageType; }
 
@@ -206,6 +321,12 @@ public:
 
     /* FUNC: Item::isMirrorable @ 0x10004D726 */
     bool isMirrorable() const { return _mirrorable; }
+
+    /* FUNC: Item::inventoryItem @ 0x10004E246 */
+    Item* getInventoryItem() const { return _inventoryItem; }
+
+    /* FUNC: Item::decayInventoryItem @ 0x10004E257 */
+    Item* getDecayInventoryItem() const { return _decayInventoryItem; }
 
     /* FUNC: Item::setParentItem: @ 0x10004E436 */
     void setParentItem(Item* item) { _parentItem = item; }
@@ -227,6 +348,9 @@ public:
 
     /* FUNC: Item::color @ 0x10004E2AC */
     const ax::Color3B& getColor() const { return _color; }
+
+    /* FUNC: Item::inventoryFrame @ 0x10004E235 */
+    ax::SpriteFrame* getInventoryFrame() const { return _inventoryFrame; }
 
     /* FUNC: Item::spriteName @ 0x10004E177 */
     const std::string& getSpriteName() const { return _spriteName; }
@@ -310,16 +434,27 @@ private:
     /* FUNC: 0x100052F09 */
     static UseType getUseTypeForName(const std::string& name);
 
+    /* FUNC: 0x10005312E */
+    static Action getActionForName(const std::string& name);
+
     GameConfig* _config;                             // Item::manager @ 0x1003111C8
     ax::ValueMap _data;                              // Item::config @ 0x1003111C0
+    std::string _category;                           // Item::category @ 0x1003111D0
     std::string _name;                               // Item::name @ 0x1003111E8
+    std::string _title;                              // Item::title @ 0x1003111F0
     uint16_t _code;                                  // Item::code @ 0x1003111E0
     BlockLayer _layer;                               // Item::layer @ 0x1003111D8
     ModType _modType;                                // Item::mod @ 0x100311388
+    Action _action;                                  // Item::action @ 0x100311398
+    InventoryPosition _inventoryPosition;            // Item::inventoryPosition @ 0x100311310
     SpecialPlacement _specialPlacement;              // Item::specialPlacement @ 0x100311468
+    std::string _inventoryType;                      // Item::inventoryType @ 0x1003113A8
+    std::string _tooltip;                            // Item::tooltip @ 0x1003113B0
     std::string _material;                           // Item::material @ 0x1003111F8
     int16_t _width;                                  // Item::width @ 0x100311370
     int16_t _height;                                 // Item::height @ 0x100311378
+    bool _consumable;                                // Item::consumable @ 0x100311208
+    bool _accessory;                                 // Item::accessory @ 0x100311210
     bool _visible;                                   // Item::visible @ 0x100311228
     bool _tileable;                                  // Item::tileable @ 0x100311240
     bool _opaque;                                    // Item::opaque @ 0x100311248
@@ -327,22 +462,35 @@ private:
     bool _center;                                    // Item::center @ 0x100311270
     bool _shadow;                                    // Item::shadow @ 0x100311258
     bool _borderShadow;                              // Item::borderShadow @ 0x1003112B0
+    bool _mounted;                                   // Item::mounted @ 0x100311260
+    bool _placeable;                                 // Item::isPlaceable @ 0x100311470
+    bool _invulnerable;                              // Item::invulnerable @ 0x100311230
+    bool _placeover;                                 // Item::placeover = 0x100311238
+    bool _diggable;                                  // Item::isDiggable @ 0x1003112D0
+    bool _reach;                                     // Item::reach @ 0x100311278
     float _power;                                    // Item::power @ 0x100311288
     float _rate;                                     // Item::rate @ 0x100311290
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8
+    uint8_t _placeMod;                               // Item::placeMod @ 0x100311410
+    ax::ValueMap _use;                               // Item::use @ 0x100311418
     uint64_t _useMask;                               // Item::useMask @ 0x100311428
     Shape _shape;                                    // Item::shape @ 0x100311218
     std::string _shapeDefinition;                    // Item::shapeDefinition @ 0x100311220
     int32_t _field;                                  // Item::field @ 0x1003112B8
+    bool _fieldPlace;                                // Item::fieldPlace @ 0x1003112C0
+    Fieldable _fieldable;                            // Item::fieldable @ 0x1003112C8
     DamageType _fieldDamageType;                     // Item::fieldDamageType @ 0x1003112D8
     ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
     ax::Point _lightPosition;                        // Item::lightPosition @ 0x1003113C8
+    Item* _inventoryItem;                            // Item::inventoryItem @ 0x100311498
+    Item* _decayInventoryItem;                       // Item::decayInventoryItem @ 0x1003114A0
     Item* _parentItem;                               // Item::parentItem @ 0x100311528
     Item* _useChangeItem;                            // Item::useChangeItem @ 0x100311530
     std::vector<Item*> _changeItems;                 // Item::changeItems @ 0x100311528
     ax::Color3B _color;                              // Item::color @ 0x100311458
+    ax::SpriteFrame* _inventoryFrame;                // Item::inventoryFrame @ 0x100311480
     std::string _spriteName;                         // Item::spriteName @ 0x1003114B0
     ax::SpriteFrame* _spriteFrame;                   // Item::spriteCode @ 0x1003114B8
     SpriteList _spriteOptions;                       // Item::spriteOptions @ 0x1003114A8
@@ -362,6 +510,7 @@ private:
     ax::SpriteFrame* _maskFrame;                     // Item::maskCode @ 0x1003113D8
     SpriteList _maskOptions;                         // Item::maskOptions @ 0x1003113D0
     int _spriteZ;                                    // Item::spriteZ @ 0x100311518
+    bool _tool;
     bool _mirrorable;
 };
 

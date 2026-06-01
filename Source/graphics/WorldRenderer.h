@@ -9,7 +9,9 @@ namespace opendw
 class BaseBlock;
 class CavernRenderer;
 class Entity;
+class Item;
 class Lightmapper;
+class MaskedSprite;
 class SkyRenderer;
 class WorldLayerRenderer;
 class WorldZone;
@@ -24,6 +26,12 @@ class WorldRenderer : public ax::Node
 {
 public:
     typedef std::vector<std::vector<uint16_t>> CornerMasks;
+
+    /* FUNC: WorldRenderer::dealloc @ 0x100086C71 */
+    virtual ~WorldRenderer() override;
+
+    /* FUNC: WorldRenderer::main @ 0x10007CD5C */
+    static WorldRenderer* getMain() { return sMain; }
 
     static WorldRenderer* createWithZone(WorldZone* zone);
 
@@ -60,6 +68,9 @@ public:
     /* FUNC: WorldRenderer::updateViewport: @ 0x100082DE3 */
     void updateViewport(float deltaTime);
 
+    /* FUNC: WorldRenderer::glowSprite: @ 0x10008516C */
+    void glowSprite(MaskedSprite* sprite);
+
     /* FUNC: WorldRenderer::layerRenderer:withLayer:texture:z: @ 0x10007E28D */
     WorldLayerRenderer* createLayerRenderer(const std::string& name,
                                             BlockLayer layer,
@@ -81,6 +92,15 @@ public:
 
     /* FUNC: WorldRenderer::addEntity:name:details: @ 0x1000825E0 */
     Entity* addEntity(int32_t code, const std::string& name, const ax::ValueMap& details);
+
+    /* FUNC: WorldRenderer::emote:color:quick:atPosition: @ 0x1000832B7 */
+    ax::Label* emote(const std::string& text, const ax::Color3B& color, bool quick, const ax::Point& position);
+
+    /* FUNC: WorldRenderer::generateMiningCracks:forLayer:duration: @ 0x100084065 */
+    ax::Action* generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration);
+
+    /* FUNC: WorldRenderer::emitItemAnimation:fromPoint: @ 0x100084BDF */
+    void emitItemAnimation(Item* item, const ax::Point& position, ssize_t count = 1);
 
     /* FUNC: WorldRenderer::setWorldScale: @ 0x100082B33 */
     void setWorldScale(float scale) { _worldScale = scale; }
@@ -109,6 +129,9 @@ public:
     /* FUNC: WorldRenderer::animatedCharactersNode @ 0x100086EA2 */
     ax::Node* getAnimatedCharactersNode() const { return _animatedCharactersNode; }
 
+    /* FUNC: WorldRenderer::guiNode @ 0x100086EF7 */
+    ax::Node* getGuiNode() const { return _guiNode; }
+
     /* FUNC: WorldRenderer::physicsDebugNode @ 0x100086F4C */
     ax::Node* getPhysicsDebugNode() const { return _physicsDebugNode; }
 
@@ -122,6 +145,8 @@ public:
     Lightmapper* getLightmapper() const { return _lightmapper; }
 
 private:
+    inline static WorldRenderer* sMain;  // 0x10032EAF8
+
     WorldZone* _zone;                             // WorldRenderer::zone @ 0x100311DE8
     ax::Node* _background;                        // WorldRenderer::background @ 0x100311E30
     ax::Node* _foreground;                        // WorldRenderer::foreground @ 0x100311E48
@@ -146,7 +171,10 @@ private:
     ax::Node* _animatedEntitiesNode;              // WorldRenderer::animatedEntitiesNode @ 0x100311EA8
     ax::Node* _animatedCharactersNode;            // WorldRenderer::animatedCharactersNode @ 0x100311EB8
     ax::Node* _animatedGhostlyEntitiesNode;       // WorldRenderer::animatedGhostlyEntitiesNode @ 0x100311EE8
+    ax::SpriteBatchNode* _effectsNode;            // WorldRenderer::effectsNode @ 0x100311EF0
     ax::Node* _textNode;                          // WorldRenderer::textNode @ 0x100311EF8
+    ax::Node* _guiNode;                           // WorldRenderer::guiNode @ 0x100311F00
+    ax::Node* _glowNode;                          // WorldRenderer::glowNode @ 0x100311F08
     ax::Node* _vectorLayer;                       // WorldRenderer::vectorLayer @ 0x100311F10
     ax::Node* _physicsDebugNode;                  // WorldRenderer::physicsDebugNode @ 0x100311F20
     ax::Vector<BaseBlock*> _renderQueue;          // WorldRenderer::renderQueue @ 0x100311DF8
@@ -154,6 +182,7 @@ private:
     ax::Rect _lastArrangeRect;                    // WorldRenderer::lastArrangeRect @ 0x100311FF8
     ax::Rect _blockRect;                          // WorldRenderer::blockRect @ 0x100312008
     float _worldScale;                            // WorldRenderer::worldScale @ 0x100311E20
+    ax::Animation* _miningCracksAnimation;        // WorldRenderer::miningCracksAnimation @ 0x100311F30
     CornerMasks _wholenessCornerMasks;            // WorldRenderer::wholenessCornerMasks @ 0x100311F38
     CornerMasks _continuityCornerMasks;           // WorldRenderer::continuityCornerMasks @ 0x100311F40
     double _nextFX;                               // WorldRenderer::nextFX @ 0x100311F90

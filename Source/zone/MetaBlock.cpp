@@ -1,6 +1,7 @@
 #include "MetaBlock.h"
 
 #include "base/Item.h"
+#include "base/Player.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
 
@@ -21,6 +22,17 @@ bool MetaBlock::initWithData(int16_t x, int16_t y, Item* item, const ValueMap& m
     _item = item;
     setMetadata(metadata);
     return true;
+}
+
+bool MetaBlock::isOwnedByPlayer() const
+{
+    return _playerId == Player::getMain()->getPlayerId();
+}
+
+bool MetaBlock::isOwnedByPlayerOrFollower() const
+{
+    // TODO: client doesn't track followers yet
+    return isOwnedByPlayer();
 }
 
 void MetaBlock::setMetadata(const ValueMap& metadata)

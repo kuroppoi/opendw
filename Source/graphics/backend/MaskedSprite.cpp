@@ -160,6 +160,7 @@ void MaskedSprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flag
 #endif
 
     copyQuadToMaskedQuad();
+    updateColor();
 
     if (_maskDirty)
     {

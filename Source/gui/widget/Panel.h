@@ -12,7 +12,7 @@ namespace opendw
 class Panel : public ax::Node
 {
 public:
-    enum class Border : uint8_t
+    enum class Border
     {
         TOP,
         RIGHT,
@@ -24,13 +24,19 @@ public:
         TOP_LEFT
     };
 
-    enum class Chop : uint8_t
+    enum class Edge
     {
         NONE,
         TOP,
         RIGHT,
         BOTTOM,
         LEFT
+    };
+
+    struct Tip
+    {
+        Edge edge;
+        float position;
     };
 
     static Panel* createWithStyle(const std::string& style);
@@ -58,14 +64,21 @@ public:
     /* FUNC: Panel::setBackgroundTexture:scale:color:opacity: @ 0x1000E9094 */
     void setBackgroundTexture(const std::string& textureFile, uint8_t opacity = 0xFF);
 
+    /* FUNC: Panel::setTip: @ 0x1000E939D */
+    void setTip(Edge edge, float position = 0.5F);
+
+    /* Sets the anchor point of this panel to its tip, if it has one. */
+    void anchorToTip();
+
     /* FUNC: Panel::setChop: @ 0x1000E93BD */
-    void setChop(Chop chop);
+    void setChop(Edge edge);
 
     /* FUNC: Panel::setBorderScale: @ 0x1000E9401 */
     void setBorderScale(float scale);
 
     /* FUNC: Panel::setContentSize: @ 0x1000E893C */
     void setContentSize(const ax::Size& contentSize) override;
+    void setSize(float width, float height, bool force = false);
 
     /* FUNC: Panel::ccMouseDown: @ 0x1000E7751 */
     bool onTouchBegan(ax::Touch* touch, ax::Event* event);
@@ -73,14 +86,17 @@ public:
     /* FUNC: Panel::pointerDown:event: @ 0x1000E921C */
     virtual bool onPointerDown(ax::Touch* touch) { return false; };
 
-private:
+protected:
     ax::SpriteBatchNode* _batch;           // Panel::batch @ 0x1003130D0
     std::string _style;                    // Panel::style @ 0x100313088
-    Chop _chop;                            // Panel::chop @ 0x100313098
+    Tip _tip;                              // Panel::tip @ 0x100313090
+    Edge _chop;                            // Panel::chop @ 0x100313098
     float _borderScale;                    // Panel::borderScale @ 0x1003130C8
     float _baseBorderScale;                // Panel::baseBorderScale @ 0x100313138
     ax::Sprite* _backgroundSprite;         // Panel::backgroundSprite @ 0x1003130D8
     ax::Sprite* _backgroundTextureSprite;  // Panel::backgroundTextureSprite @ 0x100313148
+    ax::Sprite* _tipSprite;                // Panel::tipSprite @ 0x100313130
+    ax::Sprite* _tipBorderSprite;
     ax::Sprite* _borderSprites[8];
     bool _layoutDirty;
     ax::EventListenerTouchOneByOne* _touchListener;

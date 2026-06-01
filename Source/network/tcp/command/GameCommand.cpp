@@ -12,6 +12,7 @@
 #include "network/tcp/command/GameCommandKick.h"
 #include "network/tcp/command/GameCommandLight.h"
 #include "network/tcp/command/GameCommandNotification.h"
+#include "network/tcp/command/GameCommandPlayerInventory.h"
 #include "network/tcp/command/GameCommandPlayerPosition.h"
 #include "network/tcp/command/GameCommandZoneSearch.h"
 #include "network/tcp/command/GameCommandZoneStatus.h"
@@ -30,6 +31,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandConfigure();
     case Ident::BLOCKS:
         return new GameCommandBlocks();
+    case Ident::PLAYER_INVENTORY:
+        return new GameCommandPlayerInventory();
     case Ident::PLAYER_POSITION:
         return new GameCommandPlayerPosition();
     case Ident::ENTITY_POSITION:

@@ -18,7 +18,7 @@ ax::Rect clampRect(const ax::Rect& rectA, const ax::Rect& rectB, ax::Vec2* offse
 ax::Rect getRectIntersection(const ax::Rect& rectA, const ax::Rect& rectB);
 
 /* Scales the node so that its content size matches the specified size. */
-void scaleToSize(ax::Node* node, const ax::Size& size);
+void scaleToSize(ax::Node* node, const ax::Size& size, bool retainAspectRatio = false);
 
 /* @return The node's scaled size calculated by multiplying the node's content size by its scale. */
 ax::Size getScaledSize(ax::Node* node);

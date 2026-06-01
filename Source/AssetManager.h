@@ -30,6 +30,7 @@ inline static const auto kFront1Atlas           = "front-1+hd2.plist"sv;
 inline static const auto kFrontQualityAtlas     = "front-quality+hd2.plist"sv;
 inline static const auto kFrontWholeAtlas       = "front-whole+hd2.plist"sv;
 inline static const auto kGuiAtlas              = "guiv2.plist"sv;
+inline static const auto kInventoryAtlas        = "inventory+hd2.plist"sv;
 inline static const auto kLiquidAtlas           = "liquid+hd2.plist"sv;
 inline static const auto kMasksAtlas            = "masks+hd2.plist"sv;
 inline static const auto kSignsAtlas            = "signs+hd2.plist"sv;
@@ -52,11 +53,11 @@ inline static const auto kBaseAssets = {kGuiAtlas, kTitleAtlas};
 
 // List of assets to be loaded during first-time login
 inline static const auto kGameAssets = {
-    kAccentsAtlas,      kBackAtlas,       kBaseAtlas,           kEffectsAtlas,         kEntitiesAtlas,
-    kFront0Atlas,       kFront1Atlas,     kFrontQualityAtlas,   kFrontWholeAtlas,      kLiquidAtlas,
-    kMasksAtlas,        kSignsAtlas,      kBiomeArcticAtlas,    kBiomeArcticBgAtlas,   kBiomeBrainAtlas,
-    kBiomeBrainBgAtlas, kBiomeDeepAtlas,  kBiomeDesertAtlas,    kBiomeDesertBgAtlas,   kBiomeHellAtlas,
-    kBiomeHellBgAtlas,  kBiomeSpaceAtlas, kBiomeTemperateAtlas, kBiomeTemperateBgAtlas};
+    kAccentsAtlas,    kBackAtlas,         kBaseAtlas,         kEffectsAtlas,        kEntitiesAtlas,
+    kFront0Atlas,     kFront1Atlas,       kFrontQualityAtlas, kFrontWholeAtlas,     kInventoryAtlas,
+    kLiquidAtlas,     kMasksAtlas,        kSignsAtlas,        kBiomeArcticAtlas,    kBiomeArcticBgAtlas,
+    kBiomeBrainAtlas, kBiomeBrainBgAtlas, kBiomeDeepAtlas,    kBiomeDesertAtlas,    kBiomeDesertBgAtlas,
+    kBiomeHellAtlas,  kBiomeHellBgAtlas,  kBiomeSpaceAtlas,   kBiomeTemperateAtlas, kBiomeTemperateBgAtlas};
 
 }  // namespace assets
 

@@ -67,6 +67,14 @@ Scene* GameManager::createScene()
     return scene;
 }
 
+#if defined(AX_PLATFORM_PC)
+static void glfwCursorEnterCallback(GLFWwindow* window, int entered)
+{
+    bool flag = entered;
+    Director::getInstance()->getEventDispatcher()->dispatchCustomEvent(events::kCursorEntered, &flag);
+}
+#endif
+
 bool GameManager::init()
 {
     if (!Node::init())
@@ -165,6 +173,8 @@ bool GameManager::init()
     // TODO: add support for other platforms
 #if defined(AX_PLATFORM_PC)
     _inputManager = DefaultInputManager::createWithGame(this);
+    auto renderViewImpl = static_cast<RenderViewImpl*>(_director->getRenderView());
+    glfwSetCursorEnterCallback(renderViewImpl->getWindow(), glfwCursorEnterCallback);
 #else
     AXASSERT(!"Unsupported platform");
 #endif
