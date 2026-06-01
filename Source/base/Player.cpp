@@ -1167,9 +1167,19 @@ InventoryItem* Player::setInventory(Item* item, int64_t quantity, ContainerType 
     if (it == _inventory.end())
     {
         // Create new inventory item
-        result = InventoryItem::createWithItem(item, quantity, container, slot);
+        // BUGFIX: Show quantity notification for newly obtained items
+        if (quantity > 0 && _game->getZone()->getState() == WorldZone::State::ACTIVE)
+        {
+            result = InventoryItem::createWithItem(item, 0, container, slot);
+            result->setQuantity(quantity);
+        }
+        else
+        {
+            result = InventoryItem::createWithItem(item, quantity, container, slot);
+            result->update();
+        }
+
         _inventory.insert(code, result);
-        result->update();
     }
     else
     {
