@@ -5,6 +5,7 @@
 #include "network/tcp/command/GameCommandBlockMeta.h"
 #include "network/tcp/command/GameCommandBlocks.h"
 #include "network/tcp/command/GameCommandConfigure.h"
+#include "network/tcp/command/GameCommandEffect.h"
 #include "network/tcp/command/GameCommandEntityChange.h"
 #include "network/tcp/command/GameCommandEntityPosition.h"
 #include "network/tcp/command/GameCommandEntityStatus.h"
@@ -53,6 +54,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandBlockMeta();
     case Ident::ZONE_SEARCH:
         return new GameCommandZoneSearch();
+    case Ident::EFFECT:
+        return new GameCommandEffect();
     case Ident::NOTIFICATION:
         return new GameCommandNotification();
     case Ident::KICK:

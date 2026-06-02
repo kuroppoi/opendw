@@ -543,6 +543,11 @@ bool Player::climbBlock(BaseBlock* block, float deltaTime)
     return true;
 }
 
+void Player::emote(const std::string& text, const ax::Color3B& color, bool quick, bool replaceLast)
+{
+    _avatar->emote(text, color, quick, replaceLast);
+}
+
 void Player::playHurtSound(bool heavy)
 {
     // TODO: male/female setting

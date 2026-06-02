@@ -429,6 +429,12 @@ void GameManager::notify(NotificationType type, const Value& data)
     case NotificationType::ALERT:
         event = events::kNotifyAlert;
         break;
+    case NotificationType::EMOTE:
+        _player->emote(data.asString(), Color3B::WHITE, true);
+        break;
+    case NotificationType::FANCY_EMOTE:
+        _player->emote(data.asString(), color_util::hexToColor("FFE61E"), true);
+        break;
     case NotificationType::BIG_ALERT:
         event = events::kNotifyBigAlert;
         break;

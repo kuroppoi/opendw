@@ -156,6 +156,7 @@ protected:
     double _lastGroundedAt;                  // Entity::lastGroundedAt @ 0x100312950
     ax::Label* _lastEmote;                   // Entity:lastEmote @ 0x1003129E0
     double _lastEmoteAt;                     // Entity::lastEmoteAt @ 0x1003129E8
+    float _emoteOffset;                      // Entity::emoteCount @ 0x100312998
     Physical* _physical;                     // NOTE: Originally inherited from GameObject
 };
 

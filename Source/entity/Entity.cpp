@@ -284,6 +284,12 @@ void Entity::update(float deltaTime)
         AudioManager::getInstance()->playSfx(sound, _position, pitch, 0.4F);
     }
 
+    // 0x1000BD003: Slowly reduce emote offset
+    if (_emoteOffset > 0.0F)
+    {
+        _emoteOffset = clampf(_emoteOffset - deltaTime, 0.0F, 999.0F);
+    }
+
     // NOTE: Originally done in EntityAnimatedHuman::step:
     if (_alive && _grounded)
     {
@@ -398,18 +404,20 @@ void Entity::emote(const std::string& text, const Color3B& color, bool quick, bo
         {
             _lastEmote->stopAllActions();
             ax_util::fadeOutAndRemove(_lastEmote, 0.2F);
+            _emoteOffset--;
         }
     }
 
     AX_SAFE_RELEASE_NULL(_lastEmote);
-    auto position = _position + Vec2::UNIT_Y * _contentSize.height;
+    _emoteOffset++;
+    auto position = _position + Vec2::UNIT_Y * (_contentSize.height + _emoteOffset * 20.0F);
 
     if (_nameLabel)
     {
         position.y += math_util::getScaledHeight(_nameLabel);
     }
 
-    _lastEmote = WorldRenderer::getMain()->emote(text, color, quick, position);
+    _lastEmote = WorldRenderer::getMain()->emote(text, position, color, quick);
     AX_SAFE_RETAIN(_lastEmote);
     _lastEmoteAt = utils::gettime();
 }

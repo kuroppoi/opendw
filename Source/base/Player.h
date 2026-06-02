@@ -58,6 +58,9 @@ public:
     /* FUNC: Player::climbBlock:delta: @ 0x100020A28 */
     bool climbBlock(BaseBlock* block, float deltaTime);
 
+    /* Equivalent to `getAvatar()->emote(text, color, quick, replaceLast);` */
+    void emote(const std::string& text, const ax::Color3B& color, bool quick = false, bool replaceLast = false);
+
     /* FUNC: Player::playHurtSound: @ 0x100028811 */
     void playHurtSound(bool heavy = false);
 

@@ -27,6 +27,7 @@ public:
         HEALTH           = 18,
         BLOCK_META       = 20,
         ZONE_SEARCH      = 23,
+        EFFECT           = 30,
         NOTIFICATION     = 33,
         KICK             = 255
     };

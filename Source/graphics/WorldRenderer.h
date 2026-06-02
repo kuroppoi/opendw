@@ -94,7 +94,7 @@ public:
     Entity* addEntity(int32_t code, const std::string& name, const ax::ValueMap& details);
 
     /* FUNC: WorldRenderer::emote:color:quick:atPosition: @ 0x1000832B7 */
-    ax::Label* emote(const std::string& text, const ax::Color3B& color, bool quick, const ax::Point& position);
+    ax::Label* emote(const std::string& text, const ax::Point& position, const ax::Color3B& color, bool quick = false);
 
     /* FUNC: WorldRenderer::generateMiningCracks:forLayer:duration: @ 0x100084065 */
     ax::Action* generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration);
