@@ -714,12 +714,12 @@ BaseBlock* WorldZone::getBlockAt(int16_t x, int16_t y, bool allowChunkAlloc)
 
 BaseBlock* WorldZone::findReachableBlock(int16_t x, int16_t y, BlockLayer layer, bool allowInvulnerable)
 {
-    auto startX = MAX(0, x - 5);
-    auto startY = MIN(_blocksHeight - 1, y + 3);
+    auto endX = MAX(0, x - 5);
+    auto endY = MIN(_blocksHeight - 1, y + 3);
 
-    for (int16_t i = startX; i <= x; i++)
+    for (int16_t i = x; i >= endX; i--)
     {
-        for (int16_t j = startY; j >= y; j--)
+        for (int16_t j = y; j <= endY; j++)
         {
             auto block = getBlockAt(i, j);
 
