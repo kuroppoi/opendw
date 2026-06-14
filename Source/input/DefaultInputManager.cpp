@@ -228,6 +228,7 @@ void DefaultInputManager::checkInput(float deltaTime)
         }
     }
 
+    _player->setTarget(usingPoint);
     _player->useInventoryItem(usingItem, usingPoint);
 }
 

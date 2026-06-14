@@ -251,6 +251,12 @@ public:
     /* FUNC: Player::setUsingSecondaryItem: @ 0x10002DAA1 */
     void setUsingSecondaryItem(Item* item);
 
+    /* FUNC: Player::setTarget: @ 0x10002DB69 */
+    void setTarget(const ax::Point& target) { _target = target; }
+
+    /* FUNC: Player::target @ 0x10002DB51 */
+    const ax::Point& getTarget() const { return _target; }
+
     /* FUNC: Player::setIsZoneTeleporting: @ 0x10002DD39 */
     void setZoneTeleporting(bool value) { _zoneTeleporting = value; }
 
@@ -315,6 +321,7 @@ private:
     int64_t _activeHotbarSlot;                    // Player::primaryHotbarIndex @ 0x1003106A0
     Item* _usingPrimaryItem;                      // Player::usingPrimaryItem @ 0x100310808
     Item* _usingSecondaryItem;                    // Player::usingSecondaryItem @ 0x100310810
+    ax::Point _target;                            // Player::target & 0x1003108D0
     bool _zoneTeleporting;                        // Player::isZoneTeleporting @ 0x1003106F8
     bool _travelingHorizontally;                  // Player::isTravelingHorizontally @ 0x100310780
     bool _mining;                                 // Player::isMining @ 0x100310848

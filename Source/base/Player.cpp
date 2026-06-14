@@ -597,7 +597,7 @@ void Player::sendMoveMessage()
     position        = {position.x * multiplier, (position.y + BLOCK_SIZE) * -multiplier};
     auto velocity   = _physical->getVelocity();
     velocity        = {velocity.x * multiplier, velocity.y * -multiplier};
-    auto target     = Vec2::ZERO;  // TODO
+    Point target    = {_target.x * multiplier, _target.y * -multiplier};
     auto animation  = _avatar->getCurrentAnimation();
     _game->sendMessage(MessageIdent::MOVE, position.x, position.y, velocity.x, velocity.y, _lookDirection, target.x,
                        target.y, animation);
