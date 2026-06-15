@@ -15,6 +15,7 @@
 #include "network/tcp/command/GameCommandNotification.h"
 #include "network/tcp/command/GameCommandPlayerInventory.h"
 #include "network/tcp/command/GameCommandPlayerPosition.h"
+#include "network/tcp/command/GameCommandSkill.h"
 #include "network/tcp/command/GameCommandZoneSearch.h"
 #include "network/tcp/command/GameCommandZoneStatus.h"
 #include "util/Validation.h"
@@ -58,6 +59,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandEffect();
     case Ident::NOTIFICATION:
         return new GameCommandNotification();
+    case Ident::SKILL:
+        return new GameCommandSkill();
     case Ident::KICK:
         return new GameCommandKick();
     default:

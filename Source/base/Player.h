@@ -104,7 +104,7 @@ public:
     bool canDigAt(const ax::Point& point) const;
 
     /* FUNC: Player::canPlaceItem:atBlock: @ 0x100027A8C */
-    bool canPlaceItem(Item* item, BaseBlock* block) const;
+    bool canPlaceItem(Item* item, BaseBlock* block);
 
     /* FUNC: Player::didFeetCollideWithBlock: @ 0x10002A33C */
     void onFeetCollideWithBlock(BaseBlock* block);
@@ -116,25 +116,31 @@ public:
     void onCollideWithEntity(Entity* entity);
 
     /* FUNC: Player::runningSpeed @ 0x10002C89B */
-    float getRunningSpeed() const;
+    float getRunningSpeed();
 
     /* FUNC: Player::climbingSpeed @ 0x10002C8D6 */
-    float getClimbingSpeed() const;
+    float getClimbingSpeed();
 
     /* FUNC: Player::swimmingSpeed @ 0x10002C911 */
-    float getSwimmingSpeed() const;
+    float getSwimmingSpeed();
 
     /* FUNC: Player::jumpingPower @ 0x10002C94C */
-    float getJumpingPower() const;
+    float getJumpingPower();
 
     /* FUNC: Player::flyingSpeed @ 0x10002C987 */
-    float getFlyingSpeed() const;
+    float getFlyingSpeed();
 
     /* FUNC: Player::placingRange @ 0x10002CB2E */
-    float getPlacingRange() const;
+    float getPlacingRange();
 
     /* FUNC: Player::miningSpeed @ 0x10002CBAB */
-    float getMiningSpeed() const;
+    float getMiningSpeed();
+
+    /* FUNC: Player::zoomModifier @ 0x10002CD93 */
+    float getZoomModifier();
+
+    /* FUNC: Player::skilledToProtectorRangefind @ 0x10002B363 */
+    bool canSeeProtectorRanges();
 
     /* FUNC: Player::playerId @ 0x10002D9A3 */
     const std::string& getPlayerId() const { return _playerId; }
@@ -182,13 +188,13 @@ public:
     int8_t getLookDirection() const { return _lookDirection; }
 
     /* FUNC: Player::setHealth: @ 0x100020E0A */
-    void setHealth(float health);
+    void setHealth(float health, bool force = false);
 
     /* FUNC: Player::health @ 0x10002DB81 */
     float getHealth() const { return _health; }
 
     /* FUNC: Player::maxHealth @ 0x10002CBE6 */
-    float getMaxHealth() const;
+    float getMaxHealth();
 
     bool isAlive() const { return _health > 0.0F; }
     bool isDead() const { return !isAlive(); }
@@ -206,10 +212,20 @@ public:
     float getMaxSteam() const;
 
     /* FUNC: Player::steamEfficiency @ 0x10002CC6F */
-    float getSteamEfficiency() const;
+    float getSteamEfficiency();
 
     /* FUNC: Player::steamCooldownDuration @ 0x10002CCAA */
-    float getSteamCooldownDuration() const;
+    float getSteamCooldownDuration();
+
+    /* FUNC: Player::setSkill:level: @ 0x10002ACA4 */
+    void setSkill(const std::string& name, int32_t level);
+
+    /* FUNC: Player::skill: @ 0x10002B0EF */
+    int32_t getSkill(const std::string& name) const;
+
+    /* FUNC: Player::adjustedSkill: @ 0x10002B125 */
+    int32_t getAdjustedSkill(const std::string& name);
+    float getNormalizedSkill(const std::string& name);
 
     /* FUNC: Player::setInventory:count: @ 0x100021727 */
     InventoryItem* setInventory(Item* item, int64_t quantity);
@@ -287,53 +303,69 @@ public:
     /* FUNC: Player::clip @ 0x100310660 */
     bool getClip() const { return _clip; }
 
-    static const int kHotbarItemCount = 10;
+    inline static const auto kHotbarItemCount = 10;
+
+    // Skill types are decided by the server, so we use string identifiers instead of an enum.
+    inline static const auto kAgilitySkill      = "agility";
+    inline static const auto kAutomataSkill     = "automata";
+    inline static const auto kBuildingSkill     = "building";
+    inline static const auto kCombatSkill       = "combat";
+    inline static const auto kEngineeringSkill  = "engineering";
+    inline static const auto kHorticultureSkill = "horticulture";
+    inline static const auto kLuckSkill         = "luck";
+    inline static const auto kMiningSkill       = "mining";
+    inline static const auto kPerceptionSkill   = "perception";
+    inline static const auto kScienceSkill      = "science";
+    inline static const auto kStaminaSkill      = "stamina";
+    inline static const auto kSurvivalSkill     = "survival";
 
 private:
     inline static Player* sMain;  // 10032EA98
 
-    GameManager* _game;                           // Player::game @ 0x100310630
-    std::string _playerId;                        // Player::playerId @ 0x100310968
-    std::string _username;                        // Player::username @ 0x100310998
-    int32_t _entityId;                            // Player::entityId @ 0x100310638
-    EntityAnimatedAvatar* _avatar;                // Player::avatar @ 0x100310718
-    ax::Point _destination;                       // Player::destination @ 0x100310760
-    Physical* _physical;                          // Player::physical @ 0x100310768
-    ChipmunkShape* _feetShape;                    // Player::feetShape @ 0x1003109A0
-    ChipmunkShape* _headShape;                    // Player::headShape @ 0x1003109A8
-    int8_t _lookDirection;                        // Player::lookDirection @ 0x100310720
-    uint8_t _currentLiquidLevel;                  // Player::currentLiquidLevel @ 0x100310740
-    double _changeIdleAt;                         // Player::changeIdleAt @ 0x100310710
-    std::string _idleAnimation;                   // Player::currentIdleAnimation @ 0x100310750
-    double _respawnStartedAt;                     // Player::respawnStartedAt @ 0x100310830
-    double _nextMoveMessageTime;                  // Player::nextMoveMessageTime @ 0x1003108C8
-    double _startedRunningAt;                     // Player::startedRunningAt @ 0x100310788
-    double _lastPropelledUpwardAt;                // Player::lastPropelledUpwardAt @ 0x1003107A0
-    double _lastJumpedAt;                         // Player::lastJumpedAt @ 0x1003107A8
-    Item* _flyAccessory;                          // Player::flyAccessory @ 0x100310778
-    float _flyAccessoryPower;                     // Player::flyAccessoryPower @ 0x100310798
-    float _health;                                // Player::health @ 0x1003106A8
-    float _steam;                                 // Player::steam @ 0x100310890
-    double _lastUsedSteamAt;                      // Player::lastSteamedAt @ 0x100310828
-    double _steamCooldownAt;                      // Player::steamCooldownAt @ 0x100310898
-    ax::Map<int16_t, InventoryItem*> _inventory;  // Player::inventory @ 0x100310670
-    InventoryItem* _activeHotbarItem;             // Player::activePrimaryInventoryItem @ 0x1003107E8
-    int64_t _activeHotbarSlot;                    // Player::primaryHotbarIndex @ 0x1003106A0
-    Item* _usingPrimaryItem;                      // Player::usingPrimaryItem @ 0x100310808
-    Item* _usingSecondaryItem;                    // Player::usingSecondaryItem @ 0x100310810
-    ax::Point _target;                            // Player::target & 0x1003108D0
-    bool _zoneTeleporting;                        // Player::isZoneTeleporting @ 0x1003106F8
-    bool _travelingHorizontally;                  // Player::isTravelingHorizontally @ 0x100310780
-    bool _mining;                                 // Player::isMining @ 0x100310848
-    BaseBlock* _miningBlock;                      // Player::miningBlock @ 0x1003108E0
-    BlockLayer _miningLayer;                      // Player::miningLayer @ 0x100310908
-    double _lastMiningAttemptAt;                  // Player::lastMiningAttemptAt @ 0x1003108E8
-    BaseBlock* _miningAttemptBlock;               // Player::miningAttemptBlock @ 0x1003108F0
-    int _miningAttempts;                          // Player::miningAttempts @ 0x1003108F8
-    double _nextAllowedPlaceTime;                 // Player::nextAllowedPlaceTime @ 0x100310910
-    BaseBlock* _lastPlacedBlock;                  // Player::lastPlacedAt @ 0x100310918
-    bool _admin;                                  // Player::admin @ 0x100310958
-    bool _clip;                                   // Player::clip @ 0x100310660
+    GameManager* _game;                                    // Player::game @ 0x100310630
+    std::string _playerId;                                 // Player::playerId @ 0x100310968
+    std::string _username;                                 // Player::username @ 0x100310998
+    int32_t _entityId;                                     // Player::entityId @ 0x100310638
+    EntityAnimatedAvatar* _avatar;                         // Player::avatar @ 0x100310718
+    ax::Point _destination;                                // Player::destination @ 0x100310760
+    Physical* _physical;                                   // Player::physical @ 0x100310768
+    ChipmunkShape* _feetShape;                             // Player::feetShape @ 0x1003109A0
+    ChipmunkShape* _headShape;                             // Player::headShape @ 0x1003109A8
+    int8_t _lookDirection;                                 // Player::lookDirection @ 0x100310720
+    uint8_t _currentLiquidLevel;                           // Player::currentLiquidLevel @ 0x100310740
+    double _changeIdleAt;                                  // Player::changeIdleAt @ 0x100310710
+    std::string _idleAnimation;                            // Player::currentIdleAnimation @ 0x100310750
+    double _respawnStartedAt;                              // Player::respawnStartedAt @ 0x100310830
+    double _nextMoveMessageTime;                           // Player::nextMoveMessageTime @ 0x1003108C8
+    double _startedRunningAt;                              // Player::startedRunningAt @ 0x100310788
+    double _lastPropelledUpwardAt;                         // Player::lastPropelledUpwardAt @ 0x1003107A0
+    double _lastJumpedAt;                                  // Player::lastJumpedAt @ 0x1003107A8
+    Item* _flyAccessory;                                   // Player::flyAccessory @ 0x100310778
+    float _flyAccessoryPower;                              // Player::flyAccessoryPower @ 0x100310798
+    float _health;                                         // Player::health @ 0x1003106A8
+    float _steam;                                          // Player::steam @ 0x100310890
+    double _lastUsedSteamAt;                               // Player::lastSteamedAt @ 0x100310828
+    double _steamCooldownAt;                               // Player::steamCooldownAt @ 0x100310898
+    ax::Map<int16_t, InventoryItem*> _inventory;           // Player::inventory @ 0x100310670
+    std::map<std::string, int32_t> _skills;                // Player::skills @ 0x100310690
+    std::map<std::string, int32_t> _cachedAdjustedSkills;  // Player::cachedAdjustedSkills @ 0x1003106F0
+    InventoryItem* _activeHotbarItem;                      // Player::activePrimaryInventoryItem @ 0x1003107E8
+    int64_t _activeHotbarSlot;                             // Player::primaryHotbarIndex @ 0x1003106A0
+    Item* _usingPrimaryItem;                               // Player::usingPrimaryItem @ 0x100310808
+    Item* _usingSecondaryItem;                             // Player::usingSecondaryItem @ 0x100310810
+    ax::Point _target;                                     // Player::target & 0x1003108D0
+    bool _zoneTeleporting;                                 // Player::isZoneTeleporting @ 0x1003106F8
+    bool _travelingHorizontally;                           // Player::isTravelingHorizontally @ 0x100310780
+    bool _mining;                                          // Player::isMining @ 0x100310848
+    BaseBlock* _miningBlock;                               // Player::miningBlock @ 0x1003108E0
+    BlockLayer _miningLayer;                               // Player::miningLayer @ 0x100310908
+    double _lastMiningAttemptAt;                           // Player::lastMiningAttemptAt @ 0x1003108E8
+    BaseBlock* _miningAttemptBlock;                        // Player::miningAttemptBlock @ 0x1003108F0
+    int _miningAttempts;                                   // Player::miningAttempts @ 0x1003108F8
+    double _nextAllowedPlaceTime;                          // Player::nextAllowedPlaceTime @ 0x100310910
+    BaseBlock* _lastPlacedBlock;                           // Player::lastPlacedAt @ 0x100310918
+    bool _admin;                                           // Player::admin @ 0x100310958
+    bool _clip;                                            // Player::clip @ 0x100310660
     bool _running;
 };
 

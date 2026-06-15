@@ -532,9 +532,11 @@ void GameGui::toggleGameMenu()
 
 void GameGui::toggleProtectorRangeVisibility()
 {
-    // TODO: check skill requirement
-    _protectorRangeVisible = !_protectorRangeVisible;
-    AudioManager::getInstance()->playButtonSfx();
+    if (Player::getMain()->canSeeProtectorRanges())
+    {
+        _protectorRangeVisible = !_protectorRangeVisible;
+        AudioManager::getInstance()->playButtonSfx();
+    }
 }
 
 void GameGui::setHudVisible(bool visible)

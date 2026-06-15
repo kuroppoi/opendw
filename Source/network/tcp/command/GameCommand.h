@@ -29,6 +29,7 @@ public:
         ZONE_SEARCH      = 23,
         EFFECT           = 30,
         NOTIFICATION     = 33,
+        SKILL            = 35,
         KICK             = 255
     };
 

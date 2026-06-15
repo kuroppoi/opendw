@@ -165,7 +165,9 @@ void DefaultInputManager::checkInput(float deltaTime)
         auto zoomSpeed    = _keysPressed.contains(KeyCode::KEY_ALT) ? 0.25F : 1.0F;
         auto currentScale = renderer->getWorldScale();
         auto worldScale   = currentScale + zoomDirection * zoomSpeed * deltaTime * currentScale;
-        renderer->setWorldScale(MAX(0.3F, MIN(1.2F, worldScale)));
+        auto minScale     = _director->getWinSize().width / 66.0F / BLOCK_SIZE;
+        minScale          = MathUtil::lerp(1.0F, minScale, _player->getZoomModifier());
+        renderer->setWorldScale(MAX(minScale, MIN(1.2F, worldScale)));
     }
     else
     {

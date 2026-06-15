@@ -26,14 +26,9 @@
 #define MOVE_MESSAGE_INTERVAL  0.2
 #define JUMP_COOLDOWN          0.3
 #define STEAM_RESTORE_COOLDOWN 0.5
+#define BASE_HEALTH            5.0F
 #define BASE_MAX_STEAM         20.0F
-
-// TODO: skills
-#define AGILITY_LEVEL     10
-#define ENGINEERING_LEVEL 9
-#define STAMINA_LEVEL     10
-#define MINING_LEVEL      3
-#define BUILDING_LEVEL    5
+#define MAX_SKILL_LEVEL        15
 
 USING_NS_AX;
 
@@ -938,7 +933,7 @@ bool Player::canDigAt(const Point& point) const
     return true;  // No obstructions
 }
 
-bool Player::canPlaceItem(Item* item, BaseBlock* block) const
+bool Player::canPlaceItem(Item* item, BaseBlock* block)
 {
     // 0x100027AA6: Check protection
     if (!item->canPlaceInField() && block->isProtectedByField())
@@ -1006,43 +1001,54 @@ void Player::onCollideWithEntity(Entity* entity)
     // TODO: implement
 }
 
-float Player::getRunningSpeed() const
+float Player::getRunningSpeed()
 {
-    return MathUtil::lerp(1.0F, 1.65F, (float)AGILITY_LEVEL / 15.0F);
+    return MathUtil::lerp(1.0F, 1.65F, getNormalizedSkill(kAgilitySkill));
 }
 
-float Player::getClimbingSpeed() const
+float Player::getClimbingSpeed()
 {
-    return MathUtil::lerp(1.2F, 2.2F, (float)AGILITY_LEVEL / 15.0F);
+    return MathUtil::lerp(1.2F, 2.2F, getNormalizedSkill(kAgilitySkill));
 }
 
-float Player::getSwimmingSpeed() const
+float Player::getSwimmingSpeed()
 {
-    return MathUtil::lerp(1.0F, 1.7F, (float)AGILITY_LEVEL / 15.0F);
+    return MathUtil::lerp(1.0F, 1.7F, getNormalizedSkill(kAgilitySkill));
 }
 
-float Player::getJumpingPower() const
+float Player::getJumpingPower()
 {
-    return MathUtil::lerp(1.0F, 1.4F, (float)AGILITY_LEVEL / 15.0F);
+    return MathUtil::lerp(1.0F, 1.4F, getNormalizedSkill(kAgilitySkill));
 }
 
-float Player::getFlyingSpeed() const
+float Player::getFlyingSpeed()
 {
     // TODO: check for afterburner
     auto power = _flyAccessory->getPower();
-    auto speed = MathUtil::lerp(1.0F, 1.65F, (float)ENGINEERING_LEVEL / 15.0F);
+    auto speed = MathUtil::lerp(1.0F, 1.65F, getNormalizedSkill(kEngineeringSkill));
     return speed * power;
 }
 
-float Player::getPlacingRange() const
+float Player::getPlacingRange()
 {
     // TODO: check for building extender
-    return MathUtil::lerp(4.0F, 12.0F, (float)BUILDING_LEVEL / 15.0F);
+    return MathUtil::lerp(4.0F, 12.0F, getNormalizedSkill(kBuildingSkill));
 }
 
-float Player::getMiningSpeed() const
+float Player::getMiningSpeed()
 {
-    return MathUtil::lerp(1.0F, 1.75F, (float)MINING_LEVEL / 15.0F);
+    return MathUtil::lerp(1.0F, 1.75F, getNormalizedSkill(kMiningSkill));
+}
+
+float Player::getZoomModifier()
+{
+    auto perception = getAdjustedSkill(kPerceptionSkill);
+    return MathUtil::lerp(0.0F, 1.0F, (float)(perception - 4) / 11.0F);
+}
+
+bool Player::canSeeProtectorRanges()
+{
+    return getAdjustedSkill(kPerceptionSkill) > 2;
 }
 
 void Player::setPosition(const Point& position)
@@ -1078,12 +1084,12 @@ void Player::setLookDirection(int8_t direction)
     }
 }
 
-void Player::setHealth(float health)
+void Player::setHealth(float health, bool force)
 {
     auto maxHealth = getMaxHealth();
     auto clamped   = clampf(health, 0.0F, maxHealth);
 
-    if (_health == clamped)
+    if (!force && _health == clamped)
     {
         return;
     }
@@ -1105,10 +1111,10 @@ void Player::setHealth(float health)
     dispatcher->dispatchCustomEvent(events::kPlayerDeathEvent);
 }
 
-float Player::getMaxHealth() const
+float Player::getMaxHealth()
 {
-    auto stamina = MAX(0, MIN(STAMINA_LEVEL, 10));
-    return 5.0F + (stamina - (stamina == 10 ? 0 : 1)) * 0.5F;
+    auto stamina = MAX(0, MIN(getAdjustedSkill(kStaminaSkill), 10));
+    return BASE_HEALTH + (stamina - (stamina == 10 ? 0 : 1)) * 0.5F;
 }
 
 void Player::setSteam(float steam)
@@ -1126,7 +1132,7 @@ void Player::setSteam(float steam)
     {
         _lastUsedSteamAt = utils::gettime();
 
-        if (clamped == 0.0F && ENGINEERING_LEVEL < 10)
+        if (clamped == 0.0F && getAdjustedSkill(kEngineeringSkill) < 10)
         {
             _steamCooldownAt = utils::gettime() + getSteamCooldownDuration();
             // TODO: sends inventory use message?
@@ -1156,14 +1162,65 @@ float Player::getMaxSteam() const
     return BASE_MAX_STEAM;
 }
 
-float Player::getSteamEfficiency() const
+float Player::getSteamEfficiency()
 {
-    return math_util::lerp(1.0F, 1.5F, ENGINEERING_LEVEL / 15.0F);
+    return math_util::lerp(1.0F, 1.5F, getNormalizedSkill(kEngineeringSkill));
 }
 
-float Player::getSteamCooldownDuration() const
+float Player::getSteamCooldownDuration()
 {
-    return math_util::lerp(4.0F, 1.0F, ENGINEERING_LEVEL / 10.0F);
+    auto engineering = getAdjustedSkill(kEngineeringSkill);
+    return math_util::lerp(4.0F, 1.0F, (float)engineering / 10.0F);
+}
+
+void Player::setSkill(const std::string& name, int32_t level)
+{
+    _cachedAdjustedSkills.erase(name);
+    _skills[name] = level;
+
+    // Force health update if stamina changed
+    if (name == kStaminaSkill)
+    {
+        setHealth(_health, true);
+    }
+
+    if (_game->getZone()->getState() == WorldZone::State::ACTIVE)
+    {
+        // TODO: pass info
+        _game->getEventDispatcher()->dispatchCustomEvent(events::kPlayerSkillChanged);
+    }
+}
+
+int32_t Player::getSkill(const std::string& name) const
+{
+    auto it = _skills.find(name);
+
+    if (it != _skills.end())
+    {
+        return (*it).second;
+    }
+
+    return 0;
+}
+
+int32_t Player::getAdjustedSkill(const std::string& name)
+{
+    auto it = _cachedAdjustedSkills.find(name);
+
+    if (it != _cachedAdjustedSkills.end())
+    {
+        return (*it).second;
+    }
+
+    // TODO: apply accessory skill bonus
+    auto level = MAX(1, MIN(MAX_SKILL_LEVEL, getSkill(name)));
+    _cachedAdjustedSkills[name] = level;
+    return level;
+}
+
+float Player::getNormalizedSkill(const std::string& name)
+{
+    return (float)getAdjustedSkill(name) / MAX_SKILL_LEVEL;
 }
 
 InventoryItem* Player::setInventory(Item* item, int64_t quantity)
