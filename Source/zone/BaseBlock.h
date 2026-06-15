@@ -167,6 +167,9 @@ public:
 
     /* FUNC: BaseBlock::bottomSpriteForLayer: @ 0x100032525 */
     MaskedSprite* getBottomSpriteForLayer(BlockLayer layer) const;
+
+    /* @return The first sprite that got placed on the specified layer. */
+    MaskedSprite* getMainSpriteForLayer(BlockLayer layer) const;
     
     /* FUNC: BaseBlock::canPlace: @ 0x100030E14 */
     bool canPlace(Item* item) const;

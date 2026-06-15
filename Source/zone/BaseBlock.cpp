@@ -772,7 +772,7 @@ void BaseBlock::startMining(BlockLayer layer, Item* tool)
         duration = clampf(duration, 0.4F, 999.0F);
     }
 
-    if (auto sprite = getTopSpriteForLayer(layer))
+    if (auto sprite = getMainSpriteForLayer(layer))
     {
         if (item->isOpaque())
         {
@@ -975,6 +975,22 @@ MaskedSprite* BaseBlock::getBottomSpriteForLayer(BlockLayer layer) const
     }
 
     return result;
+}
+
+MaskedSprite* BaseBlock::getMainSpriteForLayer(BlockLayer layer) const
+{
+    for (auto& sprite : _sprites)
+    {
+        AX_ASSERT(sprite->getUserData());
+        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getUserData());
+
+        if (renderer->getLayer() == layer)
+        {
+            return sprite;
+        }
+    }
+
+    return nullptr;
 }
 
 bool BaseBlock::canPlace(Item* item) const

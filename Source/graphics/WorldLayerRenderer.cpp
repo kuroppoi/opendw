@@ -355,13 +355,6 @@ void WorldLayerRenderer::placeBlock(BaseBlock* block)
     case BlockLayer::FRONT:
         item = block->getFrontItem();
         mod  = block->getFrontMod();
-
-        // 0x1000A3B5F: Place special item if necessary
-        if (item->getSpecialPlacement() != SpecialPlacement::NONE)
-        {
-            placeSpecialItem(block, item);
-        }
-
         break;
     case BlockLayer::LIQUID:
         item = block->getLiquidItem();
@@ -577,6 +570,12 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
         auto& rotations = worldRenderer->getContinuityCornerMasks()[continuity];
         placeBorder(block, border, color);
         placeCorners(block, corner, rotations, color);
+    }
+
+    // 0x1000A3B5F: Place special item if necessary
+    if (item->getSpecialPlacement() != SpecialPlacement::NONE)
+    {
+        placeSpecialItem(block, item);
     }
 
     // 0x1000A47FE: Place external border sprites

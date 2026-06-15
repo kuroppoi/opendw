@@ -787,7 +787,7 @@ BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* 
 
         if (toolSwung)
         {
-            auto sprite = target->getBottomSpriteForLayer(layer);
+            auto sprite = target->getMainSpriteForLayer(layer);
             zone->getWorldRenderer()->glowSprite(sprite);
 
             // 0x100024892: Show protected field alert
