@@ -2,6 +2,7 @@
 
 #include "base/Player.h"
 #include "entity/Entity.h"
+#include "entity/EntityAnimatedAvatar.h"
 #include "zone/WorldZone.h"
 
 namespace opendw
@@ -24,13 +25,20 @@ void GameCommandEntityChange::run()
         auto& details = data[1].asValueMap();
         auto entity   = zone->getEntityById(entityId);
 
+        if (!entity)
+        {
+            auto player = Player::getMain();
+
+            if (player->getEntityId() == entityId)
+            {
+                entity = player->getAvatar();
+                // TODO: update directing state
+            }
+        }
+
         if (entity)
         {
             entity->change(details);
-        }
-        else
-        {
-            // TODO: update player directing state (butler bots?)
         }
     }
 }
