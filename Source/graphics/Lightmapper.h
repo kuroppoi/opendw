@@ -9,6 +9,8 @@ namespace opendw
 {
 
 class BaseBlock;
+class Item;
+class Player;
 class WorldZone;
 
 /*
@@ -59,6 +61,8 @@ public:
     /* FUNC: Lightmapper::healthDidChange: @ 0x100058EE7 */
     void onHealthChanged(float oldHealth, float health);
 
+    void onPlayerAccessoriesChanged(Player* player);
+
 private:
     WorldZone* _zone;              // Lightmapper::zone @ 0x100311610
     ax::Sprite* _torchLight;       // Lightmapper::torchLight @ 0x100311650
@@ -66,6 +70,7 @@ private:
     ax::RenderTexture* _lightmap;  // Lightmapper::lightmap @ 0x100311690
     float _deathOverlay;           // Lightmapper::deathOverlay @ 0x100311628
     float _overlay;                // Lightmapper::overlay @ 0x100311630
+    float _defaultBaseLight;       // Lightmapper::defaultBaseLight @ 0x100311638
     float _flash;                  // Lightmapper::flash @ 0x100311748
     bool _haze;                    // Lightmapper::haze @ 0x1003116D0
     bool _moodLighting;            // Lightmapper::moodLighting @ 0x1003116E0
@@ -81,6 +86,7 @@ private:
     int _textureWidth;
     int _textureHeight;
     float _previousWorldScale;
+    Item* _torchAccessory;
     ax::Rect _screenRect;
     std::vector<BaseBlock*> _screenBlocks;
     ax::ProgramState* _programState;

@@ -122,15 +122,23 @@ void IconBar::setMaxValue(float maxValue)
 
 void IconBar::setValue(float value)
 {
-    _value = clampf(value, 0.0F, _maxValue);
+    auto clamped = clampf(value, 0.0F, _maxValue);
+    auto animate = _value != clamped;
+    _value = clamped;
 
     for (auto i = 0; i < _foregroundIcons.size(); i++)
     {
         auto sprite  = _foregroundIcons[i];
         auto opacity = i <= _value ? math_util::lerp(50.0F, 255.0F, _value - i) : i + 1 >= _value ? 0 : 255;
-        sprite->stopAllActions();
         sprite->setOpacity(opacity);
         sprite->setColor(_iconColor);
+
+        if (!animate)
+        {
+            continue;  // Do not run animations unless value changed
+        }
+
+        sprite->stopAllActions();
 
         if (i == (int)_value)
         {

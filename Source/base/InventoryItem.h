@@ -67,6 +67,8 @@ private:
     ContainerType _container;  // InventoryItem::container @ 0x100311B00
     int64_t _slot;             // InventoryItem::position @ 0x100311AF8
     int64_t _category;
+    ContainerType _previousContainer;
+    bool _positionDirty;
 };
 
 }  // namespace opendw

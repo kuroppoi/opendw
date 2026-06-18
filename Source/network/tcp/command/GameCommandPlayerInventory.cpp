@@ -4,6 +4,8 @@
 #include "base/GameConfig.h"
 #include "base/Item.h"
 #include "base/Player.h"
+#include "zone/WorldZone.h"
+#include "GameManager.h"
 
 USING_NS_AX;
 
@@ -33,14 +35,21 @@ static ContainerType getContainerTypeForName(const std::string& name)
 void GameCommandPlayerInventory::run()
 {
     auto& items = _data[0].asValueMap();
-    auto player = Player::getMain();
-    auto config = GameConfig::getMain();
+    auto game   = GameManager::getInstance();
+    auto player = game->getPlayer();
     std::set<int64_t> categories;  // Categories that need to be rearranged
 
     for (auto& entry : items)
     {
-        auto code      = stoi(entry.first);
-        auto item      = config->getItemForCode(code);
+        auto code = stoi(entry.first);
+        auto item = game->getConfig()->getItemForCode(code);
+
+        if (!item)
+        {
+            AXLOGW("[GameCommandPlayerInventory] Unknown item code: {}", code);
+            continue;
+        }
+
         auto& details  = entry.second.asValueVector();
         auto quantity  = details[0].asInt();
         auto container = getContainerTypeForName(details[1].asString());
@@ -52,6 +61,11 @@ void GameCommandPlayerInventory::run()
     for (auto category : categories)
     {
         player->arrangeInventory(category);
+    }
+
+    if (game->getZone()->getState() != WorldZone::State::ACTIVE)
+    {
+        player->updateAccessories();
     }
 }
 

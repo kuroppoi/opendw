@@ -67,6 +67,8 @@ enum class UseType : uint8_t
     FLY,
     PROPEL,
     HOVER,
+    SKILL_BONUS,
+    STEAM_BONUS,
     EXPIATOR,
     MINIGAME,
     WARMTH,
@@ -74,6 +76,7 @@ enum class UseType : uint8_t
     SWITCH,
     SUPPRESS,
     FIELD_DISPLAY,
+    AFTERBURNER,
     UNKNOWN
 };
 

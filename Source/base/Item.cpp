@@ -564,6 +564,10 @@ UseType Item::getUseTypeForName(const std::string& name)
         return UseType::PROPEL;
     else if (name == "hover")
         return UseType::HOVER;
+    else if (name == "skill bonus")
+        return UseType::SKILL_BONUS;
+    else if (name == "steam bonus")
+        return UseType::STEAM_BONUS;
     else if (name == "expiator")
         return UseType::EXPIATOR;
     else if (name == "minigame")
@@ -578,6 +582,8 @@ UseType Item::getUseTypeForName(const std::string& name)
         return UseType::SUPPRESS;
     else if (name == "field_display")
         return UseType::FIELD_DISPLAY;
+    else if (name == "afterburner")
+        return UseType::AFTERBURNER;
 
     return UseType::UNKNOWN;
 }

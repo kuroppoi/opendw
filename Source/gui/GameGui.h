@@ -17,6 +17,7 @@ class InventoryItem;
 class ItemContainer;
 class ItemSprite;
 class Panel;
+class Player;
 class SpriteButton;
 class TeleportPanel;
 class WorldZone;
@@ -163,6 +164,11 @@ public:
 
     /* FUNC: GameGui::playerCountDidChange @ 0x10005EC12 */
     void onPlayerCountChanged();
+
+    /* FUNC: GameGui::playerAccessoriesDidChange @ 0x100064420 */
+    void onPlayerAccessoriesChanged(Player* player);
+
+    void onPlayerSkillChanged();
 
     /* FUNC: GameGui::playerAppearanceDidChange: @ 0x100064497 */
     void onPlayerAppearanceChanged(const ax::ValueMap& data);

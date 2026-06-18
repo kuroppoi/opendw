@@ -138,7 +138,6 @@ void Player::begin()
 {
     // TODO: finish
     _zoneTeleporting   = false;
-    _flyAccessory      = GameConfig::getMain()->getItemForCode(1060);  // TODO: get from inventory
     _flyAccessoryPower = 0.0F;
     _changeIdleAt      = utils::gettime() + random(8.0F, 15.0F);
     setLookDirection(1);
@@ -151,6 +150,7 @@ void Player::reset()
     AX_SAFE_RELEASE_NULL(_avatar);
     _inventory.clear();
     _activeHotbarItem = nullptr;
+    _activeShieldItem = nullptr;
     _activeHotbarSlot = 0;
     AX_SAFE_RELEASE_NULL(_miningBlock);
     _miningAttemptBlock = nullptr;
@@ -296,7 +296,7 @@ void Player::update(float deltaTime)
         if (movement.y > propulsion)
         {
             _lastPropelledUpwardAt = utils::gettime();
-            flying = _flyAccessory != nullptr && hasSteam();  // TODO: check for afterburner
+            flying = _flyAccessory != nullptr && (hasSteam() || hasAfterburner());
         }
 
         // 0x10001CCE6: Apply horizontal movement
@@ -515,7 +515,12 @@ void Player::useFlyAccessory(Item* item, float deltaTime)
     auto tilt     = speedX / BLOCK_SIZE * 42.0F;
     auto rotation = math_util::lerp(_avatar->getRotation(), tilt, deltaTime * 1.75F);
     _avatar->setRotation(rotation);
-    setSteam(_steam - item->getRate() * deltaTime / getSteamEfficiency());  // TODO: check for afterburner
+
+    if (!hasAfterburner())
+    {
+        setSteam(_steam - item->getRate() * deltaTime / getSteamEfficiency());
+    }
+
     _flyAccessoryPower = math_util::lerp(_flyAccessoryPower, 1.0F, deltaTime * 2.0F);
 }
 
@@ -1023,9 +1028,14 @@ float Player::getJumpingPower()
 
 float Player::getFlyingSpeed()
 {
-    // TODO: check for afterburner
     auto power = _flyAccessory->getPower();
     auto speed = MathUtil::lerp(1.0F, 1.65F, getNormalizedSkill(kEngineeringSkill));
+
+    if (hasAfterburner())
+    {
+        speed *= 1.25F;
+    }
+
     return speed * power;
 }
 
@@ -1084,12 +1094,12 @@ void Player::setLookDirection(int8_t direction)
     }
 }
 
-void Player::setHealth(float health, bool force)
+void Player::setHealth(float health)
 {
     auto maxHealth = getMaxHealth();
     auto clamped   = clampf(health, 0.0F, maxHealth);
 
-    if (!force && _health == clamped)
+    if (_health == clamped)
     {
         return;
     }
@@ -1158,8 +1168,26 @@ bool Player::hasSteam() const
 
 float Player::getMaxSteam() const
 {
-    // TODO: steam bonus accessory
-    return BASE_MAX_STEAM;
+    // Find highest steam bonus accessory
+    float bonus = 0.0F;
+
+    for (auto item : _cachedAccessoryItems)
+    {
+        if (item->isUsableType(UseType::STEAM_BONUS))
+        {
+            auto& value = map_util::getValue(item->getData(), "bonus");
+#if _AX_DEBUG  // Bypass assertion in debug mode
+            auto type = value.getType();
+
+            if (type != Value::Type::VECTOR && type != Value::Type::MAP && type != Value::Type::INT_KEY_MAP)
+#endif
+            {
+                bonus = MAX(bonus, value.asFloat());
+            }
+        }
+    }
+
+    return BASE_MAX_STEAM + bonus;
 }
 
 float Player::getSteamEfficiency()
@@ -1178,10 +1206,15 @@ void Player::setSkill(const std::string& name, int32_t level)
     _cachedAdjustedSkills.erase(name);
     _skills[name] = level;
 
-    // Force health update if stamina changed
+    // Update health if stamina changed and new max health is less than current health
     if (name == kStaminaSkill)
     {
-        setHealth(_health, true);
+        auto maxHealth = getMaxHealth();
+
+        if (_health > maxHealth)
+        {
+            setHealth(maxHealth);
+        }
     }
 
     if (_game->getZone()->getState() == WorldZone::State::ACTIVE)
@@ -1212,8 +1245,8 @@ int32_t Player::getAdjustedSkill(const std::string& name)
         return (*it).second;
     }
 
-    // TODO: apply accessory skill bonus
-    auto level = MAX(1, MIN(MAX_SKILL_LEVEL, getSkill(name)));
+    auto bonus = getSkillBonus(name);
+    auto level = MAX(1, MIN(MAX_SKILL_LEVEL, getSkill(name) + bonus));
     _cachedAdjustedSkills[name] = level;
     return level;
 }
@@ -1221,6 +1254,152 @@ int32_t Player::getAdjustedSkill(const std::string& name)
 float Player::getNormalizedSkill(const std::string& name)
 {
     return (float)getAdjustedSkill(name) / MAX_SKILL_LEVEL;
+}
+
+int32_t Player::getSkillBonus(const std::string& name) const
+{
+    auto accessoryBonus = getHighestSkillBonus(name, _cachedAccessoryItems);
+    auto hiddenBonus    = getHighestSkillBonus(name, _cachedHiddenItems);
+    return accessoryBonus + hiddenBonus;
+}
+
+int32_t Player::getHighestSkillBonus(const std::string& name, const std::vector<Item*>& items) const
+{
+    int32_t result = 0;
+
+    for (auto item : items)
+    {
+        if (item->isUsableType(UseType::SKILL_BONUS))
+        {
+            auto bonus = map_util::getInt32(item->getData(), std::format("bonus.{}", name));
+
+            if (bonus > result)
+            {
+                result = bonus;
+            }
+        }
+    }
+
+    return result;
+}
+
+int64_t Player::getMaxAccessories()
+{
+    // NOTE: Don't use adjusted skill to calculate
+    auto bonus = hasInventory("accessories/toolbelt") ? 5 : 0;
+    return (int64_t)5 + MAX(1, MIN(10, getSkill(kStaminaSkill))) + bonus;
+}
+
+static bool compareInventoryItemBySlot(InventoryItem* a, InventoryItem* b)
+{
+    return b->getSlot() > a->getSlot();
+}
+
+void Player::updateAccessories()
+{
+    _cachedAdjustedSkills.clear();  // Accessory skill bonuses must be recalculated
+    _cachedAccessoryItems.clear();
+    _cachedHiddenItems.clear();
+    _flyAccessory = nullptr;
+
+    // Find accessories & hidden items
+    std::vector<InventoryItem*> accessoryItems;
+    std::vector<InventoryItem*> hiddenItems;
+    auto maxAccessories = getMaxAccessories();
+
+    for (auto& entry : _inventory)
+    {
+        auto& invItem = entry.second;
+
+        switch (invItem->getContainer())
+        {
+        case ContainerType::ACCESSORY:
+            if (invItem->getSlot() < maxAccessories)
+            {
+                accessoryItems.push_back(invItem);
+            }
+            break;
+        case ContainerType::HIDDEN:
+            hiddenItems.push_back(invItem);
+            break;
+        }
+    }
+
+    // Sort items by slot & transform vectors
+    std::sort(accessoryItems.begin(), accessoryItems.end(), compareInventoryItemBySlot);
+    _cachedAccessoryItems.resize(accessoryItems.size());
+    std::transform(accessoryItems.begin(), accessoryItems.end(), _cachedAccessoryItems.begin(),
+                   [](InventoryItem* item) { return item->getItem(); });
+    _cachedHiddenItems.resize(hiddenItems.size());
+    std::sort(hiddenItems.begin(), hiddenItems.end(), compareInventoryItemBySlot);
+    std::transform(hiddenItems.begin(), hiddenItems.end(), _cachedHiddenItems.begin(),
+                   [](InventoryItem* item) { return item->getItem(); });
+
+    // Update flying accessory & shield
+    for (auto item : _cachedAccessoryItems)
+    {
+        // Check if flying accessory
+        if (item->isUsableType(UseType::FLY) || item->isUsableType(UseType::PROPEL) ||
+            item->isUsableType(UseType::HOVER))
+        {
+            _flyAccessory = item;
+        }
+
+        // Check if shield
+        if (item->getAction() == Item::Action::SHIELD)
+        {
+            _activeShieldItem = getInventory(item);
+        }
+    }
+
+    // TODO: cache stomping accessory
+
+    // Equip flying accessory on avatar
+    auto uniform = _flyAccessory ? _flyAccessory->getCode() : 0;
+    auto details = map_util::mapOf("u", uniform);
+    _avatar->change(details);
+
+    // Update health if new max health is less than current health
+    auto maxHealth = getMaxHealth();
+
+    if (maxHealth < _health)
+    {
+        setHealth(maxHealth);
+    }
+
+    // Fire accessories changed event
+    _game->getEventDispatcher()->dispatchCustomEvent(events::kPlayerAccessoriesChanged, this);
+}
+
+bool Player::hasAccessory(const std::string& name) const
+{
+    for (auto item : _cachedAccessoryItems)
+    {
+        if (item->getName() == name)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Player::hasAccessoryWithUse(UseType use) const
+{
+    for (auto item : _cachedAccessoryItems)
+    {
+        if (item->isUsableType(use))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Player::hasAfterburner() const
+{
+    return hasAccessoryWithUse(UseType::AFTERBURNER);
 }
 
 InventoryItem* Player::setInventory(Item* item, int64_t quantity)
@@ -1243,15 +1422,15 @@ InventoryItem* Player::setInventory(Item* item, int64_t quantity, ContainerType 
         if (quantity > 0 && _game->getZone()->getState() == WorldZone::State::ACTIVE)
         {
             result = InventoryItem::createWithItem(item, 0, container, slot);
+            _inventory.insert(code, result);
             result->setQuantity(quantity);
         }
         else
         {
             result = InventoryItem::createWithItem(item, quantity, container, slot);
+            _inventory.insert(code, result);
             result->update();
         }
-
-        _inventory.insert(code, result);
     }
     else
     {
@@ -1292,6 +1471,18 @@ InventoryItem* Player::getInventory(Item* item)
     return result;
 }
 
+InventoryItem* Player::getInventory(const std::string& name)
+{
+    auto item = _game->getConfig()->getItemForName(name);
+    return item ? getInventory(item) : nullptr;
+}
+
+bool Player::hasInventory(const std::string& name)
+{
+    auto invItem = getInventory(name);
+    return invItem && invItem->getQuantity() > 0;
+}
+
 int64_t Player::getNextInventorySlot(ContainerType type)
 {
     if (type == ContainerType::INVENTORY)
@@ -1319,7 +1510,7 @@ InventoryItem* Player::getInventoryItem(ContainerType container, int64_t slot, i
     return nullptr;
 }
 
-static bool compareInventoryItem(InventoryItem* a, InventoryItem* b)
+static bool compareInventoryItemByOrder(InventoryItem* a, InventoryItem* b)
 {
     return b->getItem()->getInventoryPosition().slot > a->getItem()->getInventoryPosition().slot;
 }
@@ -1343,7 +1534,7 @@ void Player::arrangeInventory(int64_t category)
     }
 
     // Sort items in ascending slot order
-    std::sort(itemsInCategory.begin(), itemsInCategory.end(), compareInventoryItem);
+    std::sort(itemsInCategory.begin(), itemsInCategory.end(), compareInventoryItemByOrder);
 
     // Update position based on index in the sorted vector
     for (ssize_t i = 0; i < itemsInCategory.size(); i++)

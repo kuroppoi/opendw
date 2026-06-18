@@ -1,6 +1,7 @@
 #include "Lightmapper.h"
 
 #include "base/GameConfig.h"
+#include "base/InventoryItem.h"
 #include "base/Item.h"
 #include "base/Player.h"
 #include "event/EventNames.h"
@@ -20,6 +21,7 @@
 #define DEFAULT_BASE_LIGHT         200.0
 #define RESTRICT_FIELD_DAMAGE_AURA 0  // Whether or not field damage aura should only display in hell biomes
 #define MOOD_MODE_TORCH_LIGHT      1  // Whether or not flashlight should emit light when mood mode is enabled
+#define ENFORCE_MIN_PLAYER_LIGHT   0  // Whether or not the player's base light should be enforced as the minimum value
 
 USING_NS_AX;
 
@@ -51,12 +53,8 @@ bool Lightmapper::initWithZone(WorldZone* zone)
         return false;
     }
 
-    _zone         = zone;
-    _deathOverlay = 0.0F;
-    _overlay      = 0.0F;
-    _flash        = 0.0F;
-    _haze         = false;
-    _moodLighting = false;
+    _zone             = zone;
+    _defaultBaseLight = DEFAULT_BASE_LIGHT;
 
     // Create texture
     _texture = new Texture2D();
@@ -126,6 +124,7 @@ void Lightmapper::onEnter()
 {
     Node::onEnter();
     addEventListener(events::kPlayerHealthChanged, EVENT_CALLBACK_EX(float*, onHealthChanged, data[0], data[1]));
+    addEventListener(events::kPlayerAccessoriesChanged, EVENT_CALLBACK(Player*, onPlayerAccessoriesChanged));
     addEventListener(events::kZoneTeleportActivated, AX_CALLBACK_0(Lightmapper::beginHaze, this));
     addEventListener(events::kZoneTeleportDeactivated, AX_CALLBACK_0(Lightmapper::endHaze, this));
 }
@@ -197,15 +196,26 @@ void Lightmapper::update(float deltaTime)
     _sprite->visit();
 
     // 0x100056C6F: Draw torch light
-    // TODO: use flashlight from accessory bar
-    // TODO: take overlay into account
 #if !MOOD_MODE_TORCH_LIGHT
     if (!_moodLighting)
 #endif
     {
-        auto light = map_util::getFloat(GameConfig::getMain()->getData(), "lighting.player", 4.0F);
-        auto size  = math_util::lerp(light, 1.5F, _overlay);
-        size       = math_util::lerp(size, -0.2F, _deathOverlay);
+        // Determine light value from flashlight accessory or held item
+        auto light      = map_util::getFloat(GameConfig::getMain()->getData(), "lighting.player", 4.0F);
+        auto heldItem   = player->getActiveHotbarItem() ? player->getActiveHotbarItem()->getItem() : nullptr;
+        auto torchItem  = heldItem && (!_torchAccessory || heldItem->getLight() >= _torchAccessory->getLight())
+                              ? heldItem
+                              : _torchAccessory;
+        auto torchLight = torchItem ? torchItem->getLight() : 0.0F;
+
+#if ENFORCE_MIN_PLAYER_LIGHT
+        light = MAX(light, torchLight);
+#else
+        light = torchLight <= 0.0F ? light : torchLight;
+#endif
+
+        auto size = math_util::lerp(light, 1.5F, _overlay);
+        size      = math_util::lerp(size, -0.2F, _deathOverlay);
         size *= 1.3F * LIGHTMAP_SCALE;
 
         if (size > 0.01F)
@@ -213,6 +223,7 @@ void Lightmapper::update(float deltaTime)
             auto position = worldRenderer->getScreenPointForNodePoint(Player::getMain()->getPosition() +
                                                                       Vec2::UNIT_Y * BLOCK_SIZE * 0.8F);
             auto scale    = Vec2::ONE * BLOCK_SIZE / _torchLight->getContentSize();
+            _torchLight->setColor(torchItem ? torchItem->getLightColor() : Color3B::WHITE);
             _torchLight->setOpacity(200);
             _torchLight->setScaleX((size + random(-0.1F, 0.1F)) * scale.width * worldScale * 2.0F);
             _torchLight->setScaleY((size + random(-0.1F, 0.1F)) * scale.height * worldScale * 2.0F);
@@ -500,7 +511,7 @@ float Lightmapper::getBaseLight() const
         return 255.0F;
     }
 
-    auto baseLight = DEFAULT_BASE_LIGHT;
+    auto baseLight = _defaultBaseLight;
 
     if (_zone->getBiomeType() == Biome::HELL)
     {
@@ -515,6 +526,36 @@ void Lightmapper::onHealthChanged(float oldHealth, float health)
     if (health < oldHealth)
     {
         _deathOverlay = MAX(0.1F, _deathOverlay);
+    }
+}
+
+void Lightmapper::onPlayerAccessoriesChanged(Player* player)
+{
+    // Apply light bonus from hidden accessories
+    // BUGFIX: Use the highest light bonus instead of the last one in the vector
+    _defaultBaseLight = DEFAULT_BASE_LIGHT;
+
+    for (auto item : player->getHiddenItems())
+    {
+        if (item->isUsableType(UseType::SKILL_BONUS))
+        {
+            auto lightBonus   = map_util::getFloat(item->getData(), "bonus.light");
+            _defaultBaseLight = MIN(_defaultBaseLight, DEFAULT_BASE_LIGHT - lightBonus);
+        }
+    }
+
+    // Find brightest flashlight accessory
+    _torchAccessory = nullptr;
+
+    for (auto item : player->getAccessoryItems())
+    {
+        if (item->isAccessory())
+        {
+            if (!_torchAccessory || item->getLight() > _torchAccessory->getLight())
+            {
+                _torchAccessory = item;
+            }
+        }
     }
 }
 

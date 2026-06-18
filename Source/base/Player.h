@@ -16,6 +16,7 @@ class Item;
 class Physical;
 enum class BlockLayer : uint8_t;
 enum class ContainerType;
+enum class UseType : uint8_t;
 
 /*
  * CLASS: Player : NSObject @ 0x100316AE0
@@ -188,7 +189,7 @@ public:
     int8_t getLookDirection() const { return _lookDirection; }
 
     /* FUNC: Player::setHealth: @ 0x100020E0A */
-    void setHealth(float health, bool force = false);
+    void setHealth(float health);
 
     /* FUNC: Player::health @ 0x10002DB81 */
     float getHealth() const { return _health; }
@@ -227,6 +228,30 @@ public:
     int32_t getAdjustedSkill(const std::string& name);
     float getNormalizedSkill(const std::string& name);
 
+    /* FUNC: Player::skillBonus: @ 0x10002AD91 */
+    int32_t getSkillBonus(const std::string& name) const;
+
+    /* FUNC: Player::maxSkillBonus:inItems: @ 0x10002ADFD */
+    int32_t getHighestSkillBonus(const std::string& name, const std::vector<Item*>& items) const;
+
+    /* FUNC: Player::allowedAccessoryItems @ 0x10002B393 */
+    int64_t getMaxAccessories();
+
+    /* FUNC: Player::accessoriesDidChange: @ 0x10002B969 */
+    void updateAccessories();
+
+    bool hasAccessory(const std::string& name) const;
+    bool hasAccessoryWithUse(UseType use) const;
+
+    /* FUNC: Player::hasAfterburner @ 0x10002C77A */
+    bool hasAfterburner() const;
+
+    /* FUNC: Player::accessoryItems @ 0x10002B407 */
+    const std::vector<Item*>& getAccessoryItems() const { return _cachedAccessoryItems; }
+
+    /* FUNC: Player::hiddenItems @ 0x10002B76C */
+    const std::vector<Item*>& getHiddenItems() const { return _cachedHiddenItems; }
+
     /* FUNC: Player::setInventory:count: @ 0x100021727 */
     InventoryItem* setInventory(Item* item, int64_t quantity);
 
@@ -238,6 +263,10 @@ public:
 
     /* FUNC: Player::getInventory: @ 0x1000219C2 */
     InventoryItem* getInventory(Item* item);
+
+    /* FUNC: Player::getInventoryNamed: @ 0x100021AD9 */
+    InventoryItem* getInventory(const std::string& name);
+    bool hasInventory(const std::string& name);
 
     /* FUNC: Player::nextInventoryPosition: @ 0x100021B58 */
     int64_t getNextInventorySlot(ContainerType type);
@@ -347,9 +376,12 @@ private:
     double _lastUsedSteamAt;                               // Player::lastSteamedAt @ 0x100310828
     double _steamCooldownAt;                               // Player::steamCooldownAt @ 0x100310898
     ax::Map<int16_t, InventoryItem*> _inventory;           // Player::inventory @ 0x100310670
+    std::vector<Item*> _cachedAccessoryItems;              // Player::cachedAccessoryItems @ 0x1003106E0
+    std::vector<Item*> _cachedHiddenItems;                 // Player::cachedHiddenItems @ 0x1003106E8
     std::map<std::string, int32_t> _skills;                // Player::skills @ 0x100310690
     std::map<std::string, int32_t> _cachedAdjustedSkills;  // Player::cachedAdjustedSkills @ 0x1003106F0
     InventoryItem* _activeHotbarItem;                      // Player::activePrimaryInventoryItem @ 0x1003107E8
+    InventoryItem* _activeShieldItem;                      // Player::activeSecondaryInventoryItem @ 0x1003107F0
     int64_t _activeHotbarSlot;                             // Player::primaryHotbarIndex @ 0x1003106A0
     Item* _usingPrimaryItem;                               // Player::usingPrimaryItem @ 0x100310808
     Item* _usingSecondaryItem;                             // Player::usingSecondaryItem @ 0x100310810

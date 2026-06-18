@@ -240,6 +240,8 @@ void GameGui::onEnter()
     addEventListener(events::kNotifyAlert, EVENT_CALLBACK_REF(Value*, showAlert));
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
     addEventListener(events::kGuiWindowChangedPanel, AX_CALLBACK_0(GameGui::onGuiWindowPanelChanged, this));
+    addEventListener(events::kPlayerAccessoriesChanged, EVENT_CALLBACK(Player*, onPlayerAccessoriesChanged));
+    addEventListener(events::kPlayerSkillChanged, AX_CALLBACK_0(GameGui::onPlayerSkillChanged, this));
     addEventListener(events::kPlayerAppearanceChanged, EVENT_CALLBACK_REF(ValueMap*, onPlayerAppearanceChanged));
     addEventListener(events::kPlayerHealthChanged, EVENT_CALLBACK_EX(float*, onHealthChanged, data[1], data[2]));
     addEventListener(events::kSteamChanged, EVENT_CALLBACK_REF(float*, onSteamChanged));
@@ -797,6 +799,17 @@ void GameGui::onPlayerCountChanged()
 {
     auto count = _zone->getPeerCount();
     _socialLabel->setString(std::to_string(count + 1));
+}
+
+void GameGui::onPlayerAccessoriesChanged(Player* player)
+{
+    _healthBar->setMaxValue(player->getMaxHealth());
+}
+
+void GameGui::onPlayerSkillChanged()
+{
+    // TODO: it'd be neater to check if stamina changed
+    _healthBar->setMaxValue(Player::getMain()->getMaxHealth());
 }
 
 void GameGui::onPlayerAppearanceChanged(const ValueMap& data)

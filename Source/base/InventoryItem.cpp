@@ -22,10 +22,11 @@ InventoryItem* InventoryItem::createWithItem(Item* item, int64_t quantity, Conta
 
 bool InventoryItem::initWithItem(Item* item, int64_t quantity, ContainerType container, int64_t slot)
 {
-    _item      = item;
-    _quantity  = quantity;
-    _container = container;
-    _slot      = slot;
+    _item          = item;
+    _quantity      = quantity;
+    _container     = container;
+    _slot          = slot;
+    _positionDirty = true;
     return true;
 }
 
@@ -36,22 +37,37 @@ void InventoryItem::update()
 
     if (_quantity < 1)
     {
-        _container = ContainerType::NONE;
+        _previousContainer = _container;
+        _container         = ContainerType::NONE;
+        _positionDirty     = true;
     }
     else if (_container == ContainerType::NONE || _slot == -1)
     {
+        _previousContainer = _container;
         gui->updateInventoryItem(this);  // It might still be in an ItemContainer, so we make sure to remove it first
         moveToInitialPosition();
+        _positionDirty = true;
     }
 
-    // Update active item if item moved from or to the active hotbar slot
-    if ((_container == ContainerType::HOTBAR && _slot == player->getActiveHotbarSlot()) ||
-        player->getActiveHotbarItem() == this)
+    if (_positionDirty && WorldZone::getMain()->getState() == WorldZone::State::ACTIVE)
     {
-        player->updateActiveHotbarItem();
+        // Update active item if item moved from or to the active hotbar slot
+        if ((_container == ContainerType::HOTBAR && _slot == player->getActiveHotbarSlot()) ||
+            player->getActiveHotbarItem() == this)
+        {
+            player->updateActiveHotbarItem();
+        }
+
+        // Update accessories if item moved from or to the accessory or hidden item list
+        if (_previousContainer == ContainerType::ACCESSORY || _container == ContainerType::ACCESSORY ||
+            _previousContainer == ContainerType::HIDDEN || _container == ContainerType::HIDDEN)
+        {
+            player->updateAccessories();
+        }
     }
 
     gui->updateInventoryItem(this);
+    _positionDirty = false;
 }
 
 static const char* getServerContainerForType(ContainerType type)
@@ -91,7 +107,12 @@ bool InventoryItem::shouldNotifyOnIncrease() const
 
 void InventoryItem::moveToContainer(ContainerType container, int64_t slot, int64_t category)
 {
-    // TODO: update accessories
+    if (_quantity < 1)
+    {
+        return;
+    }
+
+    _previousContainer = _container;
 
     if (_container == container)
     {
@@ -106,9 +127,10 @@ void InventoryItem::moveToContainer(ContainerType container, int64_t slot, int64
         }
     }
 
-    _container = container;
-    _slot      = slot;
-    _category  = category;
+    _container     = container;
+    _slot          = slot;
+    _category      = category;
+    _positionDirty = true;
     update();
     updateServer();
 }
@@ -189,8 +211,10 @@ void InventoryItem::setPosition(int64_t slot, int64_t category)
 
     if (_slot != slot || _category != category)
     {
-        _slot     = slot;
-        _category = category;
+        _previousContainer = _container;
+        _slot              = slot;
+        _category          = category;
+        _positionDirty     = true;
         update();
     }
 }

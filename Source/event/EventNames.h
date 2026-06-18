@@ -4,23 +4,24 @@
 namespace opendw::events
 {
 
-inline static const auto kActiveHotbarItemChanged = "activeItemDidChange";
-inline static const auto kCursorEntered           = "cursorEnteredWindow";
-inline static const auto kDeathMessageChanged     = "deathMessageDidChange";
-inline static const auto kGuiWindowChangedPanel   = "guiWindowChangedPanel";
-inline static const auto kPlayerAppearanceChanged = "playerDidChangeAppearance";
-inline static const auto kPlayerDeathEvent        = "playerDidDie";
-inline static const auto kPlayerEntered           = "playerDidEnter";
-inline static const auto kPlayerExited            = "playerDidExit";
-inline static const auto kPlayerHealthChanged     = "healthDidChange";
-inline static const auto kPlayerSkillChanged      = "playerSkillDidChange";
-inline static const auto kNotifyAlert             = "alert";
-inline static const auto kNotifyBigAlert          = "bigAlert";
-inline static const auto kSteamChanged            = "steamDidChange";
-inline static const auto kSteamCooldownBegan      = "steamCooldownDidBegin";
-inline static const auto kSteamCooldownEnded      = "steamCooldownDidEnd";
-inline static const auto kZoneTeleportActivated   = "playerDidActivateZoneTeleport";
-inline static const auto kZoneTeleportDeactivated = "playerDidDeactivateZoneTeleport";
+inline static const auto kActiveHotbarItemChanged  = "activeItemDidChange";
+inline static const auto kCursorEntered            = "cursorEnteredWindow";
+inline static const auto kDeathMessageChanged      = "deathMessageDidChange";
+inline static const auto kGuiWindowChangedPanel    = "guiWindowChangedPanel";
+inline static const auto kPlayerAccessoriesChanged = "playerAccessoriesDidChange";
+inline static const auto kPlayerAppearanceChanged  = "playerDidChangeAppearance";
+inline static const auto kPlayerDeathEvent         = "playerDidDie";
+inline static const auto kPlayerEntered            = "playerDidEnter";
+inline static const auto kPlayerExited             = "playerDidExit";
+inline static const auto kPlayerHealthChanged      = "healthDidChange";
+inline static const auto kPlayerSkillChanged       = "playerSkillDidChange";
+inline static const auto kNotifyAlert              = "alert";
+inline static const auto kNotifyBigAlert           = "bigAlert";
+inline static const auto kSteamChanged             = "steamDidChange";
+inline static const auto kSteamCooldownBegan       = "steamCooldownDidBegin";
+inline static const auto kSteamCooldownEnded       = "steamCooldownDidEnd";
+inline static const auto kZoneTeleportActivated    = "playerDidActivateZoneTeleport";
+inline static const auto kZoneTeleportDeactivated  = "playerDidDeactivateZoneTeleport";
 
 }  // namespace opendw::events
 
