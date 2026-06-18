@@ -811,7 +811,22 @@ BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* 
         return target;
     }
 
-    // TODO: check mining skill
+    // 0x100024960: Check mining skill
+    if (!isSkilledToMine(targetItem))
+    {
+        // TODO: generate debris
+
+        // 0x100024A42: Show unskilled alert
+        if (_miningAttempts == 3)
+        {
+            auto alert = std::format("You need a higher {} skill to mine this block.", targetItem->getMiningSkill());
+            Value data(alert);
+            _game->notify(NotificationType::ALERT, data);
+        }
+
+        return target;
+    }
+
     // TODO: check mining suppression
 
     // 0x100024AB2: Begin mining the block
@@ -860,8 +875,17 @@ bool Player::tryToPlaceInventoryItem(InventoryItem* invItem, const Point& point)
 
     if (block && canPlaceItem(item, block))
     {
+        // 0x10002546F: Check placing skill
+        if (!isSkilledToPlace(item))
+        {
+            auto alert = std::format("You need {} skill level {} to place that.", item->getPlacingSkill(), item->getPlacingSkillLevel());
+            Value data(alert);
+            _game->notify(NotificationType::ALERT, data);
+            _nextAllowedPlaceTime = utils::gettime() + 1.0;
+            return false;
+        }
+
         // TODO: check biome restriction
-        // TODO: check placing skill
         // TODO: check placing cost (only used by butler bots)
         // TODO: check spacing
 
@@ -1281,6 +1305,18 @@ int32_t Player::getHighestSkillBonus(const std::string& name, const std::vector<
     }
 
     return result;
+}
+
+bool Player::isSkilledToMine(Item* item)
+{
+    auto level = item->getMiningSkillLevel();
+    return level == 0 || getAdjustedSkill(item->getMiningSkill()) >= level;
+}
+
+bool Player::isSkilledToPlace(Item* item)
+{
+    auto level = item->getPlacingSkillLevel();
+    return level == 0 || getAdjustedSkill(item->getPlacingSkill()) >= level;
 }
 
 int64_t Player::getMaxAccessories()

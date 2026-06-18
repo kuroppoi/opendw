@@ -234,6 +234,12 @@ public:
     /* FUNC: Player::maxSkillBonus:inItems: @ 0x10002ADFD */
     int32_t getHighestSkillBonus(const std::string& name, const std::vector<Item*>& items) const;
 
+    /* FUNC: Player::skilledToMine: @ 0x10002B1F1 */
+    bool isSkilledToMine(Item* item);
+
+    /* FUNC: Player::skilledToPlace: @ 0x10002B260 */
+    bool isSkilledToPlace(Item* item);
+
     /* FUNC: Player::allowedAccessoryItems @ 0x10002B393 */
     int64_t getMaxAccessories();
 

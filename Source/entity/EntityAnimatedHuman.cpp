@@ -2,6 +2,7 @@
 
 #include "base/GameConfig.h"
 #include "base/Item.h"
+#include "base/Player.h"
 #include "event/EventNames.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
@@ -595,9 +596,17 @@ void EntityAnimatedHuman::animateTool(const Point& point)
     setAnimatingTool(true);
     updateArms(0.0F);
 
+    // TODO: can probably just be moved to player class
     if (_playerAvatar && _targetItem)
     {
-        AudioManager::getInstance()->playSfx("mining", _targetItem->getMaterial(), 0.3F, 0.0F, 0.8F);
+        if (Player::getMain()->isSkilledToMine(_targetItem))
+        {
+            AudioManager::getInstance()->playSfx("mining", _targetItem->getMaterial(), 0.3F, 0.0F, 0.8F);
+        }
+        else
+        {
+            AudioManager::getInstance()->playSfx("ThudBasic", random(0.85F, 1.15F), 0.0F, 0.8F);
+        }
     }
 
     // Apply tool glow

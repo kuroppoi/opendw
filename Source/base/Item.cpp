@@ -113,6 +113,24 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
         _fieldDamageType = getDamageTypeForName(fieldDamage[0].asString());
     }
 
+    // 0x10004AEF3: Configure mining skill
+    auto& miningSkill = map_util::getArray(data, "mining_skill");
+
+    if (miningSkill.size() >= 2)
+    {
+        _miningSkill      = miningSkill[0].asString();
+        _miningSkillLevel = miningSkill[1].asInt();
+    }
+
+    // 0x10004AF64: Configure placing skill
+    auto& placingSkill = map_util::getArray(data, "placing_skill");
+
+    if (placingSkill.size() >= 2)
+    {
+        _placingSkill      = placingSkill[0].asString();
+        _placingSkillLevel = placingSkill[1].asInt();
+    }
+
     // 0x10004B009: Configure inventory position
     auto& inventoryPosition = map_util::getArray(data, "inventory_position");
 

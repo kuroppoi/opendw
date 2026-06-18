@@ -316,6 +316,18 @@ public:
     /* FUNC: Item::fieldDamageType @ 0x10004DF66 */
     DamageType getFieldDamageType() const { return _fieldDamageType; }
 
+    /* FUNC: Item::miningSkill @ 0x10004DFCB */
+    const std::string& getMiningSkill() const { return _miningSkill; }
+
+    /* FUNC: Item::miningSkillLevel @ 0x10004DFDC */
+    int32_t getMiningSkillLevel() const { return _miningSkillLevel; }
+
+    /* FUNC: Item::placingSkill @ 0x10004DFED */
+    const std::string& getPlacingSkill() const { return _placingSkill; }
+
+    /* FUNC: Item::placingSkillLevel @ 0x10004DFFE */
+    int32_t getPlacingSkillLevel() const { return _placingSkillLevel; }
+
     /* FUNC: Item::lightColor @ 0x10004E100 */
     const ax::Color3B& getLightColor() const { return _lightColor; }
 
@@ -485,6 +497,10 @@ private:
     bool _fieldPlace;                                // Item::fieldPlace @ 0x1003112C0
     Fieldable _fieldable;                            // Item::fieldable @ 0x1003112C8
     DamageType _fieldDamageType;                     // Item::fieldDamageType @ 0x1003112D8
+    std::string _miningSkill;                        // Item::miningSkill @ 0x1003112E8
+    int32_t _miningSkillLevel;                       // Item::miningSkillLevel @ 0x1003112F0
+    std::string _placingSkill;                       // Item::placingSkill @ 0x1003112F8
+    int32_t _placingSkillLevel;                      // Item::placingSkillLevel @ 0x100311300
     ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
     ax::Point _lightPosition;                        // Item::lightPosition @ 0x1003113C8
     Item* _inventoryItem;                            // Item::inventoryItem @ 0x100311498
