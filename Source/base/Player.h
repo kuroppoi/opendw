@@ -244,7 +244,7 @@ public:
     int64_t getMaxAccessories();
 
     /* FUNC: Player::accessoriesDidChange: @ 0x10002B969 */
-    void updateAccessories();
+    void updateAccessories(bool defer = false);
 
     bool hasAccessory(const std::string& name) const;
     bool hasAccessoryWithUse(UseType use) const;
@@ -281,8 +281,10 @@ public:
     InventoryItem* getInventoryItem(ContainerType container, int64_t slot, int64_t category = 0);
 
     /* FUNC: Player::arrangeInventory: @ 0x10002106 */
-    void arrangeInventory(Item* item);
-    void arrangeInventory(int64_t category);
+    void arrangeInventory(Item* item, bool defer = false);
+    void arrangeInventory(int64_t category, bool defer = false);
+
+    void updateInventory();
 
     /* FUNC: Player::updateActiveItem: @ 0x100023018 */
     void updateActiveHotbarItem();
@@ -405,6 +407,8 @@ private:
     bool _admin;                                           // Player::admin @ 0x100310958
     bool _clip;                                            // Player::clip @ 0x100310660
     bool _running;
+    bool _shouldUpdateAccessories;
+    std::set<int64_t> _categoriesToArrange;
 };
 
 }  // namespace opendw

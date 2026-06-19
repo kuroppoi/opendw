@@ -37,7 +37,6 @@ void GameCommandPlayerInventory::run()
     auto& items = _data[0].asValueMap();
     auto game   = GameManager::getInstance();
     auto player = game->getPlayer();
-    std::set<int64_t> categories;  // Categories that need to be rearranged
 
     for (auto& entry : items)
     {
@@ -55,18 +54,14 @@ void GameCommandPlayerInventory::run()
         auto container = getContainerTypeForName(details[1].asString());
         auto slot      = details[2].asInt();
         player->setInventory(item, quantity, container, slot);
-        categories.insert(item->getInventoryPosition().category);
-    }
-
-    for (auto category : categories)
-    {
-        player->arrangeInventory(category);
     }
 
     if (game->getZone()->getState() != WorldZone::State::ACTIVE)
     {
-        player->updateAccessories();
+        player->updateAccessories();  // Force accessory update if initial inventory data
     }
+
+    player->updateInventory();
 }
 
 }  // namespace opendw

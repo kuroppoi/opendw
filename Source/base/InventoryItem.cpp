@@ -49,7 +49,7 @@ void InventoryItem::update()
         _positionDirty = true;
     }
 
-    if (_positionDirty && WorldZone::getMain()->getState() == WorldZone::State::ACTIVE)
+    if (_positionDirty)
     {
         // Update active item if item moved from or to the active hotbar slot
         if ((_container == ContainerType::HOTBAR && _slot == player->getActiveHotbarSlot()) ||
@@ -57,12 +57,18 @@ void InventoryItem::update()
         {
             player->updateActiveHotbarItem();
         }
-
+        
         // Update accessories if item moved from or to the accessory or hidden item list
         if (_previousContainer == ContainerType::ACCESSORY || _container == ContainerType::ACCESSORY ||
             _previousContainer == ContainerType::HIDDEN || _container == ContainerType::HIDDEN)
         {
-            player->updateAccessories();
+            player->updateAccessories(true);
+        }
+
+        // Rearrange inventory if item moved from or to the inventory container
+        if (_previousContainer == ContainerType::INVENTORY || _container == ContainerType::INVENTORY)
+        {
+            player->arrangeInventory(_item, true);
         }
     }
 

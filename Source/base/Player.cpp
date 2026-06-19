@@ -502,6 +502,7 @@ void Player::update(float deltaTime)
     }
 
     _mining = false;
+    updateInventory();  // Failsafe
 }
 
 void Player::useFlyAccessory(Item* item, float deltaTime)
@@ -1331,8 +1332,14 @@ static bool compareInventoryItemBySlot(InventoryItem* a, InventoryItem* b)
     return b->getSlot() > a->getSlot();
 }
 
-void Player::updateAccessories()
+void Player::updateAccessories(bool defer)
 {
+    if (defer)
+    {
+        _shouldUpdateAccessories = true;
+        return;
+    }
+
     _cachedAdjustedSkills.clear();  // Accessory skill bonuses must be recalculated
     _cachedAccessoryItems.clear();
     _cachedHiddenItems.clear();
@@ -1405,6 +1412,7 @@ void Player::updateAccessories()
 
     // Fire accessories changed event
     _game->getEventDispatcher()->dispatchCustomEvent(events::kPlayerAccessoriesChanged, this);
+    _shouldUpdateAccessories = false;
 }
 
 bool Player::hasAccessory(const std::string& name) const
@@ -1551,13 +1559,19 @@ static bool compareInventoryItemByOrder(InventoryItem* a, InventoryItem* b)
     return b->getItem()->getInventoryPosition().slot > a->getItem()->getInventoryPosition().slot;
 }
 
-void Player::arrangeInventory(Item* item)
+void Player::arrangeInventory(Item* item, bool defer)
 {
-    arrangeInventory(item->getInventoryPosition().category);
+    arrangeInventory(item->getInventoryPosition().category, defer);
 }
 
-void Player::arrangeInventory(int64_t category)
+void Player::arrangeInventory(int64_t category, bool defer)
 {
+    if (defer)
+    {
+        _categoriesToArrange.insert(category);
+        return;
+    }
+
     // Create a vector of all inventory items in the target category
     std::vector<InventoryItem*> itemsInCategory;
 
@@ -1576,6 +1590,26 @@ void Player::arrangeInventory(int64_t category)
     for (ssize_t i = 0; i < itemsInCategory.size(); i++)
     {
         itemsInCategory[i]->setPosition(i, category);
+    }
+}
+
+void Player::updateInventory()
+{
+    // Rearrange dirty categories
+    if (!_categoriesToArrange.empty())
+    {
+        for (auto category : _categoriesToArrange)
+        {
+            arrangeInventory(category);
+        }
+
+        _categoriesToArrange.clear();
+    }
+
+    // Update accessories if marked as dirty
+    if (_shouldUpdateAccessories)
+    {
+        updateAccessories();  // Clears flag as well
     }
 }
 

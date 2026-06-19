@@ -915,31 +915,11 @@ void GameGui::onTouchEnded(Touch* touch, Event* event)
     if (auto sprite = static_cast<InventoryItemSprite*>(container->getItemAtSlot(slot)))
     {
         sprite->getInventoryItem()->moveToContainer(source->getContainer(), source->getSlot());
-        auto category = sprite->getItem()->getInventoryPosition().category;
-
-        // Arrange inventory for this category unless it's the same category as the dragged item
-        if ((type == ContainerType::INVENTORY || source->getContainer() == ContainerType::INVENTORY) &&
-            category != item->getInventoryPosition().category)
-        {
-            Player::getMain()->arrangeInventory(category);
-        }
     }
 
     auto oldContainer = source->getContainer();
     source->moveToContainer(type, slot);
-
-    if (oldContainer == ContainerType::INVENTORY)
-    {
-        // Rearrange source inventory container
-        Player::getMain()->arrangeInventory(item);
-    }
-    else if (type == ContainerType::INVENTORY)
-    {
-        // Rearrange destination inventory container
-        Player::getMain()->arrangeInventory(item);
-        container->updatePageCount();  // Ensures page count is updated properly
-    }
-
+    Player::getMain()->updateInventory();
     setActiveItemSprite(nullptr);
 }
 
