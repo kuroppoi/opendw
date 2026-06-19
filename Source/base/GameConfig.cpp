@@ -86,6 +86,17 @@ bool GameConfig::initWithData(const ValueMap& data)
                     }
                 }
 
+                // Inventory and size properties are always inherited
+                if (!data.contains("inventory"))
+                {
+                    data["inventory"] = item->getName();
+                }
+
+                if (!data.contains("size"))
+                {
+                    data["size"] = array_util::arrayOf(item->getWidth(), item->getHeight());
+                }
+
                 data["code"] = ++_maxItemCode;
                 auto name =
                     map_util::getString(data, "name", std::format("{}-change-{}", item->getName(), nameSuffix++));
