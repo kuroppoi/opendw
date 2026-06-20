@@ -598,6 +598,8 @@ UseType Item::getUseTypeForName(const std::string& name)
         return UseType::SWITCH;
     else if (name == "suppress")
         return UseType::SUPPRESS;
+    else if (name == "building extension")
+        return UseType::BUILDING_EXTENSION;
     else if (name == "field_display")
         return UseType::FIELD_DISPLAY;
     else if (name == "afterburner")

@@ -75,6 +75,7 @@ enum class UseType : uint8_t
     MOVE,
     SWITCH,
     SUPPRESS,
+    BUILDING_EXTENSION,
     FIELD_DISPLAY,
     AFTERBURNER,
     UNKNOWN

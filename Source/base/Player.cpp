@@ -1066,8 +1066,14 @@ float Player::getFlyingSpeed()
 
 float Player::getPlacingRange()
 {
-    // TODO: check for building extender
-    return MathUtil::lerp(4.0F, 12.0F, getNormalizedSkill(kBuildingSkill));
+    auto range = MathUtil::lerp(4.0F, 12.0F, getNormalizedSkill(kBuildingSkill));
+
+    if (hasAccessoryWithUse(UseType::BUILDING_EXTENSION))
+    {
+        range *= 2.0F;
+    }
+
+    return range;
 }
 
 float Player::getMiningSpeed()
