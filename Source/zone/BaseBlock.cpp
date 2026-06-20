@@ -774,7 +774,7 @@ void BaseBlock::startMining(BlockLayer layer, Item* tool)
 
     if (auto sprite = getMainSpriteForLayer(layer))
     {
-        if (item->isOpaque())
+        if (item->isOpaque() || item->isWhole())
         {
             _miningAction = WorldRenderer::getMain()->generateMiningCracks(this, layer, duration);
             _miningAction->setTag(CRACKS_ACTION_TAG);
