@@ -383,6 +383,35 @@ ItemContainer* GameGui::getItemContainerAtScreenPoint(const Point& point) const
     return nullptr;
 }
 
+void GameGui::updateAccessoryBar()
+{
+    auto container = getItemContainerForType(ContainerType::ACCESSORY);
+
+    if (!container)
+    {
+        return;  // Shouldn't happen
+    }
+
+    auto maxAccessories = Player::getMain()->getMaxAccessories();
+
+    for (int64_t i = 0; i < container->getTotalSlotCount(); i++)
+    {
+        if (i >= maxAccessories)
+        {
+            container->setSlotSprite(i, "inventory-slot-faded");
+        }
+        else
+        {
+            auto item = container->getItemAtSlot(i, 0);
+            auto color = item ? (item->getItem()->isAccessory() ? color_util::hexToColor("78FF78") : Color3B::RED)
+                              : Color3B::WHITE;
+            container->setSlotSprite(i, "inventory-slot", color);
+        }
+    }
+
+    container->updateSlotSprites();
+}
+
 void GameGui::updateInventoryTooltip()
 {
     if (_inventoryTooltipOwner)
@@ -804,6 +833,7 @@ void GameGui::onPlayerCountChanged()
 void GameGui::onPlayerAccessoriesChanged(Player* player)
 {
     _healthBar->setMaxValue(player->getMaxHealth());
+    updateAccessoryBar();
 }
 
 void GameGui::onPlayerSkillChanged()

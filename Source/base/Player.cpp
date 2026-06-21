@@ -1237,7 +1237,7 @@ void Player::setSkill(const std::string& name, int32_t level)
     _cachedAdjustedSkills.erase(name);
     _skills[name] = level;
 
-    // Update health if stamina changed and new max health is less than current health
+    // Stamina determines max health & accessory slots, so we should update those immediately.
     if (name == kStaminaSkill)
     {
         auto maxHealth = getMaxHealth();
@@ -1246,6 +1246,8 @@ void Player::setSkill(const std::string& name, int32_t level)
         {
             setHealth(maxHealth);
         }
+
+        updateAccessories();
     }
 
     if (_game->getZone()->getState() == WorldZone::State::ACTIVE)

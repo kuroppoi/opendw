@@ -8,6 +8,7 @@
 #include "CommonDefs.h"
 
 #define INVENTORY_FRAME_SIZE 68.0F
+#define OPAQUE_SLOT_FRAME    "inventory-slot"
 
 USING_NS_AX;
 
@@ -66,6 +67,11 @@ void ItemContainer::visit(Renderer* renderer, const Mat4& transform, uint32_t fl
         if (_pagesDirty)
         {
             updatePageTabs();
+        }
+
+        if (_slotSpritesDirty)
+        {
+            updateSlotSprites();
         }
     }
 
@@ -137,12 +143,17 @@ void ItemContainer::updateLayout()
     {
         for (int32_t x = 0; x < _cols; x++)
         {
-            Sprite* sprite = _opaqueSlots ? Sprite::createWithSpriteFrameName("inventory-slot")
+            Sprite* sprite = _opaqueSlots ? Sprite::createWithSpriteFrameName(OPAQUE_SLOT_FRAME)
                                           : Sprite::createWithTexture(_inventoryBatch->getTexture(), Rect::ZERO);
             sprite->setPosition(getNodePointAtSlot(slot++));
             _inventoryBatch->addChild(sprite);
             _slotSprites.push_back(sprite);
         }
+    }
+
+    if (!_slotSpriteInfo.empty())
+    {
+        updateSlotSprites();
     }
 
     _itemSpriteNode->setPosition(_inventoryBatch->getPosition());
@@ -199,6 +210,46 @@ void ItemContainer::updatePageCount()
     }
 
     setPageCount((highest / _slotCount) + 1);
+}
+
+void ItemContainer::updateSlotSprites()
+{
+    auto start = _currentPage * _slotCount;
+    auto end   = start + _slotCount;
+
+    for (auto i = start; i < end; i++)
+    {
+        auto sprite = _slotSprites[i % _slotCount];
+        auto it     = _slotSpriteInfo.find(i);
+
+        if (it != _slotSpriteInfo.end())
+        {
+            auto& info = (*it).second;
+            sprite->setSpriteFrame(info.frame);
+            sprite->setColor(info.color);
+        }
+        else
+        {
+            if (_opaqueSlots)
+            {
+                sprite->setSpriteFrame(OPAQUE_SLOT_FRAME);
+            }
+            else
+            {
+                sprite->setTextureRect(Rect::ZERO);
+            }
+
+            sprite->setColor(Color3B::WHITE);
+        }
+    }
+
+    _slotSpritesDirty = false;
+}
+
+void ItemContainer::resetSlotSprites()
+{
+    _slotSpriteInfo.clear();
+    _slotSpritesDirty = true;
 }
 
 void ItemContainer::addSprite(ItemSprite* sprite, int64_t slot, int64_t category)
@@ -300,7 +351,8 @@ void ItemContainer::setCurrentCategory(int64_t category)
         {
             showSprites(_visibleCategory, _currentPage, false);
             showSprites(_currentCategory, _currentPage, true);
-            _visibleCategory = _currentCategory;
+            _visibleCategory  = _currentCategory;
+            _slotSpritesDirty = true;
         }
         else
         {
@@ -341,8 +393,9 @@ void ItemContainer::setCurrentPage(ssize_t page)
 
         showSprites(_visibleCategory, _currentPage, false);
         showSprites(_currentCategory, page, true);
-        _currentPage     = page;
-        _visibleCategory = _currentCategory;
+        _currentPage      = page;
+        _visibleCategory  = _currentCategory;
+        _slotSpritesDirty = true;
     }
 }
 
@@ -481,6 +534,12 @@ Point ItemContainer::getNodePointAtSlot(int64_t slot) const
     auto pointX = _itemSize * (x + 0.5F) + x * _itemMargin;
     auto pointY = _containerSize.height - (_itemSize * (y + 0.5F) + y * _itemMargin);
     return Point(pointX, pointY);
+}
+
+void ItemContainer::setSlotSprite(int64_t slot, const std::string& frame, const ax::Color3B& color)
+{
+    _slotSpriteInfo[slot] = {frame, color};
+    _slotSpritesDirty     = true;
 }
 
 void ItemContainer::onTabSelected(TabsBar* tabsBar, ssize_t index)

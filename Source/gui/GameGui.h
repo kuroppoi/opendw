@@ -67,6 +67,8 @@ public:
     /* FUNC: GameGui::inventoryContainerWithScreenPoint: @ 0x10005EFAA */
     ItemContainer* getItemContainerAtScreenPoint(const ax::Point& point) const;
 
+    void updateAccessoryBar();
+
     /* FUNC: GameGui::updateTooltip: @ 0x10005F403 */
     void updateInventoryTooltip();
 

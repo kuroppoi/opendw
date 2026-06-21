@@ -26,6 +26,8 @@ public:
     void updateLayout();
     void updatePageTabs();
     void updatePageCount();
+    void updateSlotSprites();
+    void resetSlotSprites();
 
     void addSprite(ItemSprite* sprite, int64_t slot, int64_t category = 0);
     void removeSprite(ItemSprite* sprite, bool cleanup = false);
@@ -50,11 +52,18 @@ public:
     ItemSprite* getItemAtSlot(int64_t slot, int64_t category = -1) const;
     ax::Point getNodePointAtSlot(int64_t slot) const;
 
+    void setSlotSprite(int64_t slot, const std::string& frame, const ax::Color3B& color = ax::Color3B::WHITE);
     const std::vector<ax::Sprite*>& getSlotSprites() const { return _slotSprites; }
 
     void onTabSelected(TabsBar* tabsBar, ssize_t index) override;
 
 protected:
+    struct SlotSprite
+    {
+        std::string frame;
+        ax::Color3B color;
+    };
+
     GameGui* _gameGui;
     int32_t _cols;
     int32_t _rows;
@@ -65,6 +74,7 @@ protected:
     ax::SpriteBatchNode* _inventoryBatch;
     ax::Node* _itemSpriteNode;
     std::vector<ax::Sprite*> _slotSprites;
+    std::unordered_map<int64_t, SlotSprite> _slotSpriteInfo;
     std::vector<std::string> _categories;
     TabsBarCallback _categoryChangeCallback;
     int64_t _currentCategory;
@@ -78,6 +88,7 @@ protected:
     bool _dynamicPaging;
     bool _opaqueSlots;
     bool _layoutDirty;
+    bool _slotSpritesDirty;
 };
 
 }  // namespace opendw
