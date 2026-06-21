@@ -149,6 +149,10 @@ void Player::reset()
     _physical = nullptr;  // Managed by avatar, no need to release
     AX_SAFE_RELEASE_NULL(_avatar);
     _inventory.clear();
+    _cachedAccessoryItems.clear();
+    _cachedHiddenItems.clear();
+    _skills.clear();
+    _cachedAdjustedSkills.clear();
     _activeHotbarItem = nullptr;
     _activeShieldItem = nullptr;
     _activeHotbarSlot = 0;
