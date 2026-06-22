@@ -210,7 +210,7 @@ void DefaultInputManager::checkInput(float deltaTime)
 
     if (auto block = zone->getBlockAtNodePoint(worldCursorPos))
     {
-        auto point  = block->getWorldPosition();
+        auto point = block->getWorldPosition();
 
         if (_placeSprite->isVisible() && activeHotbarItem)
         {
@@ -223,7 +223,7 @@ void DefaultInputManager::checkInput(float deltaTime)
             _placeSprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
         }
 
-        if (_mouseButtons.contains(MouseButton::BUTTON_LEFT))
+        if (!_mouseButtons.contains(MouseButton::BUTTON_LEFT) || _keysPressed.contains(KeyCode::KEY_SPACE))
         {
             usingItem  = activeHotbarItem;
             usingPoint = worldCursorPos;
@@ -307,6 +307,11 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         if (_player->isDead())
         {
             _player->respawn();
+        }
+        else if (!_gameGui->isPointInGui(_cursorPosition))
+        {
+            auto point = worldRenderer->getNodePointForScreenPoint(_cursorPosition);
+            _player->tryToUseBlockAtNodePoint(point);
         }
         break;
     case KeyCode::KEY_F1:
