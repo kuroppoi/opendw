@@ -223,7 +223,7 @@ void DefaultInputManager::checkInput(float deltaTime)
             _placeSprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
         }
 
-        if (!_mouseButtons.contains(MouseButton::BUTTON_LEFT) || _keysPressed.contains(KeyCode::KEY_SPACE))
+        if (_mouseButtons.contains(MouseButton::BUTTON_LEFT) || _keysPressed.contains(KeyCode::KEY_SPACE))
         {
             usingItem  = activeHotbarItem;
             usingPoint = worldCursorPos;
