@@ -153,6 +153,8 @@ void Player::reset()
     _cachedHiddenItems.clear();
     _skills.clear();
     _cachedAdjustedSkills.clear();
+    _flyAccessory     = nullptr;
+    _stompAccessory   = nullptr;
     _activeHotbarItem = nullptr;
     _activeShieldItem = nullptr;
     _activeHotbarSlot = 0;
@@ -294,6 +296,7 @@ void Player::update(float deltaTime)
         }
 
         // 0x10001D002: Apply movement
+        _stomping       = false;
         auto flying     = false;
         auto propulsion = BLOCK_SIZE * (grounded ? 0.5F : 0.2F);  // Upward motion required to fly
 
@@ -362,9 +365,10 @@ void Player::update(float deltaTime)
                 auto impulse = mass * deltaTime * counterforce;
                 body->applyImpulseAtLocalPoint(-(gravity * impulse));
             }
-            else
+            else if (!grounded && _stompAccessory && movement.y <= BLOCK_SIZE * -0.75F && hasSteam() &&
+                     useStompAccessory(_stompAccessory, deltaTime))
             {
-                // TODO: implement stomping
+                animation = "stomp-1";
             }
         }
         else
@@ -465,6 +469,11 @@ void Player::update(float deltaTime)
         auto velLimit = _currentLiquidLevel == 0 ? BLOCK_SIZE * 12.0F : BLOCK_SIZE * 4.0F;
         auto velocity = _physical->getVelocity();
 
+        if (_stomping)
+        {
+            velLimit *= _stompAccessory->getPower() + 0.05F;
+        }
+
         if (velocity.lengthSquared() > velLimit * velLimit)
         {
             _physical->setVelocity(velocity.getNormalized() * velLimit);
@@ -527,6 +536,26 @@ void Player::useFlyAccessory(Item* item, float deltaTime)
     }
 
     _flyAccessoryPower = math_util::lerp(_flyAccessoryPower, 1.0F, deltaTime * 2.0F);
+}
+
+bool Player::useStompAccessory(Item* item, float deltaTime)
+{
+    if (utils::gettime() < _lastStompedAt + item->getAttackInterval())
+    {
+        return false;
+    }
+
+    // TODO: emit particles
+    auto speedX     = _destination.x - _physical->getPosition().x;
+    auto stompSpeed = BLOCK_SIZE * deltaTime;
+    auto direction  = abs(speedX) < FLT_EPSILON ? 0.0F : speedX > 0.0F ? 1.0F : -1.0F;
+    _physical->getBody()->applyImpulseAtLocalPoint(
+        {stompSpeed * direction * 0.33F, item->getPower() * stompSpeed * -21.5F * 8.0F});
+    auto rotation = math_util::lerp(_avatar->getRotation(), 0.0F, deltaTime * 4.0F);
+    _avatar->setRotation(rotation);
+    setSteam(_steam - item->getRate() * deltaTime / getSteamEfficiency());
+    _stomping = true;
+    return true;
 }
 
 bool Player::climbBlock(BaseBlock* block, float deltaTime)
@@ -1022,6 +1051,13 @@ void Player::onFeetCollideWithBlock(BaseBlock* block)
     if (_clip)
     {
         _avatar->walkOnBlock(block);
+
+        if (_stomping && _currentLiquidLevel < 3)
+        {
+            // TODO: generate effect
+            AudioManager::getInstance()->playSfx("ExplosionPip", getPosition(), 1.0F, 2.0F);
+            _lastStompedAt = utils::gettime();
+        }
     }
 }
 
@@ -1355,7 +1391,8 @@ void Player::updateAccessories(bool defer)
     _cachedAdjustedSkills.clear();  // Accessory skill bonuses must be recalculated
     _cachedAccessoryItems.clear();
     _cachedHiddenItems.clear();
-    _flyAccessory = nullptr;
+    _flyAccessory   = nullptr;
+    _stompAccessory = nullptr;
 
     // Find accessories & hidden items
     std::vector<InventoryItem*> accessoryItems;
@@ -1407,7 +1444,14 @@ void Player::updateAccessories(bool defer)
         }
     }
 
-    // TODO: cache stomping accessory
+    // Update stomping accessory
+    for (auto item : _cachedHiddenItems)
+    {
+        if (item->getAction() == Item::Action::EXOLEG)
+        {
+            _stompAccessory = item;
+        }
+    }
 
     // Equip flying accessory on avatar
     auto uniform = _flyAccessory ? _flyAccessory->getCode() : 0;

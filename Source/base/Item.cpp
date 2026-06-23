@@ -65,6 +65,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _rate             = map_util::getFloat(data, "rate");
     _jiggle           = map_util::getFloat(data, "jiggle");
     _glow             = map_util::getFloat(data, "glow");
+    _attackInterval   = map_util::getDouble(data, "attack_interval");
     _light            = map_util::getFloat(data, "light");
     _lightColor       = color_util::hexToColor(map_util::getString(data, "light_color"));
     _color            = color_util::hexToColor(map_util::getString(data, "color"));

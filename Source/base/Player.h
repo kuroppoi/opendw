@@ -56,6 +56,9 @@ public:
     /* FUNC: Player::useFlyAccessory:delta: @ 0x10001FE17 */
     void useFlyAccessory(Item* item, float deltaTime);
 
+    /* FUNC: Player::useStompAccessory:delta: @ 0x10002026A */
+    bool useStompAccessory(Item* item, float deltaTime);
+
     /* FUNC: Player::climbBlock:delta: @ 0x100020A28 */
     bool climbBlock(BaseBlock* block, float deltaTime);
 
@@ -406,6 +409,9 @@ private:
     BaseBlock* _lastPlacedBlock;                           // Player::lastPlacedAt @ 0x100310918
     bool _admin;                                           // Player::admin @ 0x100310958
     bool _clip;                                            // Player::clip @ 0x100310660
+    bool _stomping;                                        // Player::isStomping @ 0x100310770
+    double _lastStompedAt;                                 // Player::lastStompedAt @ 0x100310860
+    Item* _stompAccessory;
     bool _running;
     bool _shouldUpdateAccessories;
     std::set<int64_t> _categoriesToArrange;

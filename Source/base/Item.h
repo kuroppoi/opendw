@@ -329,6 +329,9 @@ public:
     /* FUNC: Item::placingSkillLevel @ 0x10004DFFE */
     int32_t getPlacingSkillLevel() const { return _placingSkillLevel; }
 
+    /* FUNC: Item::attackInterval @ 0x10004E086 */
+    double getAttackInterval() const { return _attackInterval; }
+
     /* FUNC: Item::lightColor @ 0x10004E100 */
     const ax::Color3B& getLightColor() const { return _lightColor; }
 
@@ -502,6 +505,7 @@ private:
     int32_t _miningSkillLevel;                       // Item::miningSkillLevel @ 0x1003112F0
     std::string _placingSkill;                       // Item::placingSkill @ 0x1003112F8
     int32_t _placingSkillLevel;                      // Item::placingSkillLevel @ 0x100311300
+    double _attackInterval;                          // Item::attackInterval @ 0x100311340
     ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
     ax::Point _lightPosition;                        // Item::lightPosition @ 0x1003113C8
     Item* _inventoryItem;                            // Item::inventoryItem @ 0x100311498
