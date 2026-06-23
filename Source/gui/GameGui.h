@@ -82,6 +82,7 @@ public:
 
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
+    void toggleInventory();
 
     /* FUNC: GameGui::toggleProtectorRangefinder @ 0x100065A66 */
     void toggleProtectorRangeVisibility();

@@ -223,6 +223,7 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     // Create inventory tooltip
     _inventoryTooltip = Panel::createWithStyle("small/white");
+    _inventoryTooltip->setCascadeOpacityEnabled(true);
     _inventoryTooltip->setVisible(false);
     addChild(_inventoryTooltip, 8);
 
@@ -453,6 +454,20 @@ void GameGui::showInventoryTooltip(ItemSprite* sprite)
 {
     if (_inventoryTooltipOwner == sprite)
     {
+        if (sprite)
+        {
+            _inventoryTooltip->setOpacity(sprite->getDisplayedOpacity());  // Fancy
+
+            // Update if sprite position has changed
+            // TODO: kinda annoying to calculate it in two places
+            auto targetPosition = _inventoryTooltipOwner->getWorldPosition() - Vec2::UNIT_Y * _itemSize * 0.5F;
+
+            if (_inventoryTooltip->getPosition() != targetPosition)
+            {
+                updateInventoryTooltip();
+            }
+        }
+
         return;
     }
 
@@ -474,6 +489,7 @@ void GameGui::showInventoryTooltip(ItemSprite* sprite)
 
     // Create content pane
     auto content = Node::create();
+    content->setCascadeOpacityEnabled(true);
     auto padding = 10.0F;
     auto width   = 0.0F;
     auto height  = 0.0F;
@@ -568,6 +584,15 @@ void GameGui::toggleGameMenu()
     menu->alignItemsVerticallyWithPadding(10.0F);
     menu->setPosition(panel->getContentSize() * 0.5F + Vec2::UNIT_Y * 10.0F);
     panel->addChild(menu, 2);
+}
+
+void GameGui::toggleInventory()
+{
+    if (!_teleportPanel->isVisible())
+    {
+        _guiWindow->toggle(GameGuiWindow::PanelType::INVENTORY);
+        AudioManager::getInstance()->playButtonSfx();
+    }
 }
 
 void GameGui::toggleProtectorRangeVisibility()

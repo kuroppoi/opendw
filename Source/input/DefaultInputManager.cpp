@@ -318,6 +318,9 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
             _player->tryToUseBlockAtNodePoint(point);
         }
         break;
+    case KeyCode::KEY_I:
+        _gameGui->toggleInventory();
+        break;
     case KeyCode::KEY_F1:
         _director->setStatsDisplay(!_director->isStatsDisplay());
         break;
