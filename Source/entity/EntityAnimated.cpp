@@ -42,7 +42,7 @@ void EntityAnimated::buildGraphics()
 
     auto skeleton = spine::SkeletonAnimation::createWithData(data);
     skeleton->setTimeScale(1.0F);
-    skeleton->getState()->getData()->setDefaultMix(0.25F);
+    skeleton->getState()->getData()->setDefaultMix(0.1F);
     addChild(skeleton);
 
     if (!_mainSkeleton)
