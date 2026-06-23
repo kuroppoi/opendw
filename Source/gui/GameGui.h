@@ -78,6 +78,8 @@ public:
     /* FUNC: GameGui::showInventoryTooltip: @ 0x10005F7F8 */
     void showInventoryTooltip(ItemSprite* sprite);
 
+    bool closeActiveWindow();
+
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
 

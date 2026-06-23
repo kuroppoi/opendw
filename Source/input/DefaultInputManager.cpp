@@ -301,7 +301,11 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
     {
     case KeyCode::KEY_ESCAPE:
         AudioManager::getInstance()->playButtonSfx();
-        _gameGui->toggleGameMenu();
+
+        if (!_gameGui->closeActiveWindow())
+        {
+            _gameGui->toggleGameMenu();
+        }
         break;
     case KeyCode::KEY_SPACE:
         if (_player->isDead())

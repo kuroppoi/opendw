@@ -503,22 +503,31 @@ void GameGui::showInventoryTooltip(ItemSprite* sprite)
     updateInventoryTooltip();
 }
 
-void GameGui::toggleGameMenu()
+bool GameGui::closeActiveWindow()
 {
-    // Close active window first
-    // NOTE: Originally done by input manager
+    if (_gameMenu)
+    {
+        toggleGameMenu();
+        return true;
+    }
+
     if (_guiWindow->getActivePanelType() != GameGuiWindow::PanelType::NONE)
     {
         _guiWindow->hide();
-        return;
+        return true;
     }
 
     if (_teleportPanel->isVisible())
     {
         hideTeleportInterface();
-        return;
+        return true;
     }
 
+    return false;
+}
+
+void GameGui::toggleGameMenu()
+{
     if (_gameMenu)
     {
         _gameMenu->removeFromParent();
@@ -580,8 +589,8 @@ void GameGui::setHudVisible(bool visible)
 
 void GameGui::showTeleportInterface(BaseBlock* block)
 {
-    // TODO: finish
     _guiWindow->hide();
+    closeActiveWindow();
     setHudVisible(false);
     _teleportPanel->showFromBlock(block);
     _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportActivated);
@@ -589,7 +598,6 @@ void GameGui::showTeleportInterface(BaseBlock* block)
 
 void GameGui::hideTeleportInterface()
 {
-    // TODO: finish
     setHudVisible(true);
     _teleportPanel->setVisible(false);
     _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportDeactivated);
