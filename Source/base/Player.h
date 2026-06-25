@@ -271,7 +271,7 @@ public:
     InventoryItem* addInventory(Item* item, int64_t quantity);
 
     /* FUNC: Player::getInventory: @ 0x1000219C2 */
-    InventoryItem* getInventory(Item* item);
+    InventoryItem* getInventory(Item* item, bool allowAlloc = false);
 
     /* FUNC: Player::getInventoryNamed: @ 0x100021AD9 */
     InventoryItem* getInventory(const std::string& name);

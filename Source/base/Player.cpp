@@ -1504,7 +1504,7 @@ bool Player::hasAfterburner() const
 
 InventoryItem* Player::setInventory(Item* item, int64_t quantity)
 {
-    auto invItem = getInventory(item);
+    auto invItem = getInventory(item, true);
     invItem->setQuantity(quantity);
     return invItem;
 }
@@ -1550,12 +1550,12 @@ InventoryItem* Player::setInventory(Item* item, int64_t quantity, ContainerType 
 
 InventoryItem* Player::addInventory(Item* item, int64_t quantity)
 {
-    auto invItem = getInventory(item);
+    auto invItem = getInventory(item, true);
     invItem->setQuantity(invItem->getQuantity() + quantity);
     return invItem;
 }
 
-InventoryItem* Player::getInventory(Item* item)
+InventoryItem* Player::getInventory(Item* item, bool allowAlloc)
 {
     auto code = item->getCode();
     auto it   = _inventory.find(code);
@@ -1563,6 +1563,11 @@ InventoryItem* Player::getInventory(Item* item)
     if (it != _inventory.end())
     {
         return (*it).second;
+    }
+
+    if (!allowAlloc)
+    {
+        return nullptr;
     }
 
     auto result = InventoryItem::createWithItem(item, 0, ContainerType::NONE);
