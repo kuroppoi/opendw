@@ -112,6 +112,7 @@ public:
 
     /* FUNC: GameManager::runCommands @ 0x100039D08 */
     void runCommands();
+    void clearCommands();
 
     /* FUNC: GameManager::queueCommand: @ 0x100039BD8 */
     void enqueueCommand(GameCommand* command);

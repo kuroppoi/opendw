@@ -514,6 +514,7 @@ void GameManager::reset()
 
     _inputManager->exitGame();
     _tcpClient->stop();
+    clearCommands();
     AudioManager::getInstance()->clearLoopLayers();
 }
 
@@ -533,6 +534,20 @@ void GameManager::runCommands()
             it++;
         }
     }
+}
+
+void GameManager::clearCommands()
+{
+    // Fire all high priority commands to ensure kick command is processed properly
+    for (auto command : _commandQueue)
+    {
+        if (command->isHighPriorty())
+        {
+            command->run();
+        }
+    }
+
+    _commandQueue.clear();
 }
 
 void GameManager::enqueueCommand(GameCommand* command)
