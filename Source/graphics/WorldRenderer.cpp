@@ -644,9 +644,15 @@ void WorldRenderer::updateViewport(float deltaTime)
         _cameraPosition = position;
     }
 
-    // TODO: clamp viewport to world bounds
     // TODO: use visible blocks to determine cavern/sky visibility
     auto& winSize      = _director->getWinSize();
+    auto cameraSize    = winSize * 0.5F / _worldScale;  // Distance between camera center and screen edge
+    auto minX          = cameraSize.width;
+    auto maxX          = _zone->getBlocksWidth() * BLOCK_SIZE - cameraSize.width;
+    auto minY          = -_zone->getBlocksHeight() * BLOCK_SIZE + cameraSize.height;
+    auto maxY          = -cameraSize.height;
+    _cameraPosition.x  = MAX(minX, MIN(_cameraPosition.x, maxX));
+    _cameraPosition.y  = MIN(maxY, MAX(_cameraPosition.y, minY));
     auto viewport      = _cameraPosition * _worldScale - winSize * 0.5F;
     auto biome         = _zone->getBiomeType();
     bool cavernVisible = biome == Biome::DEEP ||
