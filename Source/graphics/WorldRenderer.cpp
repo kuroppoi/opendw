@@ -646,7 +646,8 @@ void WorldRenderer::updateViewport(float deltaTime)
 
     // TODO: use visible blocks to determine cavern/sky visibility
     auto& winSize      = _director->getWinSize();
-    auto cameraSize    = winSize * 0.5F / _worldScale;  // Distance between camera center and screen edge
+    auto origin        = _director->getVisibleOrigin();
+    auto cameraSize    = (winSize * 0.5F - origin) / _worldScale;  // Distance between camera center and screen edge
     auto minX          = cameraSize.width;
     auto maxX          = _zone->getBlocksWidth() * BLOCK_SIZE - cameraSize.width;
     auto minY          = -_zone->getBlocksHeight() * BLOCK_SIZE + cameraSize.height;
