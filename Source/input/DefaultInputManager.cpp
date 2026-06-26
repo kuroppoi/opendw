@@ -328,7 +328,7 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         lightmapper->setMoodLighting(!lightmapper->isMoodLighting());  // TODO: chat command
         break;
     case KeyCode::KEY_F3:
-        lightmapper->flash(1.0F);
+        worldRenderer->generateEffect("earthquake", random(30, 40), _player->getPosition());
         break;
     case KeyCode::KEY_ENTER:
         if (_keysPressed.contains(KeyCode::KEY_ALT))
