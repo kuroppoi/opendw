@@ -96,6 +96,9 @@ public:
     /* FUNC: WorldRenderer::emote:color:quick:atPosition: @ 0x1000832B7 */
     ax::Label* emote(const std::string& text, const ax::Point& position, const ax::Color3B& color, bool quick = false);
 
+    /* FUNC: WorldRenderer::generateEffect:quantity:atX:y: @ 0x1000834BF */
+    void generateEffect(const std::string& name, ssize_t quantity, const ax::Point& position);
+
     /* FUNC: WorldRenderer::generateMiningCracks:forLayer:duration: @ 0x100084065 */
     ax::Action* generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration);
 
@@ -188,6 +191,9 @@ private:
     double _nextFX;                               // WorldRenderer::nextFX @ 0x100311F90
     size_t _fxFrame;                              // WorldRenderer::fxFrame @ 0x100311F50
     double _nextLiquidCycle;                      // WorldRenderer::nextLiquidCycle @ 0x100311F98
+    float _earthquake;                            // WorldRenderer::earthquake @ 0x100311FA8
+    ax::Point _earthquakeEpicenter;               // WorldRenderer::earthquakeEpicenter @ 0x100311FB0
+    float _explosion;                             // WorldRenderer::explosion @ 0x100311FB8
     size_t _liquidFrame;                          // 0x100320BC0
     bool _initialArrange;
     ax::Point _cameraPosition;

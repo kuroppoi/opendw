@@ -25,7 +25,7 @@ void GameCommandEffect::run()
         return;
     }
 
-    // TODO: implement effects
+    WorldRenderer::getMain()->generateEffect(effect, object.asInt64(), {x, y});
 }
 
 }  // namespace opendw

@@ -173,6 +173,8 @@ public:
     /* FUNC: Player::avatar @ 0x10002DFAC */
     EntityAnimatedAvatar* getAvatar() const { return _avatar; }
 
+    bool isGrounded() const;
+
     /* FUNC: Player::setDestination: @ 0x10002DAEB */
     void setDestination(const ax::Point& destination) { _destination = destination; }
 

@@ -16,11 +16,13 @@
 #include "gui/widget/MultiLabel.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/ChipmunkSpace.h"
+#include "physics/Physical.h"
 #include "physics/PhysicsDebugNode.h"
 #include "util/AxUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
+#include "AudioManager.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
 
@@ -238,6 +240,8 @@ void WorldRenderer::ready()
 
 void WorldRenderer::clear()
 {
+    _earthquake = 0.0F;
+    _explosion  = 0.0F;
     _sky->clear();
     _cavern->clear();
     _renderQueue.clear();
@@ -326,6 +330,51 @@ void WorldRenderer::update(float deltaTime)
             auto onscreen     = rect.containsPoint(body->getPosition());
             entity->updateOnscreen(deltaTime, onscreen);
         }
+    }
+
+    // 0x10007F736: Update earthquake
+    auto earthquakeForce     = clampf(_earthquake * 0.125F, 0.0F, 1.0F);
+    auto earthquakeProximity = 0.0F;  // Current proximity to earthquake epicenter, clamped between [0.1, 1.0]
+    auto screenShake         = 0.0F;
+
+    if (_earthquake > 0.0F)
+    {
+        _earthquake -= deltaTime;
+        auto player   = Player::getMain();
+        auto position = player->getPosition();
+        auto distance =
+            math_util::getDistance(position.x, position.y, _earthquakeEpicenter.x, _earthquakeEpicenter.y) / BLOCK_SIZE;
+        earthquakeProximity = clampf(distance / -300.0F + 1.0F, 0.1F, 1.0F);
+        auto effectiveForce = earthquakeForce * earthquakeProximity;
+        screenShake         = math_util::lerp(0.0F, BLOCK_SIZE * 0.12F, effectiveForce);
+
+        // 0x10007F8A3: Push player around a bit if effective force is great
+        // FIXME: For obvious reasons, doing this in the world renderer of all places isn't ideal.
+        if (effectiveForce > 0.5F && player->isGrounded() && rand_0_1() < deltaTime)
+        {
+            auto impulse  = math_util::lerp(15.0F, 50.0F, effectiveForce) * BLOCK_SIZE;
+            auto impulseX = random(-impulse, impulse) * 0.5F;
+            auto impulseY = random(0.5F, 2.34F) * BLOCK_SIZE;
+            player->getPhysical()->getBody()->applyImpulseAtLocalPoint({impulseX, impulseY});
+        }
+    }
+
+    auto gain = clampf(earthquakeForce * earthquakeProximity * 5.0F, 0.0F, 1.0f);
+    AudioManager::getInstance()->setAutoLoopLayer("earthquake", 1.0F, gain);
+
+    // 0x10007FA4B: Update explosion
+    if (_explosion > 0.0F)
+    {
+        _explosion -= deltaTime;
+        screenShake += math_util::lerp(0.0F, BLOCK_SIZE, _explosion * 0.5F);
+    }
+
+    // 0x10007FAC0: Apply screen shake
+    if (screenShake > 0.0F)
+    {
+        auto shakeX = random(-screenShake, screenShake) * 0.5F;
+        auto shakeY = random(-screenShake, screenShake) * 0.5F;
+        _foreground->setPosition(_foreground->getPositionX() + shakeX, _foreground->getPositionY() + shakeY);
     }
 
     _lightmapper->update(deltaTime);
@@ -726,6 +775,127 @@ Label* WorldRenderer::emote(const std::string& text, const Point& position, cons
     auto moveBy    = MoveBy::create(duration, Vec2::UNIT_Y * (quick ? 25.0F : 40.0F));
     label->runAction(Spawn::createWithTwoActions(moveBy, sequence));
     return label;
+}
+
+void WorldRenderer::generateEffect(const std::string& name, ssize_t quantity, const Point& position)
+{
+    auto playerPos = Player::getMain()->getPosition();
+    auto distance  = math_util::getDistance(position.x, position.y, playerPos.x, playerPos.y) / BLOCK_SIZE;
+
+    // TODO: emitters
+
+    // 0x100083625: Handle earthquake
+    if (name == "earthquake")
+    {
+        _earthquake          = quantity;
+        _earthquakeEpicenter = position;
+        return;
+    }
+     
+    // TODO: levelup
+
+    // 0x1000837C3: Special bomb effect handling
+    if (name.starts_with("bomb") && distance < 100.0F)
+    {
+        auto sound       = ""s;
+        auto animation   = ""s;
+        auto frameCount  = 0;
+        auto screenShake = 0.0F;
+
+        // 0x100083804: Determine effect properties based on explosion type
+        if (name.ends_with("stomp"))
+        {
+            sound       = "ExplosionPip";
+            frameCount  = 6;
+            screenShake = clampf(quantity * 0.2F + 0.4F, 0.0F, 1.0F);
+        }
+        else if (name.ends_with("fire"))
+        {
+            sound       = "ExplosionIncendiary";
+            animation   = "boom-incendiary";
+            frameCount  = 6;
+            screenShake = 0.7F;
+        }
+        else if (name.ends_with("acid"))
+        {
+            animation   = "boom-acid";
+            frameCount  = 5;
+            screenShake = 0.7F;
+        }
+        else if (name.ends_with("frost"))
+        {
+            sound       = "ExplosionPip";
+            animation   = "boom-frost";
+            frameCount  = 6;
+            screenShake = 0.7F;
+        }
+        else if (name.ends_with("electric"))
+        {
+            sound       = "electrical_burst_01";
+            animation   = "boom-electric";
+            frameCount  = 6;
+            screenShake = 0.7F;
+        }
+        else if (name.ends_with("teleport"))
+        {
+            sound       = "electrical_fuse_burst_08";
+            animation   = "boom-teleport";
+            frameCount  = 7;
+            screenShake = 0.45F;
+        }
+        else  // Default
+        {
+            animation   = "boom";
+            frameCount  = 7;
+            screenShake = 1.0F;
+        }
+
+        // TODO: emitter
+
+        // 0x100083C5B: Create explosion animation
+        if (!animation.empty())
+        {
+            auto sprite = Sprite::createWithSpriteFrameName(std::format("explosions/{}-1", animation));
+            sprite->setScale(random(quantity * 0.4F, quantity * 0.5F));
+            Vector<SpriteFrame*> frames;
+            frames.reserve(frameCount);
+
+            for (auto i = 0; i < frameCount; i++)
+            {
+                auto frame = SpriteFrameCache::getInstance()->getSpriteFrameByName(
+                    std::format("explosions/{}-{}", animation, i + 1));
+
+                if (frame)
+                {
+                    frames.pushBack(frame);
+                }
+            }
+
+            auto animate  = Animate::create(Animation::createWithSpriteFrames(frames, 0.08F));
+            auto scaleBy  = ScaleBy::create(0.3F, quantity * 0.15F);
+            auto spawn    = Spawn::createWithTwoActions(animate, scaleBy);
+            auto callFunc = CallFuncN::create(&Node::removeFromParent);
+            auto sequence = Sequence::createWithTwoActions(spawn, callFunc);
+            sprite->runAction(sequence);
+            sprite->setPosition(position);
+            sprite->setRotation(random(0.0F, 360.0F));
+            _effectsNode->addChild(sprite);
+            auto flash = math_util::lerp(1.0F, 0.0F, distance / 20.0F);
+            _lightmapper->flash(flash);
+        }
+
+        // 0x100083EF8: Update screen shake value
+        screenShake *= math_util::lerp(quantity * 0.2F, 0.0F, distance / 20.0F);
+        _explosion = MAX(_explosion, screenShake);
+
+        // 0x100083F51: Automatically determine sound to use based on quantity and distance
+        if (sound.empty())
+        {
+            sound = distance >= 30.0F ? "ExplosionDistant" : quantity >= 6 ? "ExplosionPop" : "ExplosionPip";
+        }
+
+        AudioManager::getInstance()->playSfx(sound, position, 1.0F, 2.0F);
+    }
 }
 
 Action* WorldRenderer::generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration)

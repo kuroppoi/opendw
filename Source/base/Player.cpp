@@ -1052,10 +1052,11 @@ void Player::onFeetCollideWithBlock(BaseBlock* block)
     {
         _avatar->walkOnBlock(block);
 
+        // Generate stomp effect if stomping
         if (_stomping && _currentLiquidLevel < 3)
         {
-            // TODO: generate effect
-            AudioManager::getInstance()->playSfx("ExplosionPip", getPosition(), 1.0F, 2.0F);
+            auto worldRenderer = _game->getZone()->getWorldRenderer();
+            worldRenderer->generateEffect("bomb-stomp", _stompAccessory->getPower() * 2.0F, _avatar->getPosition());
             _lastStompedAt = utils::gettime();
         }
     }
@@ -1152,6 +1153,11 @@ Point Player::getBlockPosition() const
 Point Player::getPhysicalCenter() const
 {
     return getPosition() + Vec2::UNIT_Y * _avatar->getContentSize().height * 0.5F;
+}
+
+bool Player::isGrounded() const
+{
+    return _avatar->isGrounded();
 }
 
 void Player::setLookDirection(int8_t direction)
