@@ -378,6 +378,8 @@ void WorldRenderer::update(float deltaTime)
     }
 
     _lightmapper->update(deltaTime);
+    _sky->setVisible(_lightmapper->isSkyVisible());
+    _cavern->setVisible(_lightmapper->isCavernVisible());
 }
 
 void WorldRenderer::updateBlocks()
@@ -654,13 +656,7 @@ void WorldRenderer::updateViewport(float deltaTime)
         _cameraPosition.y = clampedY;
     }
 
-    // TODO: use visible blocks to determine cavern/sky visibility
-    auto viewport      = _cameraPosition * _worldScale - winSize * 0.5F;
-    auto biome         = _zone->getBiomeType();
-    bool cavernVisible = biome == Biome::DEEP ||
-                         (biome != Biome::SPACE && player->getBlockPosition().y > _zone->getSurfaceBottom() + 20);
-    _sky->setVisible(!cavernVisible);
-    _cavern->setVisible(cavernVisible);
+    auto viewport = _cameraPosition * _worldScale - winSize * 0.5F;
     _foreground->setPosition(-viewport);
     _foreground->setScale(_worldScale);
     _sky->setViewPosition(_cameraPosition);

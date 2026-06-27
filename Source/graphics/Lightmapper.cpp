@@ -498,10 +498,13 @@ void Lightmapper::illuminateBlocks(float deltaTime)
     _texture->updateWithData(_textureData, _textureSizeBytes, backend::PixelFormat::RGBA8, backend::PixelFormat::RGBA8,
                              _textureWidth, _textureHeight, false);
 
-    // 0x100058C87: Update sky coverage
+    // 0x100058BB3: Update sky coverage & visibility
     // FIXME: There's somewhat of an inaccuracy caused by the padding used by the lightmapper
+    auto biomeType   = _zone->getBiomeType();
     auto skyCoverage = clampf((float)_skyBlocksVisible / _screenBlocks.size(), 0.0F, 1.0F);
     _zone->setSkyCoverage(skyCoverage);
+    _skyVisible    = _skyBlocksVisible > 0 || biomeType == Biome::SPACE;
+    _cavernVisible = !_skyVisible && _cavernBlocksVisible > 0 && biomeType != Biome::SPACE;
 }
 
 float Lightmapper::getBaseLight() const

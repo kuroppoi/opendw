@@ -58,6 +58,9 @@ public:
     /* FUNC: Lightmapper::moodLighting @ 0x100059286 */
     bool isMoodLighting() const { return _moodLighting; }
 
+    bool isSkyVisible() const { return _skyVisible; }
+    bool isCavernVisible() const { return _cavernVisible; }
+
     /* FUNC: Lightmapper::healthDidChange: @ 0x100058EE7 */
     void onHealthChanged(float oldHealth, float health);
 
@@ -78,6 +81,7 @@ private:
     ax::Point _lr;                 // Lightmapper::lr @ 0x100311708
     bool _skyVisible;              // Lightmapper::isSkyVisible @ 0x100311720
     ssize_t _skyBlocksVisible;     // Lightmapper::skyBlocksVisible @ 0x100311728
+    bool _cavernVisible;           // Lightmapper::isCavernVisible @ 0x100311758
     ssize_t _cavernBlocksVisible;  // Lightmapper::cavernBlocksVisible @ 0x100311730
     ax::Sprite* _sprite;           // Lightmapper::mutableDarknessSprite @ 0x100311698
     ax::Texture2D* _texture;       // Lightmapper::mutableDarkness @ 0x1003116C0
