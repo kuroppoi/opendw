@@ -42,7 +42,8 @@ void SkyRubble::onEnter()
     auto& rng            = _sky->getRNG();
     auto biome           = _sky->getZone()->getBiomeType();
     auto blocksWidth     = _sky->getZone()->getBlocksWidth();
-    auto drawWidth       = blocksWidth * BLOCK_SIZE * getRatio() / _realScale;
+    auto startX          = -winSize.width / _realScale;
+    auto endX            = (blocksWidth * BLOCK_SIZE * getRatio() + winSize.width) / _realScale;
 
     // Create dirt sprites
     if (dirtFrame)
@@ -50,7 +51,7 @@ void SkyRubble::onEnter()
         float offset = biome == Biome::ARCTIC ? 0.5F : biome == Biome::DESERT ? 0.333F : 0.25F;
         auto& size   = dirtFrame->getOriginalSize();
 
-        for (auto x = 0.0F; x < drawWidth; x += size.width)
+        for (auto x = startX; x < endX; x += size.width)
         {
             for (auto i = 0; i < 2; i++)
             {
@@ -63,7 +64,7 @@ void SkyRubble::onEnter()
     }
 
     // Create hills
-    for (auto x = 0.0F; x < drawWidth;)
+    for (auto x = startX; x < endX;)
     {
         auto type     = rng.max(frameMap.size() - 1);
         auto& frames  = frameMap[type];
