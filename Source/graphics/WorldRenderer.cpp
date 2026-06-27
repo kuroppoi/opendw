@@ -632,28 +632,29 @@ void WorldRenderer::updateViewport(float deltaTime)
     auto player    = Player::getMain();
     Point position = player->getPosition();
     position.y += BLOCK_SIZE * 0.8F;
-    auto distance = math_util::getDistance(position.x, position.y, _cameraPosition.x, _cameraPosition.y);
+    auto& winSize   = _director->getWinSize();
+    auto origin     = _director->getVisibleOrigin();
+    auto cameraSize = (winSize * 0.5F - origin) / _worldScale;  // Distance between camera center and screen edge
+    auto minX       = cameraSize.width;
+    auto maxX       = _zone->getBlocksWidth() * BLOCK_SIZE - cameraSize.width;
+    auto minY       = -_zone->getBlocksHeight() * BLOCK_SIZE + cameraSize.height;
+    auto maxY       = -cameraSize.height;
+    auto clampedX   = MAX(minX, MIN(position.x, maxX));
+    auto clampedY   = MIN(maxY, MAX(position.y, minY));
+    auto distance   = math_util::getDistance(clampedX, clampedY, _cameraPosition.x, _cameraPosition.y);
 
     if (deltaTime < 1.0F && distance < BLOCK_SIZE * 5.0F)
     {
-        MathUtil::smooth(&_cameraPosition.x, position.x, deltaTime, 0.01F);
-        MathUtil::smooth(&_cameraPosition.y, position.y, deltaTime, 0.01F);
+        MathUtil::smooth(&_cameraPosition.x, clampedX, deltaTime, position.x == clampedX ? 0.01F : 0.0F);
+        MathUtil::smooth(&_cameraPosition.y, clampedY, deltaTime, position.y == clampedY ? 0.01F : 0.0F);
     }
     else
     {
-        _cameraPosition = position;
+        _cameraPosition.x = clampedX;
+        _cameraPosition.y = clampedY;
     }
 
     // TODO: use visible blocks to determine cavern/sky visibility
-    auto& winSize      = _director->getWinSize();
-    auto origin        = _director->getVisibleOrigin();
-    auto cameraSize    = (winSize * 0.5F - origin) / _worldScale;  // Distance between camera center and screen edge
-    auto minX          = cameraSize.width;
-    auto maxX          = _zone->getBlocksWidth() * BLOCK_SIZE - cameraSize.width;
-    auto minY          = -_zone->getBlocksHeight() * BLOCK_SIZE + cameraSize.height;
-    auto maxY          = -cameraSize.height;
-    _cameraPosition.x  = MAX(minX, MIN(_cameraPosition.x, maxX));
-    _cameraPosition.y  = MIN(maxY, MAX(_cameraPosition.y, minY));
     auto viewport      = _cameraPosition * _worldScale - winSize * 0.5F;
     auto biome         = _zone->getBiomeType();
     bool cavernVisible = biome == Biome::DEEP ||
