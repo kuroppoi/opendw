@@ -299,6 +299,14 @@ public:
     /* FUNC: Item::useMask @ 0x10004E3E0 */
     uint64_t getUseMask() const { return _useMask; }
 
+    bool hasSound() const { return !_sounds.empty(); }
+
+    /* FUNC: Item::randomSound @ 0x10004D8BD */
+    const std::string& getRandomSound() const;
+
+    /* FUNC: Item::sound @ 0x10004E414 */
+    const std::vector<std::string>& getSounds() const { return _sounds; }
+
     /* FUNC: Item::shape @ 0x10004DDBF */
     Shape getShape() const { return _shape; }
 
@@ -495,6 +503,7 @@ private:
     uint8_t _placeMod;                               // Item::placeMod @ 0x100311410
     ax::ValueMap _use;                               // Item::use @ 0x100311418
     uint64_t _useMask;                               // Item::useMask @ 0x100311428
+    std::vector<std::string> _sounds;                // Item::sound @ 0x100311430
     Shape _shape;                                    // Item::shape @ 0x100311218
     std::string _shapeDefinition;                    // Item::shapeDefinition @ 0x100311220
     int32_t _field;                                  // Item::field @ 0x1003112B8

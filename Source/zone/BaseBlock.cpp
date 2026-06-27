@@ -15,6 +15,7 @@
 #include "util/MathUtil.h"
 #include "zone/MetaBlock.h"
 #include "zone/WorldZone.h"
+#include "AudioManager.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
 
@@ -517,6 +518,13 @@ void BaseBlock::updateFront()
         updateEnvironment();
         updateNeighbors();
         updatePhysical();
+
+        // 0x10002F136: Play sound
+        if (item->hasSound())
+        {
+            auto& sound = item->getRandomSound();
+            AudioManager::getInstance()->playSfx(sound, getWorldPosition(), 1.0F, 0.5F);
+        }
     }
 }
 

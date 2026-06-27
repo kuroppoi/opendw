@@ -178,6 +178,25 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
         }
     }
 
+    // 0x10004BAAF: Configure sound
+    auto& sound = map_util::getValue(data, "sound");
+
+    if (!sound.isNull())
+    {
+        switch (sound.getType())
+        {
+        case Value::Type::STRING:
+            _sounds.push_back(sound.asString());
+            break;
+        case Value::Type::VECTOR:
+            for (auto& element : sound.asValueVector())
+            {
+                _sounds.push_back(element.asString());
+            }
+            break;
+        }
+    }
+
     // 0x10004BF62: Configure inventory frame
     auto inventoryFrame = map_util::getString(data, "inventory_frame", std::format("inventory/{}", name));
 
@@ -412,6 +431,12 @@ bool Item::isUsableType(UseType type) const
 bool Item::isClimbable() const
 {
     return isUsableType(UseType::CLIMB);
+}
+
+const std::string& Item::getRandomSound() const
+{
+    static const auto empty = ""s;
+    return hasSound() ? _sounds[random() % _sounds.size()] : empty;
 }
 
 Item::SpriteList Item::createSequentialSpriteList(const std::string& name, size_t count, size_t step) const
