@@ -246,6 +246,7 @@ void GameManager::snapshotScreenAsSpinner(bool snapshotZone)
     }
 
     renderTexture->end();
+    _director->getRenderer()->render();  // https://github.com/axmolengine/axmol/issues/3191
     _snapshotSpinner->addChild(LayerColor::create(Color4B::BLACK));  // HACK: fix transparency issue
     _snapshotSpinner->addChild(renderTexture, 1);
 
@@ -459,19 +460,7 @@ void GameManager::kickPlayer(const std::string& message, bool shouldReconnect)
     {
         AXLOGI("[GameManager] Kick wants reconnect: {}", message);
         snapshotScreenAsSpinner(true);
-
-        if (_tcpClient->isOpen())
-        {
-            // Wait for disconnect
-            _player->setZoneTeleporting(true);
-        }
-        else if (!_player->isZoneTeleporting())  // onDisconnected() will handle it if we are zone teleporting
-        {
-            // Reconnect immediately
-            _menu->setVisible(false);
-            loginAsCurrentUser();
-        }
-
+        _player->setZoneTeleporting(true);
         return;
     }
 
@@ -505,6 +494,7 @@ void GameManager::leaveGame()
 void GameManager::reset()
 {
     AXLOGI("[GameManager] reset");
+    runHighPriorityCommands();  // Ensure kick command is processed before resetting
     _player->reset();
 
     if (_zone)
@@ -514,7 +504,7 @@ void GameManager::reset()
 
     _inputManager->exitGame();
     _tcpClient->stop();
-    clearCommands();
+    _commandQueue.clear();
     AudioManager::getInstance()->clearLoopLayers();
 }
 
@@ -536,9 +526,8 @@ void GameManager::runCommands()
     }
 }
 
-void GameManager::clearCommands()
+void GameManager::runHighPriorityCommands()
 {
-    // Fire all high priority commands to ensure kick command is processed properly
     for (auto command : _commandQueue)
     {
         if (command->isHighPriorty())
@@ -546,8 +535,6 @@ void GameManager::clearCommands()
             command->run();
         }
     }
-
-    _commandQueue.clear();
 }
 
 void GameManager::enqueueCommand(GameCommand* command)
