@@ -15,6 +15,7 @@ enum class MessageIdent : uint8_t
     BLOCK_PLACE    = 12,
     INVENTORY_MOVE = 14,
     BLOCKS         = 16,
+    CRAFT          = 19,
     BLOCK_USE      = 21,
     ZONE_SEARCH    = 23,
     ZONE_CHANGE    = 24,

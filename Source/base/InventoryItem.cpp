@@ -3,6 +3,7 @@
 #include "base/Item.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
+#include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
 #include "network/tcp/MessageIdent.h"
@@ -57,7 +58,7 @@ void InventoryItem::update()
         {
             player->updateActiveHotbarItem();
         }
-        
+
         // Update accessories if item moved from or to the accessory or hidden item list
         if (_previousContainer == ContainerType::ACCESSORY || _container == ContainerType::ACCESSORY ||
             _previousContainer == ContainerType::HIDDEN || _container == ContainerType::HIDDEN)
@@ -206,6 +207,7 @@ void InventoryItem::setQuantity(int64_t quantity)
 
     _quantity = quantity;
     update();
+    Director::getInstance()->getEventDispatcher()->dispatchCustomEvent(events::kInventoryChanged, _item);
 }
 
 void InventoryItem::setPosition(int64_t slot, int64_t category)

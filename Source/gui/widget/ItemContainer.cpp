@@ -44,6 +44,7 @@ bool ItemContainer::initWithGui(GameGui* gui, int32_t cols, int32_t rows)
     _pageCount       = 0;
     _dynamicPaging   = false;
     _opaqueSlots     = true;
+    _organizable     = true;
     _layoutDirty     = true;
     _inventoryBatch  = SpriteBatchNode::create("inventory+hd2.png");
     _inventoryBatch->setCascadeOpacityEnabled(true);
@@ -92,7 +93,7 @@ void ItemContainer::updateLayout()
     {
         _categoryTabs = TabsBar::create();
         _categoryTabs->setCascadeOpacityEnabled(true);
-        _categoryTabs->setMaxColumns(9);  // TODO: dynamic based on width
+        _categoryTabs->setMaxColumns(_maxCategoryColumns);
         _categoryTabs->setSelectedBackgroundColor(color_util::hexToColor("D68901"));
         _categoryTabs->setImageColor(color_util::hexToColor("2B2121"));
         _categoryTabs->setBackground("inventory/tabs/square/regular-faded");
@@ -323,10 +324,11 @@ void ItemContainer::showSprites(int64_t category, ssize_t page, bool visible)
     }
 }
 
-void ItemContainer::setCategories(const std::vector<std::string>& categories)
+void ItemContainer::setCategories(const std::vector<std::string>& categories, ssize_t maxColumns)
 {
-    _categories  = categories;
-    _layoutDirty = true;
+    _categories         = categories;
+    _maxCategoryColumns = maxColumns;
+    _layoutDirty        = true;
 }
 
 void ItemContainer::setCurrentCategory(int64_t category)

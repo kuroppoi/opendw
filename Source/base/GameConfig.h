@@ -43,6 +43,9 @@ public:
     /* FUNC: Config::entityForCode: @ 0x1000520A6 */
     EntityConfig* getEntityForCode(int32_t code) const;
 
+    /* FUNC: Config::recipeSections @ 0x100051C5A */
+    ax::ValueVector getRecipeSections() const;
+
     /* FUNC: Config::loadBiome: @ 0x10005296D */
     void loadBiome(const std::string& biome);
 

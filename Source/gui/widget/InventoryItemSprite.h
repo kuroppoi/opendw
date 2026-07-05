@@ -25,7 +25,7 @@ public:
     /* FUNC: InventoryItemSprite::activate @ 0x10006F228 */
     void activate() override;
 
-    /* FUNC: InventoryItemSprites::tooltipComponents @ 0x10006F293 */
+    /* FUNC: InventoryItemSprite::tooltipComponents @ 0x10006F293 */
     void getTooltipComponents(std::vector<ax::Node*>& output) override;
 
     /* FUNC: InventoryItemSprite::updateCount: @ 0x10006EF4F */

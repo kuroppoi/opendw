@@ -1,6 +1,7 @@
 #include "GameGuiWindow.h"
 
 #include "event/EventNames.h"
+#include "gui/CraftingPanel.h"
 #include "gui/GameGui.h"
 #include "gui/InventoryPanel.h"
 #include "CommonDefs.h"
@@ -33,6 +34,8 @@ bool GameGuiWindow::initWithGui(GameGui* gui, const Size& size)
     setOpacity(0);
     _inventoryPanel = InventoryPanel::create();
     addPanel(_inventoryPanel);
+    _craftingPanel = CraftingPanel::create();
+    addPanel(_craftingPanel);
     auto borderPanel = Panel::createWithStyle("v2-transparent/brass");
     borderPanel->setContentSize(size);
     borderPanel->setBorderScale(_borderScale);
@@ -71,12 +74,8 @@ void GameGuiWindow::show(PanelType type)
 
     auto alignmentChanged = getAlignmentForType(_activePanelType) != getAlignmentForType(type);
     auto shouldFadeIn     = _activePanelType == PanelType::NONE || alignmentChanged;
-
-    if (_activePanel)
-    {
-        _activePanel->setVisible(false);
-    }
-
+    _inventoryPanel->setVisible(false);
+    _craftingPanel->setVisible(false);
     _activePanel = getPanelForType(type);
 
     if (_activePanel)
@@ -129,6 +128,8 @@ Node* GameGuiWindow::getPanelForType(PanelType type) const
     {
     case PanelType::INVENTORY:
         return _inventoryPanel;
+    case PanelType::CRAFTING:
+        return _craftingPanel;
     default:
         return nullptr;
     }

@@ -188,6 +188,23 @@ public:
     /* FUNC: Item::inventoryPosition @ 0x10004E00F */
     const InventoryPosition& getInventoryPosition() const { return _inventoryPosition; }
 
+    bool isCraftable() const { return !_craftingIngredients.empty(); }
+
+    /* FUNC: Item::craftingIngredients @ 0x10004E020 */
+    const ax::ValueVector& getCraftingIngredients() const { return _craftingIngredients; }
+
+    /* FUNC: Item::craftingHelpers @ 0x10004E064 */
+    const ax::ValueVector& getCraftingHelpers() const { return _craftingHelpers; }
+
+    /* FUNC: Item::craftingQuantity @ 0x10004E031 */
+    int64_t getCraftingQuantity() const { return _craftingQuantity; }
+
+    /* FUNC: Item::craftingSkill @ 0x10004E042 */
+    const std::string& getCraftingSkill() const { return _craftingSkill; }
+
+    /* FUNC: Item::craftingSkillLevel @ 0x10004E053 */
+    int32_t getCraftingSkillLevel() const { return _craftingSkillLevel; }
+
     /* FUNC: Item::specialPlacement @ 0x10004E4E8 */
     SpecialPlacement getSpecialPlacement() const { return _specialPlacement; }
 
@@ -280,6 +297,9 @@ public:
 
     /* FUNC: Item::light @ 0x10004E0EE */
     float getLight() const { return _light; }
+
+    /* FUNC: Item::rarity @ 0x10004DF00 */
+    int32_t getRarity() const { return _rarity; }
 
     /* FUNC: Item::placeMod @ 0x10004E28A */
     uint8_t getPlaceMod() const { return _placeMod; }
@@ -474,6 +494,11 @@ private:
     ModType _modType;                                // Item::mod @ 0x100311388
     Action _action;                                  // Item::action @ 0x100311398
     InventoryPosition _inventoryPosition;            // Item::inventoryPosition @ 0x100311310
+    ax::ValueVector _craftingIngredients;            // Item::craftingIngredients @ 0x100311318
+    ax::ValueVector _craftingHelpers;                // Item::craftingHelpers @ 0x100311338
+    int64_t _craftingQuantity;                       // Item::craftingQuantity @ 0x100311320
+    std::string _craftingSkill;                      // Item::craftingSkill @ 0x100311328
+    int32_t _craftingSkillLevel;                     // Item::craftingSkillLevel @ 0x100311330
     SpecialPlacement _specialPlacement;              // Item::specialPlacement @ 0x100311468
     std::string _inventoryType;                      // Item::inventoryType @ 0x1003113A8
     std::string _tooltip;                            // Item::tooltip @ 0x1003113B0
@@ -500,6 +525,7 @@ private:
     float _jiggle;                                   // Item::jiggle @ 0x100311400
     float _glow;                                     // Item::glow @ 0x100311408
     float _light;                                    // Item::light @ 0x1003113B8
+    int32_t _rarity;                                 // Item::rarity @ 0x1003112A0
     uint8_t _placeMod;                               // Item::placeMod @ 0x100311410
     ax::ValueMap _use;                               // Item::use @ 0x100311418
     uint64_t _useMask;                               // Item::useMask @ 0x100311428

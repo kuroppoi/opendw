@@ -6,6 +6,7 @@
 namespace opendw
 {
 
+class CraftingPanel;
 class GameGui;
 class InventoryPanel;
 
@@ -59,6 +60,7 @@ public:
 private:
     GameGui* _gui;                    // GameGuiWindow::gui @ 0x100315348
     InventoryPanel* _inventoryPanel;  // GameGuiWindow::inventoryPanel @ 0x100315358
+    CraftingPanel* _craftingPanel;    // GameGuiWindow::craftingPanel @ 0x100315360
     PanelType _activePanelType;       // GameGuiWindow::activePanelType @ 0x100315390
     ax::Node* _activePanel;           // GameGuiWindow::activePanel @ 0x100315398
 };

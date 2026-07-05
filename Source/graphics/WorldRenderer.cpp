@@ -932,6 +932,7 @@ void WorldRenderer::emitItemAnimation(Item* item, const Point& position, ssize_t
             sprite->setScale(0.5F);
             // FIXME: Needs to use ONE_MINUS_CONSTANT_COLOR which isn't supported
             sprite->setBlendFunc({backend::BlendFactor::ONE, backend::BlendFactor::ONE_MINUS_SRC_COLOR});
+            sprite->setColor(item->getSpriteColor());  // BUGFIX: Crystal block colors
             _guiNode->addChild(sprite);
             auto moveBy = MoveBy::create(0.5F, Vec2::UNIT_Y * BLOCK_SIZE * 1.1F);
 

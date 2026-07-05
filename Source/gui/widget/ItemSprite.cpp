@@ -4,7 +4,7 @@
 #include "gui/widget/ItemContainer.h"
 #include "CommonDefs.h"
 
-#define USE_SPRITE_COLOR 1
+USING_NS_AX;
 
 namespace opendw
 {
@@ -22,9 +22,8 @@ bool ItemSprite::initWithItem(Item* item)
     }
 
     _item = item;
-#if USE_SPRITE_COLOR
-    setColor(item->getSpriteColor());
-#endif
+    _initialScale = 1.0F;
+    setColor(item->getSpriteColor());  // BUGFIX: Crystal block colors
     return true;
 }
 
@@ -34,6 +33,12 @@ void ItemSprite::removeFromContainer()
     {
         _container.pointer->removeSprite(this);
     }
+}
+
+void ItemSprite::setScale(float scale)
+{
+    _initialScale = scale;  // NOTE: This relies on the fact that scale actions do not call setScale()
+    Sprite::setScale(scale);
 }
 
 }  // namespace opendw

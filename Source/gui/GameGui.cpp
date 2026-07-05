@@ -181,7 +181,8 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     // 0x10005A980: Create crafting button
     _craftingButton = createTopHudButton("crafting", true, 20.0F, color_util::hexToColor("C1B09D"));
-    _craftingButton->setCallback(defaultCallback);
+    _craftingButton->setCallback([this]() {
+        _guiWindow->toggle(GameGuiWindow::PanelType::CRAFTING); });  // 0x10005C7F7
     _hudButtonsNode->addChild(_craftingButton);
 
     // 0x10005A843: Create inventory button
@@ -297,7 +298,11 @@ void GameGui::clear()
 {
     for (auto& entry : _containers)
     {
-        entry.second->removeAllSprites();
+        // Only clear containers that are organizable by the player
+        if (entry.second->isOrganizable())
+        {
+            entry.second->removeAllSprites();
+        }
     }
 
     _itemSprites.clear();
@@ -413,18 +418,51 @@ void GameGui::updateAccessoryBar()
     container->updateSlotSprites();
 }
 
-void GameGui::updateInventoryTooltip()
+void GameGui::updateInventoryTooltip(Size size)
 {
     if (_inventoryTooltipOwner)
     {
-        _inventoryTooltip->setPosition(_inventoryTooltipOwner->getWorldPosition() - Vec2::UNIT_Y * _itemSize * 0.5F);
-        auto viewOffset  = _director->getVisibleOrigin();
-        auto visibleSize = _director->getVisibleSize();
-        auto right       = ceilf(visibleSize.width + viewOffset.x) - 5.0F;
-        auto width       = _inventoryTooltip->getContentSize().width;
-        auto maxX        = _inventoryTooltip->getPositionX() + width * 0.5F;
+        if (size.isZero())
+        {
+            size = _inventoryTooltip->getContentSize();
+        }
+
+        _tooltipOwnerPosition = _inventoryTooltipOwner->getWorldPosition();
+        Point position        = _tooltipOwnerPosition;  // Copy
+        auto offset           = _itemSize * 0.5F;
+        auto viewOffset       = _director->getVisibleOrigin();
+        auto visibleSize      = _director->getVisibleSize();
+        auto bottom           = floorf(viewOffset.y) + 5.0F;
+        auto right            = ceilf(visibleSize.width + viewOffset.x) - 5.0F;
+        auto top              = ceilf(visibleSize.height + viewOffset.y) - 5.0F;
+        auto maxX             = position.x + size.width * 0.5F;
+        auto tipEdge          = Panel::Edge::TOP;
+        auto tipPosition      = MAX(0.5F, 0.5F + (maxX - right) / (size.width - 80.0F));
+
+        // Determine tip location based on tooltip size & viewport boundaries
+        if (position.y - offset - size.height < bottom)
+        {
+            if (position.y + offset + size.height < top)
+            {
+                position.y += offset;
+                tipEdge = Panel::Edge::BOTTOM;
+            }
+            else
+            {
+                position.x -= offset;
+                tipEdge     = Panel::Edge::RIGHT;
+                tipPosition = 0.5F;  // TODO: dynamic tip position would be nice
+            }
+        }
+        else
+        {
+            position.y -= offset;
+        }
+
         // NOTE: The magic number 80.0 is the panel's border width * 2 + tip width
-        _inventoryTooltip->setTip(Panel::Edge::TOP, MAX(0.5F, 0.5F + (maxX - right) / (width - 80.0F)));
+        _inventoryTooltip->setTip(tipEdge, tipPosition);
+        _inventoryTooltip->setPosition(position);
+        _inventoryTooltip->setSize(size.width, size.height);  // Tip changed = minimum size changed so we gotta reset it
         _inventoryTooltip->anchorToTip();
     }
 }
@@ -456,13 +494,8 @@ void GameGui::showInventoryTooltip(ItemSprite* sprite)
     {
         if (sprite)
         {
-            _inventoryTooltip->setOpacity(sprite->getDisplayedOpacity());  // Fancy
-
             // Update if sprite position has changed
-            // TODO: kinda annoying to calculate it in two places
-            auto targetPosition = _inventoryTooltipOwner->getWorldPosition() - Vec2::UNIT_Y * _itemSize * 0.5F;
-
-            if (_inventoryTooltip->getPosition() != targetPosition)
+            if (_inventoryTooltipOwner->getWorldPosition() != _tooltipOwnerPosition)
             {
                 updateInventoryTooltip();
             }
@@ -485,6 +518,7 @@ void GameGui::showInventoryTooltip(ItemSprite* sprite)
     titleLabel->setColor(Color3B::BLACK);
     std::vector<Node*> components;
     sprite->getTooltipComponents(components);
+    std::reverse(components.begin(), components.end());
     components.push_back(titleLabel);
 
     // Create content pane
@@ -510,13 +544,12 @@ void GameGui::showInventoryTooltip(ItemSprite* sprite)
     }
 
     _inventoryTooltip->removeChildByName("content");
-    _inventoryTooltip->setSize(width + padding * 2.0F, height + padding * 2.0F);
     _inventoryTooltip->addChild(content, 1, "content");
+    _inventoryTooltip->updateLayout();
+    updateInventoryTooltip({width + padding * 2.0F, height + padding * 2.0F});
     auto& size = _inventoryTooltip->getContentSize();
     content->setPosition(size.width * 0.5F, padding);
     _inventoryTooltip->setVisible(true);
-    _inventoryTooltip->updateLayout();
-    updateInventoryTooltip();
 }
 
 bool GameGui::closeActiveWindow()
@@ -533,7 +566,7 @@ bool GameGui::closeActiveWindow()
         return true;
     }
 
-    if (_teleportPanel->isVisible())
+    if (isTeleportActive())
     {
         hideTeleportInterface();
         return true;
@@ -584,15 +617,6 @@ void GameGui::toggleGameMenu()
     menu->alignItemsVerticallyWithPadding(10.0F);
     menu->setPosition(panel->getContentSize() * 0.5F + Vec2::UNIT_Y * 10.0F);
     panel->addChild(menu, 2);
-}
-
-void GameGui::toggleInventory()
-{
-    if (!_teleportPanel->isVisible())
-    {
-        _guiWindow->toggle(GameGuiWindow::PanelType::INVENTORY);
-        AudioManager::getInstance()->playButtonSfx();
-    }
 }
 
 void GameGui::toggleProtectorRangeVisibility()
@@ -723,7 +747,7 @@ void GameGui::showBigAlert(const Value& data)
 
 bool GameGui::isPointInGui(const Point& point) const
 {
-    if (_gameMenu || _teleportPanel->isVisible() || _draggingItemSprite)
+    if (_gameMenu || isTeleportActive() || _draggingItemSprite)
     {
         return true;
     }
@@ -746,6 +770,11 @@ bool GameGui::isPointInGui(const Point& point) const
     }
 
     return false;
+}
+
+bool GameGui::isTeleportActive() const
+{
+    return _teleportPanel->isVisible();
 }
 
 const char* GameGui::getRespawnMessage() const
@@ -827,6 +856,8 @@ void GameGui::onGuiWindowPanelChanged()
     auto type = _guiWindow->getActivePanelType();
     _inventoryButton->setSpriteFrame(type == GameGuiWindow::PanelType::INVENTORY ? "hud/bubble-top-highlight"
                                                                                  : "hud/bubble-top");
+    _craftingButton->setSpriteFrame(type == GameGuiWindow::PanelType::CRAFTING ? "hud/bubble-top-chop-highlight"
+                                                                               : "hud/bubble-top-chop");
 }
 
 void GameGui::onHealthChanged(float health, float maxHealth)
@@ -949,7 +980,7 @@ void GameGui::onTouchEnded(Touch* touch, Event* event)
     auto point     = _topSpriteLayer->convertToNodeSpace(touch->getLocation());
     auto container = getItemContainerAtScreenPoint(point);
 
-    if (!container)
+    if (!container || !container->isOrganizable())
     {
         setActiveItemSprite(nullptr);
         return;

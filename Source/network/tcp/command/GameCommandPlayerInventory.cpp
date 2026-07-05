@@ -4,6 +4,7 @@
 #include "base/GameConfig.h"
 #include "base/Item.h"
 #include "base/Player.h"
+#include "event/EventNames.h"
 #include "zone/WorldZone.h"
 #include "GameManager.h"
 
@@ -59,6 +60,7 @@ void GameCommandPlayerInventory::run()
     if (game->getZone()->getState() != WorldZone::State::ACTIVE)
     {
         player->updateAccessories();  // Force accessory update if initial inventory data
+        game->getEventDispatcher()->dispatchCustomEvent(events::kInventoryChanged, nullptr);
     }
 
     player->updateInventory();

@@ -70,7 +70,7 @@ public:
     void updateAccessoryBar();
 
     /* FUNC: GameGui::updateTooltip: @ 0x10005F403 */
-    void updateInventoryTooltip();
+    void updateInventoryTooltip(ax::Size size = ax::Size::ZERO);
 
     /* FUNC: GameGui::showInventoryTooltipForPoint: @ 0x10005F570 */
     void showInventoryTooltipForPoint(const ax::Point& point);
@@ -82,7 +82,6 @@ public:
 
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
-    void toggleInventory();
 
     /* FUNC: GameGui::toggleProtectorRangefinder @ 0x100065A66 */
     void toggleProtectorRangeVisibility();
@@ -109,6 +108,9 @@ public:
 
     /* FUNC: GameGui::pointerInGui: @ 0x10006714C */
     bool isPointInGui(const ax::Point& point) const;
+
+    /* FUNC: GameGui::teleportActive @ 0x1000696E6 */
+    bool isTeleportActive() const;
 
     /* FUNC: GameGui::panelMargin @ 0x10006A672 */
     float getPanelMargin() const { return _panelMargin; }
@@ -142,6 +144,9 @@ public:
 
     /* FUNC: GameGui::guiWindowPosition: @ 0x1000675DA */
     ax::Point getGuiWindowPosition(bool alignRight) const;
+
+    /* FUNC: GameGui::guiWindow @ 0x10006A4E7 */
+    GameGuiWindow* getGuiWindow() const { return _guiWindow; }
 
     /* FUNC: GameGui::setMouseSprite: @ 0x1000603E0 */
     void setActiveItemSprite(InventoryItemSprite* sprite);
@@ -240,6 +245,7 @@ private:
     std::vector<std::string> _pendingAlerts;               // GameGui::pendingAlerts @ 0x1003117A8
     bool _protectorRangeVisible;                           // GameGui::protectorRangefinderActive @ 0x100311A40
     bool _draggingItemSprite;
+    ax::Point _tooltipOwnerPosition;
 };
 
 }  // namespace opendw

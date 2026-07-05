@@ -270,6 +270,22 @@ EntityConfig* GameConfig::getEntityForCode(int32_t code) const
     return it == _entitiesByCode.end() ? nullptr : (*it).second;
 }
 
+ValueVector GameConfig::getRecipeSections() const
+{
+    ValueVector result;
+    auto& inventory = map_util::getArray(_data, "inventory");
+
+    for (auto& element : inventory)
+    {
+        if (map_util::getBool(element.asValueMap(), "crafting"))
+        {
+            result.push_back(element);
+        }
+    }
+
+    return result;
+}
+
 void GameConfig::loadBiome(const std::string& biome)
 {
     auto& biomeConfig = getBiomeConfig(biome);

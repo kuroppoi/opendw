@@ -8,6 +8,7 @@ inline static const auto kActiveHotbarItemChanged  = "activeItemDidChange";
 inline static const auto kCursorEntered            = "cursorEnteredWindow";
 inline static const auto kDeathMessageChanged      = "deathMessageDidChange";
 inline static const auto kGuiWindowChangedPanel    = "guiWindowChangedPanel";
+inline static const auto kInventoryChanged         = "inventoryDidChange";
 inline static const auto kPlayerAccessoriesChanged = "playerAccessoriesDidChange";
 inline static const auto kPlayerAppearanceChanged  = "playerDidChangeAppearance";
 inline static const auto kPlayerDeathEvent         = "playerDidDie";

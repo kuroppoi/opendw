@@ -20,7 +20,7 @@ public:
     void onEnter() override;
 
 private:
-    ax::Label* _categoryLabel;
+    ax::Label* _categoryLabel;  // InventoryPanel::categoryLabel @ 0x1003153C0
     bool _loaded;
 };
 

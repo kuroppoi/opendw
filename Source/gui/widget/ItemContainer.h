@@ -34,7 +34,7 @@ public:
     void removeAllSprites(bool cleanup = true);
     void showSprites(int64_t category, ssize_t page, bool visible);
 
-    void setCategories(const std::vector<std::string>& categories);
+    void setCategories(const std::vector<std::string>& categories, ssize_t maxColumns = 9);
     void setCategoryChangeCallback(const TabsBarCallback& callback) { _categoryChangeCallback = callback; }
     void setCurrentCategory(int64_t category);
     void setPageCount(ssize_t pageCount);
@@ -54,6 +54,9 @@ public:
 
     void setSlotSprite(int64_t slot, const std::string& frame, const ax::Color3B& color = ax::Color3B::WHITE);
     const std::vector<ax::Sprite*>& getSlotSprites() const { return _slotSprites; }
+
+    void setOrganizable(bool organizable) { _organizable = organizable; }
+    bool isOrganizable() const { return _organizable; }
 
     void onTabSelected(TabsBar* tabsBar, ssize_t index) override;
 
@@ -76,6 +79,7 @@ protected:
     std::vector<ax::Sprite*> _slotSprites;
     std::unordered_map<int64_t, SlotSprite> _slotSpriteInfo;
     std::vector<std::string> _categories;
+    ssize_t _maxCategoryColumns;
     TabsBarCallback _categoryChangeCallback;
     int64_t _currentCategory;
     int64_t _visibleCategory;
@@ -84,6 +88,7 @@ protected:
     ssize_t _pageCount;
     ssize_t _currentPage;
     ssize_t _previousPage;
+    bool _organizable;
     bool _pagesDirty;
     bool _dynamicPaging;
     bool _opaqueSlots;

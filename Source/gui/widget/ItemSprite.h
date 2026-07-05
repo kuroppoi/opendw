@@ -21,10 +21,13 @@ public:
 
     virtual void getTooltipComponents(std::vector<ax::Node*>& output) {};
 
+    void setScale(float scale) override;
+
     Item* getItem() const { return _item; }
 
 protected:
     Item* _item;
+    float _initialScale;
 
 private:
     friend class ItemContainer;

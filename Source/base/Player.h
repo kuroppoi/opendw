@@ -14,6 +14,7 @@ class GameManager;
 class InventoryItem;
 class Item;
 class Physical;
+class Recipe;
 enum class BlockLayer : uint8_t;
 enum class ContainerType;
 enum class UseType : uint8_t;
@@ -85,6 +86,15 @@ public:
 
     /* FUNC: Player::sendMoveCommand @ 0x1000232BC */
     void sendMoveMessage();
+
+    /* FUNC: Player::maxRecipeQuantity: @ 0x100022206 */
+    int64_t getMaxRecipeQuantity(Recipe* recipe);
+
+    /* FUMC: Player::canMakeRecipe: @ 0x1000223F9 */
+    bool canMakeRecipe(Recipe* recipe);
+
+    /* FUNC: Player::makeRecipe: @ 0x1000224C6 */
+    bool makeRecipe(Recipe* recipe);
 
     /* FUNC: Player::sendInventoryUseMessage:onlyIfAllowed: @ 0x100025190 */
     void sendInventoryUseMessage(Item* item, bool secondary = false, bool onlyIfAllowed = true);
@@ -245,6 +255,9 @@ public:
     /* FUNC: Player::skilledToPlace: @ 0x10002B260 */
     bool isSkilledToPlace(Item* item);
 
+    /* FUNC: Player::skilledToCraft: @ 0x10002B2CF */
+    bool isSkilledToCraft(Item* item);
+
     /* FUNC: Player::allowedAccessoryItems @ 0x10002B393 */
     int64_t getMaxAccessories();
 
@@ -277,7 +290,12 @@ public:
 
     /* FUNC: Player::getInventoryNamed: @ 0x100021AD9 */
     InventoryItem* getInventory(const std::string& name);
+
+    /* @return `true` if the player has 1 or more of the specified item. */
     bool hasInventory(const std::string& name);
+
+    /* @return The amount of this item the player has in their inventory. */
+    int64_t getInventoryQuantity(Item* item);
 
     /* FUNC: Player::nextInventoryPosition: @ 0x100021B58 */
     int64_t getNextInventorySlot(ContainerType type);

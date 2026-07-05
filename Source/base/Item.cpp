@@ -32,49 +32,54 @@ Item* Item::createWithManager(GameConfig* config, const ValueMap& data, const st
 
 bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::string& name)
 {
-    _config           = config;
-    _data             = data;
-    _category         = map_util::getString(data, "category");
-    _name             = name;
-    _title            = map_util::getString(data, "title");
-    _code             = map_util::getUInt32(data, "code");
-    _layer            = getLayerForName(map_util::getString(data, "layer"));
-    _modType          = getModTypeForName(map_util::getString(data, "mod"));
-    _action           = getActionForName(map_util::getString(data, "action"));
-    _specialPlacement = getSpecialPlacementForName(map_util::getString(data, "special_placement"));
-    _inventoryType    = map_util::getString(data, "inventory_type");
-    _tooltip          = map_util::getString(data, "tooltip");
-    _material         = map_util::getString(data, "material");
-    _tool             = _category == "tools";
-    _consumable       = _category == "consumables";
-    _accessory        = _category == "accessories" || _inventoryType == "accessory";
-    _placeable        = !_tool && !_consumable && !_accessory && _layer != BlockLayer::NONE;  // Custom criteria
-    _invulnerable     = map_util::getBool(data, "invulnerable");
-    _placeover        = map_util::getBool(data, "placeover");
-    _diggable         = map_util::getBool(data, "diggable");
-    _reach            = map_util::getBool(data, "reach");
-    _visible          = map_util::getBool(data, "visible", true);
-    _tileable         = map_util::getBool(data, "tileable");
-    _opaque           = map_util::getBool(data, "opaque");
-    _whole            = map_util::getBool(data, "whole");
-    _center           = map_util::getBool(data, "center");
-    _shadow           = map_util::getBool(data, "shadow");
-    _borderShadow     = map_util::getBool(data, "border_shadow");
-    _mounted          = map_util::getBool(data, "mounted");
-    _power            = map_util::getFloat(data, "power");
-    _rate             = map_util::getFloat(data, "rate");
-    _jiggle           = map_util::getFloat(data, "jiggle");
-    _glow             = map_util::getFloat(data, "glow");
-    _attackInterval   = map_util::getDouble(data, "attack_interval");
-    _light            = map_util::getFloat(data, "light");
-    _lightColor       = color_util::hexToColor(map_util::getString(data, "light_color"));
-    _color            = color_util::hexToColor(map_util::getString(data, "color"));
-    _mirrorable       = map_util::getString(data, "rotation") == "mirror";
-    _field            = map_util::getInt32(data, "field");
-    _fieldPlace       = map_util::getBool(data, "field_place");
-    _placeMod         = map_util::getUInt32(data, "place_mod");
-    _use              = map_util::getMap(data, "use");
-    _spriteZ          = map_util::getInt32(data, "sprite_z");
+    _config              = config;
+    _data                = data;
+    _category            = map_util::getString(data, "category");
+    _name                = name;
+    _title               = map_util::getString(data, "title");
+    _code                = map_util::getUInt32(data, "code");
+    _layer               = getLayerForName(map_util::getString(data, "layer"));
+    _modType             = getModTypeForName(map_util::getString(data, "mod"));
+    _action              = getActionForName(map_util::getString(data, "action"));
+    _craftingIngredients = map_util::getArray(data, "ingredients");
+    _craftingHelpers     = map_util::getArray(data, "crafting_helpers");
+    _craftingQuantity    = map_util::getInt64(data, "crafting_quantity", 1);
+    _specialPlacement    = getSpecialPlacementForName(map_util::getString(data, "special_placement"));
+    _inventoryType       = map_util::getString(data, "inventory_type");
+    _tooltip             = map_util::getString(data, "tooltip");
+    _material            = map_util::getString(data, "material");
+    _tool                = _category == "tools";
+    _consumable          = _category == "consumables";
+    _accessory           = _category == "accessories" || _inventoryType == "accessory";
+    _placeable           = !_tool && !_consumable && !_accessory && _layer != BlockLayer::NONE;  // Custom criteria
+    _invulnerable        = map_util::getBool(data, "invulnerable");
+    _placeover           = map_util::getBool(data, "placeover");
+    _diggable            = map_util::getBool(data, "diggable");
+    _reach               = map_util::getBool(data, "reach");
+    _visible             = map_util::getBool(data, "visible", true);
+    _tileable            = map_util::getBool(data, "tileable");
+    _opaque              = map_util::getBool(data, "opaque");
+    _whole               = map_util::getBool(data, "whole");
+    _center              = map_util::getBool(data, "center");
+    _shadow              = map_util::getBool(data, "shadow");
+    _borderShadow        = map_util::getBool(data, "border_shadow");
+    _mounted             = map_util::getBool(data, "mounted");
+    _power               = map_util::getFloat(data, "power");
+    _rate                = map_util::getFloat(data, "rate");
+    _jiggle              = map_util::getFloat(data, "jiggle");
+    _glow                = map_util::getFloat(data, "glow");
+    _attackInterval      = map_util::getDouble(data, "attack_interval");
+    _light               = map_util::getFloat(data, "light");
+    _lightColor          = color_util::hexToColor(map_util::getString(data, "light_color"));
+    _spriteColor         = color_util::hexToColor(map_util::getString(data, "sprite_color"));
+    _color               = color_util::hexToColor(map_util::getString(data, "color"));
+    _mirrorable          = map_util::getString(data, "rotation") == "mirror";
+    _field               = map_util::getInt32(data, "field");
+    _fieldPlace          = map_util::getBool(data, "field_place");
+    _rarity              = map_util::getInt32(data, "rarity");
+    _placeMod            = map_util::getUInt32(data, "place_mod");
+    _use                 = map_util::getMap(data, "use");
+    _spriteZ             = map_util::getInt32(data, "sprite_z");
 
     // 0x10004A98C: Configure physics shape
     auto shape = map_util::getString(data, "shape");
@@ -130,6 +135,18 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     {
         _placingSkill      = placingSkill[0].asString();
         _placingSkillLevel = placingSkill[1].asInt();
+    }
+
+    // 0x10004B0C3: Configure crafting skill
+    if (isCraftable())
+    {
+        auto& craftingSkill = map_util::getArray(data, "crafting_skill");
+
+        if (craftingSkill.size() >= 2)
+        {
+            _craftingSkill      = craftingSkill[0].asString();
+            _craftingSkillLevel = craftingSkill[1].asInt();
+        }
     }
 
     // 0x10004B009: Configure inventory position
@@ -240,7 +257,6 @@ void Item::processSprites()
     // 0x10004CC16: Process sprite options
     auto cache   = SpriteFrameCache::getInstance();
     auto& sprite = map_util::getValue(_data, "sprite");
-    _spriteColor = color_util::hexToColor(map_util::getString(_data, "sprite_color"));
 
     if (sprite.getType() == Value::Type::VECTOR)
     {

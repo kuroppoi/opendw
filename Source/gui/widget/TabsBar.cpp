@@ -63,7 +63,7 @@ void TabsBar::visit(Renderer* renderer, const Mat4& transform, uint32_t flags)
 void TabsBar::updateLayout()
 {
     removeAllChildren();
-    auto rows = _maxColumns > 0 ? (_tabs.size() / _maxColumns) + 1 : 1;
+    auto rows = _maxColumns > 0 ? (ssize_t)ceil(_tabs.size() / (double)_maxColumns) : 1;
 
     // Create tab selectors
     for (ssize_t i = 0; i < _tabs.size(); i++)

@@ -7,6 +7,7 @@ namespace opendw
 enum class ContainerType
 {
     NONE,
+    CRAFTING,
     INVENTORY,
     HOTBAR,
     ACCESSORY,

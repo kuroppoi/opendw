@@ -3,6 +3,7 @@
 #include "base/GameConfig.h"
 #include "base/InventoryItem.h"
 #include "base/Item.h"
+#include "base/Recipe.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
@@ -636,6 +637,57 @@ void Player::sendMoveMessage()
     _game->sendMessage(MessageIdent::MOVE, position.x, position.y, velocity.x, velocity.y, _lookDirection, target.x,
                        target.y, animation);
     _nextMoveMessageTime = time + MOVE_MESSAGE_INTERVAL;
+}
+
+int64_t Player::getMaxRecipeQuantity(Recipe* recipe)
+{
+    int64_t result = -1;
+
+    for (auto& ingredient : recipe->getIngredients())
+    {
+        auto owned = getInventoryQuantity(ingredient.item);
+
+        if (owned < 1)
+        {
+            return 0;
+        }
+
+        auto quantity = owned / ingredient.quantity;
+        result = result == -1 ? quantity : MIN(result, quantity);
+    }
+
+    return result;
+}
+
+bool Player::canMakeRecipe(Recipe* recipe)
+{
+    return isSkilledToCraft(recipe->getItem()) && getMaxRecipeQuantity(recipe) > 0;
+}
+
+bool Player::makeRecipe(Recipe* recipe)
+{
+    if (!canMakeRecipe(recipe))
+    {
+        return false;
+    }
+
+    auto item = recipe->getItem();
+
+    // If workshopping, the server will perform the workshop checks and send an inventory message,
+    // so we will not update the inventory ourselves in that case.
+    if (recipe->getHelpers().empty())
+    {
+        for (auto& ingredient : recipe->getIngredients())
+        {
+            addInventory(ingredient.item, -ingredient.quantity);
+        }
+
+        addInventory(item, recipe->getQuantity());
+    }
+
+    // TODO: track statistic, fire event
+    _game->sendMessage(MessageIdent::CRAFT, item->getCode());
+    return true;
 }
 
 void Player::sendInventoryUseMessage(Item* item, bool secondary, bool onlyIfAllowed)
@@ -1374,6 +1426,12 @@ bool Player::isSkilledToPlace(Item* item)
     return level == 0 || getAdjustedSkill(item->getPlacingSkill()) >= level;
 }
 
+bool Player::isSkilledToCraft(Item* item)
+{
+    auto level = item->getCraftingSkillLevel();
+    return level == 0 || getAdjustedSkill(item->getCraftingSkill()) >= level;
+}
+
 int64_t Player::getMaxAccessories()
 {
     // NOTE: Don't use adjusted skill to calculate
@@ -1592,6 +1650,12 @@ bool Player::hasInventory(const std::string& name)
 {
     auto invItem = getInventory(name);
     return invItem && invItem->getQuantity() > 0;
+}
+
+int64_t Player::getInventoryQuantity(Item* item)
+{
+    auto invItem = getInventory(item);
+    return invItem ? invItem->getQuantity() : 0;
 }
 
 int64_t Player::getNextInventorySlot(ContainerType type)

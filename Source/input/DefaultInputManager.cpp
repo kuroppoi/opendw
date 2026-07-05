@@ -7,6 +7,7 @@
 #include "graphics/Lightmapper.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
+#include "gui/GameGuiWindow.h"
 #include "util/ColorUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
@@ -293,6 +294,22 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         return;
     }
 
+    if (_player->isDead())
+    {
+        if (keyCode == KeyCode::KEY_SPACE)
+        {
+            _player->respawn();
+        }
+
+        return;
+    }
+
+    // Ignore key input if teleport window is visible
+    if (_gameGui->isTeleportActive())
+    {
+        return;
+    }
+
     auto zone          = WorldZone::getMain();
     auto worldRenderer = zone->getWorldRenderer();
     auto lightmapper   = worldRenderer->getLightmapper();
@@ -308,18 +325,19 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         }
         break;
     case KeyCode::KEY_SPACE:
-        if (_player->isDead())
-        {
-            _player->respawn();
-        }
-        else if (!_gameGui->isPointInGui(_cursorPosition))
+        if (!_gameGui->isPointInGui(_cursorPosition))
         {
             auto point = worldRenderer->getNodePointForScreenPoint(_cursorPosition);
             _player->tryToUseBlockAtNodePoint(point);
         }
         break;
     case KeyCode::KEY_I:
-        _gameGui->toggleInventory();
+        _gameGui->getGuiWindow()->toggle(GameGuiWindow::PanelType::INVENTORY);
+        AudioManager::getInstance()->playButtonSfx();
+        break;
+    case KeyCode::KEY_K:
+        _gameGui->getGuiWindow()->toggle(GameGuiWindow::PanelType::CRAFTING);
+        AudioManager::getInstance()->playButtonSfx();
         break;
     case KeyCode::KEY_F1:
         _director->setStatsDisplay(!_director->isStatsDisplay());
