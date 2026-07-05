@@ -429,7 +429,7 @@ void GameGui::updateInventoryTooltip(Size size)
 
         _tooltipOwnerPosition = _inventoryTooltipOwner->getWorldPosition();
         Point position        = _tooltipOwnerPosition;  // Copy
-        auto offset           = _itemSize * 0.5F;
+        auto offset           = _itemSize * 0.5F + 5.0F;
         auto viewOffset       = _director->getVisibleOrigin();
         auto visibleSize      = _director->getVisibleSize();
         auto bottom           = floorf(viewOffset.y) + 5.0F;

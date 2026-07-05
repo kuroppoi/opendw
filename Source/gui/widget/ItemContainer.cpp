@@ -93,7 +93,7 @@ void ItemContainer::updateLayout()
     {
         _categoryTabs = TabsBar::create();
         _categoryTabs->setCascadeOpacityEnabled(true);
-        _categoryTabs->setMaxColumns(_maxCategoryColumns);
+        _categoryTabs->setMaxColumns((ssize_t)ceil(_categories.size() / 2.0F));  // Max 2 rows
         _categoryTabs->setSelectedBackgroundColor(color_util::hexToColor("D68901"));
         _categoryTabs->setImageColor(color_util::hexToColor("2B2121"));
         _categoryTabs->setBackground("inventory/tabs/square/regular-faded");
@@ -109,7 +109,8 @@ void ItemContainer::updateLayout()
         addChild(_categoryTabs, 5);
         _categoryTabs->updateLayout();
         _categoryTabs->setScale(
-            MIN(1.0F, (_containerSize.width - _itemMargin * 2.0F) / _categoryTabs->getContentSize().width));
+            MIN(106.0F / _categoryTabs->getContentSize().height,
+                (_containerSize.width - _itemMargin * 2.0F) / _categoryTabs->getContentSize().width));
         _categoryTabs->setPositionX(_containerSize.width * 0.5F);
         currentY += math_util::getScaledHeight(_categoryTabs) + _itemMargin;
     }
@@ -324,11 +325,10 @@ void ItemContainer::showSprites(int64_t category, ssize_t page, bool visible)
     }
 }
 
-void ItemContainer::setCategories(const std::vector<std::string>& categories, ssize_t maxColumns)
+void ItemContainer::setCategories(const std::vector<std::string>& categories)
 {
-    _categories         = categories;
-    _maxCategoryColumns = maxColumns;
-    _layoutDirty        = true;
+    _categories  = categories;
+    _layoutDirty = true;
 }
 
 void ItemContainer::setCurrentCategory(int64_t category)

@@ -55,7 +55,7 @@ void CraftingPanel::onEnter()
     craftingContainer->setPosition(panelPadding + 17.0F, panelPadding + 26.0F);
     craftingContainer->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     craftingContainer->setDynamicPaging(true);
-    craftingContainer->setCategories(categoryIcons, 8);  // NOTE: Originally 7
+    craftingContainer->setCategories(categoryIcons);
     craftingContainer->setCategoryChangeCallback(
         [=](int64_t category) { _categoryLabel->setString(categoryNames[category]); });
     craftingContainer->updateLayout();

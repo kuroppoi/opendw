@@ -75,7 +75,7 @@ void InventoryPanel::onEnter()
     inventoryLabel->setScale(0.8F);
     inventoryLabel->setColor(color_util::hexToColor("FFDC0A"));
     inventoryLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
-    inventoryLabel->setPosition(panelPadding + 14.0F, background->getBoundingBox().getMaxY() + 7.0F);
+    inventoryLabel->setPosition(panelPadding + 14.0F, background->getBoundingBox().getMaxY() + 3.0F);
     addChild(inventoryLabel);
 
     // 0x100180F99: Create category label
