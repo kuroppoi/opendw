@@ -170,7 +170,7 @@ void CraftingItemSprite::getTooltipComponents(std::vector<Node*>& output)
         // Create item list
         auto width = 0.0F;
         auto list  = getItemComponents(helpers, &width);
-        totalWidth = MAX(width, totalWidth);
+        totalWidth = MAX(width, MAX(totalWidth, math_util::getScaledWidth(label)));
         math_util::scaleToSize(divider, {totalWidth, 1.0F});
         output.insert(output.end(), list.begin(), list.end());
     }
