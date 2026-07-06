@@ -4,6 +4,7 @@
 
 #include "base/ContainerType.h"
 #include "base/GameConfig.h"
+#include "base/Player.h"
 #include "gui/widget/ItemContainer.h"
 #include "gui/GameGui.h"
 #include "util/ColorUtil.h"
@@ -31,14 +32,16 @@ void InventoryPanel::onEnter()
     auto panelPadding = gui->getPanelPadding();
 
     // Load inventory category info from game config
-    auto config      = GameConfig::getMain();
-    auto& categories = map_util::getArray(config->getData(), "inventory");
+    // FIXME: Requires game restart to update properly if admin status changed
+    auto config        = GameConfig::getMain();
+    auto& categories   = map_util::getArray(config->getData(), "inventory");
+    auto categoryCount = Player::getMain()->isAdmin() ? categories.size() : categories.size() - 1;
     std::vector<std::string> categoryIcons;
     std::vector<std::string> categoryNames;
 
-    for (auto& element : categories)
+    for (ssize_t i = 0; i < categoryCount; i++)
     {
-        auto& category = element.asValueMap();
+        auto& category = categories[i].asValueMap();
         categoryIcons.push_back(map_util::getString(category, "icon"));
         auto name = map_util::getString(category, "name", "unknown");
 
