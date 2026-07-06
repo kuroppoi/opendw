@@ -88,6 +88,9 @@ public:
     /* FUNC: ChipmunkSpace::removeShape: @ 0x10009A0FC */
     void removeShape(ChipmunkShape* shape);
 
+    /* Performs a segment query and returns true if a collision was detected. */
+    bool testSegmentQuery(const ax::Point& from, const ax::Point& to, float radius, cpShapeFilter filter);
+
     /* FUNC: ChipmunkSpace::bodies @ 0x100099E2E */
     std::vector<ChipmunkBody*> getBodies() const;
 

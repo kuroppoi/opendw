@@ -54,6 +54,12 @@ public:
     /* FUNC: Player::step: @ 0x10001C351 */
     void update(float deltaTime);
 
+    /* FUNC: Player::checkHorizontalOverlap: @ 0x10001FB47 */
+    bool checkHorizontalOverlap(float distance);
+
+    /* FUNC: Player::stopIfHorizontalOverlap @ 0x10001FD7C */
+    void stopIfHorizontalOverlap();
+
     /* FUNC: Player::useFlyAccessory:delta: @ 0x10001FE17 */
     void useFlyAccessory(Item* item, float deltaTime);
 

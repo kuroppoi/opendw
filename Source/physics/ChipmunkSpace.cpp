@@ -210,6 +210,13 @@ void ChipmunkSpace::removeShape(ChipmunkShape* shape)
     _children.eraseObject(shape);
 }
 
+bool ChipmunkSpace::testSegmentQuery(const Point& from, const Point& to, float radius, cpShapeFilter filter)
+{
+    cpSegmentQueryInfo info;
+    cpSpaceSegmentQueryFirst(_space, cpv(from.x, from.y), cpv(to.x, to.y), radius, filter, &info);
+    return info.shape;
+}
+
 /* FUNC: 0x100099E71 */
 static void addBodyToVector(cpBody* body, std::vector<ChipmunkBody*>& vector)
 {

@@ -519,6 +519,38 @@ void Player::update(float deltaTime)
     updateInventory();  // Failsafe
 }
 
+bool Player::checkHorizontalOverlap(float distance)
+{
+    if (!_clip)
+    {
+        return false;
+    }
+
+    auto velocity = _physical->getVelocity();
+
+    if (velocity.x == 0.0F)
+    {
+        return false;
+    }
+
+    auto position  = getPosition();
+    auto direction = velocity.x < 0.0F ? -1.0F : 1.0F;  // Horizontal movement direction
+    auto x         = position.x + BLOCK_SIZE * 0.8F * direction * distance;
+    auto start     = Point(x, position.y + BLOCK_SIZE * 1.6F);
+    auto end       = Point(x, position.y + BLOCK_SIZE * 1.6F * 0.1F);
+    auto filter    = cpShapeFilterNew(CP_NO_GROUP, 0x400, 0x400);  // Block layer filter
+    return _game->getZone()->getSpace()->testSegmentQuery(start, end, 0.0F, filter);
+}
+
+void Player::stopIfHorizontalOverlap()
+{
+    if (checkHorizontalOverlap(0.5F))
+    {
+        auto velocity = _physical->getVelocity();
+        _physical->setVelocity({0.0F, velocity.y});
+    }
+}
+
 void Player::useFlyAccessory(Item* item, float deltaTime)
 {
     // TODO: flight suppression

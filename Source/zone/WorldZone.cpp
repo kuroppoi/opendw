@@ -378,7 +378,7 @@ void WorldZone::update(float deltaTime)
     while (fixedTime >= _fixedTimeStep)
     {
         _space->update(_fixedTimeStep);
-        // TODO: player->stopIfHorizontalOverlap();
+        _player->stopIfHorizontalOverlap();
         fixedTime -= _fixedTimeStep;
     }
 
