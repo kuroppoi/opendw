@@ -935,6 +935,10 @@ bool WorldZone::beginAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space)
         {
             _player->onCollideWithEntity(entity);
         }
+
+        // NOTE: This was originally done in a different handler... was it important?
+        _player->slowForEntity(entity);
+        return entity->isBlock();
     }
     else
     {

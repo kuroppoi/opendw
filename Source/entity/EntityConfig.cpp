@@ -40,10 +40,12 @@ bool EntityConfig::initWithData(const ValueMap& data)
     _flips       = map_util::getBool(data, "flips", true);
     _ghostly     = map_util::getBool(data, "ghostly");
     _block       = map_util::getBool(data, "block");
+    _collides    = map_util::getBool(data, "collides", true);
     _shape       = map_util::getString(data, "shape") == "circle" ? Shape::CIRCLE : Shape::BOX;
     _spine       = map_util::getString(data, "spine");
     _spineSkin   = map_util::getString(data, "spine_skin");
     _sprites     = map_util::getArray(data, "sprites");
+    _obstruction = map_util::getFloat(data, "obstacle");
     _scaleBase   = map_util::getFloat(data, "spine_scale_base", map_util::getFloat(data, "scale_base", 1.0F));  // Orig. scale base
     _scaleRange  = map_util::getFloat(data, "scale_range");  // Orig. scale range
 
@@ -64,6 +66,7 @@ bool EntityConfig::initWithData(const ValueMap& data)
         AX_ASSERT(spineOffset.size() == 2);
         _spineOffset = Vec2(spineOffset[0].asFloat(), -spineOffset[1].asFloat());  // Negate Y
     }
+
     // 0x10011FC19: Configure animations
     auto& animations = map_util::getArray(data, "animations", map_util::getArray(data, "spine_animations"));
 

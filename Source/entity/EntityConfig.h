@@ -46,6 +46,9 @@ public:
     /* FUNC: EntityConfig::gravity @ 0x100120B88 */
     float getGravity() const { return _gravity; }
 
+    /* FUNC: EntityConfig::obstacle @ 0x100120BD0 */
+    float getObstruction() const { return _obstruction; }
+
     /* FUNC: EntityConfig::scaleBase @ 0x100120C4A */
     float getScaleBase() const { return _scaleBase; }
 
@@ -60,6 +63,9 @@ public:
 
     /* FUNC: EntityConfig::block @ 0x100120AE7 */
     bool isBlock() const { return _block; }
+
+    /* FUNC: EntityConfig::collides @ 0x1000EFE75 */
+    bool hasCollision() const { return _collides; }
 
     /* FUNC: EntityConfig::shape @ 0x100120B77 */
     Shape getShape() const { return _shape; }
@@ -105,11 +111,13 @@ protected:
     std::string _classSuffix;                          // EntityConfig::classSuffix @ 0x100313C78
     ax::Size _size;                                    // EntityConfig::size @ 0x100313C80
     float _gravity;                                    // EntityConfig::gravity @ 0x100313CB0
+    float _obstruction;                                // EntityConfig::obstacle @ 0x100313CD0
     float _scaleBase;                                  // EntityConfig::scaleBase @ 0x100313D10
     float _scaleRange;                                 // EntityConfig::scaleRange @ 0x100313D18
     bool _flips;                                       // EntityConfig::flips @ 0x100313DD8
     bool _ghostly;                                     // EntityConfig::ghostly @ 0x100313DE0
     bool _block;                                       // EntityConfig::block @ 0x100313C60
+    bool _collides;                                    // EntityConfig::collides @ 0x100313C98
     Shape _shape;                                      // EntityConfig::shape @ 0x100313CA8
     std::string _spine;                                // EntityConfig::spine @ 0x100313DE8
     std::string _spineSkin;                            // EntityConfig::spineSkin @ 0x100313DF0

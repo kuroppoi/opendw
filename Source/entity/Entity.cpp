@@ -208,6 +208,16 @@ void Entity::buildPhysical()
     }
     }
 
+    // TODO: properly set layers
+    if (isAvatar())
+    {
+        _physical->setLayer(0x8);  // Peer layer
+    }
+    else
+    {
+        _physical->setLayer(_config->hasCollision() ? 0x836 : 0x814);
+    }
+
     if (_config->getGravity() == 0.0F)
     {
         _physical->getBody()->setType(CP_BODY_TYPE_KINEMATIC);

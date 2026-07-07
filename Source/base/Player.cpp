@@ -5,6 +5,7 @@
 #include "base/Item.h"
 #include "base/Recipe.h"
 #include "entity/EntityAnimatedAvatar.h"
+#include "entity/EntityConfig.h"
 #include "event/EventNames.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/widget/ItemContainer.h"
@@ -481,6 +482,14 @@ void Player::update(float deltaTime)
         }
     }
 
+    // 0x10001DDF2: Apply entity obstruction
+    if (_entitySlow > 0.01F)
+    {
+        auto scalar = clampf(1.0F - _entitySlow, 0.1F, 1.0F);
+        _physical->setVelocity(_physical->getVelocity() * scalar);
+    }
+
+    _entitySlow = clampf(_entitySlow - deltaTime, 0.0F, 1.0F);
     body->setAngle(0.0F);
     _avatar->update(deltaTime);
     _avatar->setRotation(math_util::lerp(_avatar->getRotation(), 0.0F, deltaTime * 2.3125F));
@@ -1126,6 +1135,16 @@ bool Player::canPlaceItem(Item* item, BaseBlock* block)
     }
 
     return true;
+}
+
+void Player::slowForEntity(Entity* entity)
+{
+    auto obstruction = entity->getConfig()->getObstruction();
+
+    if (obstruction > _entitySlow)
+    {
+        _entitySlow = obstruction;
+    }
 }
 
 void Player::onFeetCollideWithBlock(BaseBlock* block)

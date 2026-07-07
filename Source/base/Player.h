@@ -126,6 +126,9 @@ public:
     /* FUNC: Player::canPlaceItem:atBlock: @ 0x100027A8C */
     bool canPlaceItem(Item* item, BaseBlock* block);
 
+    /* FUNC: Player::slowForEntity: @ 0x100028528 */
+    void slowForEntity(Entity* entity);
+
     /* FUNC: Player::didFeetCollideWithBlock: @ 0x10002A33C */
     void onFeetCollideWithBlock(BaseBlock* block);
 
@@ -406,6 +409,7 @@ private:
     double _startedRunningAt;                              // Player::startedRunningAt @ 0x100310788
     double _lastPropelledUpwardAt;                         // Player::lastPropelledUpwardAt @ 0x1003107A0
     double _lastJumpedAt;                                  // Player::lastJumpedAt @ 0x1003107A8
+    float _entitySlow;                                     // Player::entitySlow @ 0x1003107C8
     Item* _flyAccessory;                                   // Player::flyAccessory @ 0x100310778
     float _flyAccessoryPower;                              // Player::flyAccessoryPower @ 0x100310798
     float _health;                                         // Player::health @ 0x1003106A8
