@@ -1,8 +1,10 @@
 #include "EntityAnimatedAvatar.h"
 
 #include "base/Item.h"
+#include "physics/Physical.h"
 #include "zone/BaseBlock.h"
 #include "AudioManager.h"
+#include "CommonDefs.h"
 
 #define WALK_SFX_INTERVAL 0.15
 
@@ -27,7 +29,11 @@ void EntityAnimatedAvatar::walkOnBlock(BaseBlock* block)
 {
     _feetItem = block->getFrontItem();
     _feetMod  = block->getFrontMod();
-    playWalkSfx();
+
+    if (_physical->getVelocity().lengthSquared() >= BLOCK_SIZE * BLOCK_SIZE)
+    {
+        playWalkSfx();
+    }
 }
 
 void EntityAnimatedAvatar::playWalkSfx(bool force)
