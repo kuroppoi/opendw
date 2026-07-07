@@ -175,7 +175,10 @@ void Player::update(float deltaTime)
 
     if (block)
     {
-        _currentLiquidLevel = block->getLiquidMod();
+        // NOTE: Potential bug?
+        // It fetches the exact same block twice and stores the sum of both liquid mods.
+        // Perhaps it was supposed to get the block right above it where the player's head would be?
+        _currentLiquidLevel = block->getLiquidMod() * 2;
     }
 
     // 0x10001C47A: Change idle animation if it is time
@@ -298,9 +301,10 @@ void Player::update(float deltaTime)
         }
 
         // 0x10001D002: Apply movement
-        _stomping       = false;
-        auto flying     = false;
-        auto propulsion = BLOCK_SIZE * (grounded ? 0.5F : 0.2F);  // Upward motion required to fly
+        _stomping             = false;
+        auto flying           = false;
+        auto propulsion       = BLOCK_SIZE * (grounded ? 0.5F : 0.2F);  // Upward motion required to fly
+        auto liquidResistance = 1.0F;
 
         if (movement.y > propulsion)
         {
@@ -426,11 +430,13 @@ void Player::update(float deltaTime)
             {
                 // We're swimming
                 body->applyImpulseAtLocalPoint(Vec2::UNIT_Y * getSwimmingSpeed() * BLOCK_SIZE * deltaTime * 15.0F);
-                animation = "swim-1";
+                animation        = "swim-1";
+                liquidResistance = 0.9F;
             }
             else
             {
                 useFlyAccessory(_flyAccessory, deltaTime);
+                liquidResistance = 0.5F;
             }
         }
 
@@ -467,9 +473,14 @@ void Player::update(float deltaTime)
         }
 
         // 0x10001DBB2: Limit velocity
-        // TODO: calculation is a bit more complex for liquids
-        auto velLimit = _currentLiquidLevel == 0 ? BLOCK_SIZE * 12.0F : BLOCK_SIZE * 4.0F;
+        auto velLimit = BLOCK_SIZE * 12.0F;
         auto velocity = _physical->getVelocity();
+
+        if (_currentLiquidLevel > 0)
+        {
+            auto minSpeed = math_util::lerp(velLimit, velLimit * 0.2F, liquidResistance) * getSwimmingSpeed();
+            velLimit      = math_util::lerp(velLimit, minSpeed, _currentLiquidLevel / 6.0F);
+        }
 
         if (_stomping)
         {
