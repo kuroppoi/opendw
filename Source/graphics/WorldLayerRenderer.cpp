@@ -990,14 +990,15 @@ MaskedSprite* WorldLayerRenderer::placeSprite(BaseBlock* block,
         // If no liquid above (aka always render full block if there is liquid above it)
         if (!(liquidity & 0xF))
         {
-            // If there is liquid in this block and to the left
+            // If there is liquid in this block or below it
             if (mod > 1 || (liquidity & 0xF00))
             {
-                auto below = (liquidity >> 4) & 0xF;
+                auto right = (liquidity >> 4) & 0xF;
+                auto left  = (liquidity >> 12) & 0xF;
 
-                if (mod - 1 == below)
+                if (mod - 1 == right && right == left)
                 {
-                    mod = (liquidity >> 12) & 0xF;
+                    mod = right;
                 }
             }
 

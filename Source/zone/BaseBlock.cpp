@@ -429,10 +429,10 @@ void BaseBlock::updateLiquid(bool updateNeighbors)
     {
         // 0x1000305E0: Check volume of surrounding liquid blocks
         auto above = getAbove();
+        auto right = getRight();
         auto below = getBelow();
         auto left  = getLeft();
-        auto right = getRight();
-        BaseBlock* blocks[4]{above, below, left, right};
+        BaseBlock* blocks[4]{above, right, below, left};
 
         for (auto i = 0; i < 4; i++)
         {
