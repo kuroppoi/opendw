@@ -658,6 +658,12 @@ void Player::respawn()
 {
     if (!isRespawning())
     {
+        if (isDead())
+        {
+            auto message = "Respawning..."s;
+            _game->getEventDispatcher()->dispatchCustomEvent(events::kDeathMessageChanged, &message);
+        }
+
         _respawnStartedAt = utils::gettime();
         AudioManager::getInstance()->playSfx("respawn");
         ax_util::scheduleOnce([this](float) { sendRespawnMessage(); }, this, 0.3334F, "respawn");
