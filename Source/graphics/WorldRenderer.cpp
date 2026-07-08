@@ -555,10 +555,20 @@ void WorldRenderer::processEffects()
                 switch (layer)
                 {
                 case BlockLayer::BASE:
+                    if (block->isBackOpaque() || block->isFrontOpaque())
+                    {
+                        continue;
+                    }
+
                     renderer = _baseBlocksNode;
                     item     = block->getBaseItem();
                     break;
                 case BlockLayer::BACK:
+                    if (block->isFrontOpaque())
+                    {
+                        continue;
+                    }
+
                     renderer = _backBlocksNode;
                     item     = block->getBackItem();
                     mod      = block->getBackMod();
