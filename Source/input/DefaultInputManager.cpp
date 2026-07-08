@@ -348,6 +348,9 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
     case KeyCode::KEY_F3:
         worldRenderer->generateEffect("earthquake", random(30, 40), _player->getPosition());
         break;
+    case KeyCode::KEY_F4:
+        _player->respawn();  // TODO: chat command
+        break;
     case KeyCode::KEY_ENTER:
         if (_keysPressed.contains(KeyCode::KEY_ALT))
         {
