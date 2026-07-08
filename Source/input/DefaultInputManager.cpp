@@ -305,7 +305,7 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
     }
 
     // Ignore key input if teleport window is visible
-    if (_gameGui->isTeleportActive())
+    if (keyCode != KeyCode::KEY_ESCAPE && _gameGui->isTeleportActive())
     {
         return;
     }
