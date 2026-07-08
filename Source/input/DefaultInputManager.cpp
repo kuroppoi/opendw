@@ -411,7 +411,7 @@ void DefaultInputManager::setCursor(const std::string& cursor)
 {
     auto frameName = std::format("cursors/{}", cursor.empty() ? "pointer" : cursor);
     _cursorSprite->setSpriteFrame(frameName);
-    _cursorSprite->setAnchorPoint(cursor == "pointer" ? Point(0.1F, 0.8F) : Point::ANCHOR_MIDDLE);  // Approximation
+    _cursorSprite->setAnchorPoint(cursor == "pointer" ? Point(0.15625F, 0.96875F) : Point::ANCHOR_MIDDLE);
 }
 
 void DefaultInputManager::onKeyReleased(KeyCode keyCode, Event* event)
