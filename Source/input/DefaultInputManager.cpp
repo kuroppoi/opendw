@@ -3,12 +3,14 @@
 #include "base/InventoryItem.h"
 #include "base/Item.h"
 #include "base/Player.h"
+#include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
 #include "graphics/Lightmapper.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
 #include "gui/GameGuiWindow.h"
 #include "util/ColorUtil.h"
+#include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
 #include "AudioManager.h"
@@ -24,6 +26,7 @@ DefaultInputManager::~DefaultInputManager()
 {
     AX_SAFE_RELEASE(_cursorSprite);
     AX_SAFE_RELEASE(_placeSprite);
+    AX_SAFE_RELEASE(_miningIndicator);
 }
 
 DefaultInputManager* DefaultInputManager::createWithGame(GameManager* game)
@@ -49,6 +52,10 @@ bool DefaultInputManager::initWithGame(GameManager* game)
     _placeSprite->setOpacity(128);
     _placeSprite->setVisible(false);
     _placeSprite->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
+
+    // Create mining indicator
+    _miningIndicator = Sprite::createWithSpriteFrameName("hud/spike");
+    _miningIndicator->retain();
     return true;
 }
 
@@ -57,7 +64,9 @@ void DefaultInputManager::enterGame()
     InputManager::enterGame();
     _director->getRenderView()->setCursorVisible(false);
     _cursorSprite->setVisible(false);
+    _miningIndicator->setOpacity(0);
     _gameGui->addChild(_cursorSprite, 999);
+    _gameGui->addChild(_miningIndicator, 998);
 
     addEventListener(events::kCursorEntered, EVENT_CALLBACK_REF(bool*, onCursorEntered));
     addEventListener(events::kActiveHotbarItemChanged, EVENT_CALLBACK(Item*, onActiveHotbarItemChanged));
@@ -88,6 +97,7 @@ void DefaultInputManager::exitGame()
     _keysPressed.clear();
     _mouseButtons.clear();
     _cursorSprite->removeFromParent();
+    _miningIndicator->removeFromParent();
 
     // getRenderView() can return nullptr if the window has been closed already
     if (auto view = _director->getRenderView())
@@ -104,7 +114,8 @@ void DefaultInputManager::checkInput(float deltaTime)
     auto zone     = _game->getZone();
     auto renderer = zone->getWorldRenderer();
     Vec2 moveDirection;
-    float zoomDirection = 0.0F;
+    auto zoomDirection = 0.0F;
+    auto smartMining   = false;
 
     for (auto key : _keysPressed)
     {
@@ -139,6 +150,9 @@ void DefaultInputManager::checkInput(float deltaTime)
             break;
         case KeyCode::KEY_EQUAL:
             zoomDirection += 1.0F;
+            break;
+        case KeyCode::KEY_CTRL:
+            smartMining = true;
             break;
         }
     }
@@ -181,11 +195,71 @@ void DefaultInputManager::checkInput(float deltaTime)
         _lastInputAt = utils::gettime();
     }
 
-    // Determine cursor sprite
-    auto cursorInGui      = _gameGui->isPointInGui(_cursorPosition);
+    // Update mining indicator (smart mining)
+    // Ported from iOS (64 bit, see 0x10004200C)
+    _miningIndicator->setOpacity(math_util::lerp(_miningIndicator->getOpacity(), 0.0F, deltaTime * 5.0F));
     auto worldCursorPos   = renderer->getNodePointForScreenPoint(_cursorPosition);
     auto activeHotbarItem = _player->getActiveHotbarItem();
-    std::string cursor    = "pointer";
+
+    if (smartMining && activeHotbarItem)
+    {
+        auto item = activeHotbarItem->getItem();
+
+        if (item->isSwingableTool())
+        {
+            auto action   = item->getAction();
+            auto avatar   = _player->getAvatar();
+            auto origin   = avatar->getPosition() + Vec2::UNIT_Y * BLOCK_SIZE;
+            auto distance = worldCursorPos - origin;
+
+            if (distance.length() > BLOCK_SIZE)
+            {
+                auto direction    = distance.getNormalized();
+                const auto target = origin + direction * BLOCK_SIZE;  // Don't change, used as indicator position
+                worldCursorPos    = target;
+
+                // If mining and no applicable block exists at the target point,
+                // move the internal cursor one space further (if something exists there.)
+                if (item->isMiningTool())
+                {
+                    if (auto block = zone->getBlockAtNodePoint(target))
+                    {
+                        auto front = block->getFront();
+
+                        // Check for earth dug (519) as well so shovels don't get "stuck" on dug earth
+                        // FIXME: Magic number bad
+                        if (front == 0 || (front == 519 && action == Item::Action::DIG) && block->getBack() == 0)
+                        {
+                            // Increase reach & check again
+                            auto next = target + direction * BLOCK_SIZE;
+
+                            if (auto block = zone->getBlockAtNodePoint(next))
+                            {
+                                if (block->getFront() > 0 || block->getBack() > 0)
+                                {
+                                    worldCursorPos = next;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Animate mining indicator
+                auto time    = utils::gettime() - avatar->getLastSwungToolAt();  // Time since last tool swing
+                auto opacity = math_util::lerp(222.0F, 0.0F, time * 2.0F);
+                opacity      = math_util::lerp(_miningIndicator->getOpacity(), opacity, deltaTime * 7.0F);
+                _miningIndicator->setAnchorPoint({math_util::lerp(0.0F, 0.6F, time), 0.5F});
+                _miningIndicator->setScale(renderer->getWorldScale() * 0.75F);
+                _miningIndicator->setPosition(renderer->getScreenPointForNodePoint(target));
+                _miningIndicator->setRotation(MATH_RAD_TO_DEG(-atan2f(direction.y, direction.x)));
+                _miningIndicator->setOpacity(opacity);
+            }
+        }
+    }
+
+    // Determine cursor sprite
+    auto cursorInGui   = _gameGui->isPointInGui(_cursorPosition);
+    std::string cursor = "pointer";
 
     if (activeHotbarItem && !cursorInGui)
     {
