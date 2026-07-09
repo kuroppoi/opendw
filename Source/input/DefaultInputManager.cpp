@@ -248,7 +248,7 @@ void DefaultInputManager::checkInput(float deltaTime)
                 auto time    = utils::gettime() - avatar->getLastSwungToolAt();  // Time since last tool swing
                 auto opacity = math_util::lerp(222.0F, 0.0F, time * 2.0F);
                 opacity      = math_util::lerp(_miningIndicator->getOpacity(), opacity, deltaTime * 7.0F);
-                _miningIndicator->setAnchorPoint({math_util::lerp(0.0F, 0.6F, time), 0.5F});
+                _miningIndicator->setAnchorPoint({-math_util::lerp(-0.2F, 0.4F, time), 0.5F});
                 _miningIndicator->setScale(renderer->getWorldScale() * 0.75F);
                 _miningIndicator->setPosition(renderer->getScreenPointForNodePoint(target));
                 _miningIndicator->setRotation(MATH_RAD_TO_DEG(-atan2f(direction.y, direction.x)));
