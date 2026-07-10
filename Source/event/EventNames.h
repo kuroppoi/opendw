@@ -16,6 +16,7 @@ inline static const auto kPlayerEntered            = "playerDidEnter";
 inline static const auto kPlayerExited             = "playerDidExit";
 inline static const auto kPlayerHealthChanged      = "healthDidChange";
 inline static const auto kPlayerSkillChanged       = "playerSkillDidChange";
+inline static const auto kNotifyAccomplishment     = "accomplishmentAlert";
 inline static const auto kNotifyAlert              = "alert";
 inline static const auto kNotifyBigAlert           = "bigAlert";
 inline static const auto kSteamChanged             = "steamDidChange";
