@@ -265,6 +265,9 @@ public:
     /* FUNC: Item::borderShadow @ 0x10004E497 */
     bool hasBorderShadow() const { return _borderShadow; }
 
+    /* FUNC: Item::entity @ 0x10004DDAE */
+    bool isEntity() const { return _entity; }
+
     /* FUNC: Item::mounted @ 0x10004DEA9 */
     bool isMounted() const { return _mounted; }
 
@@ -514,6 +517,7 @@ private:
     bool _center;                                    // Item::center @ 0x100311270
     bool _shadow;                                    // Item::shadow @ 0x100311258
     bool _borderShadow;                              // Item::borderShadow @ 0x1003112B0
+    bool _entity;                                    // Item::entity @ 0x100311200
     bool _mounted;                                   // Item::mounted @ 0x100311260
     bool _placeable;                                 // Item::isPlaceable @ 0x100311470
     bool _invulnerable;                              // Item::invulnerable @ 0x100311230

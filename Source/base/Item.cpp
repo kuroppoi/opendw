@@ -52,6 +52,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _consumable          = _category == "consumables";
     _accessory           = _category == "accessories" || _inventoryType == "accessory";
     _placeable           = !_tool && !_consumable && !_accessory && _layer != BlockLayer::NONE;  // Custom criteria
+    _entity              = map_util::getBool(data, "entity");
     _invulnerable        = map_util::getBool(data, "invulnerable");
     _placeover           = map_util::getBool(data, "placeover");
     _diggable            = map_util::getBool(data, "diggable");

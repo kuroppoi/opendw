@@ -27,7 +27,6 @@
 #define CRACKS_ACTION_TAG        1
 #define SCALE_ACTION_TAG         2
 
-
 USING_NS_AX;
 
 namespace opendw
@@ -1086,7 +1085,7 @@ bool BaseBlock::isReachableFrom(BlockLayer layer, int16_t x, int16_t y, bool all
 {
     auto item = getItemForLayer(layer);
 
-    if (item->getCode() == 0 || (item->isInvulnerable() && !allowInvulnerable))
+    if (item->getCode() == 0 || (!allowInvulnerable && (item->isInvulnerable() || item->isEntity())))
     {
         return false;
     }
