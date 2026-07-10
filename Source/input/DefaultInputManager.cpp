@@ -196,7 +196,7 @@ void DefaultInputManager::checkInput(float deltaTime)
     }
 
     // Update mining indicator (smart mining)
-    // Ported from iOS (64 bit, see 0x10004200C)
+    // Ported from iOS (64 bit, see 0x10004200C) with some customizations
     _miningIndicator->setOpacity(math_util::lerp(_miningIndicator->getOpacity(), 0.0F, deltaTime * 5.0F));
     auto worldCursorPos   = renderer->getNodePointForScreenPoint(_cursorPosition);
     auto activeHotbarItem = _player->getActiveHotbarItem();
@@ -209,7 +209,7 @@ void DefaultInputManager::checkInput(float deltaTime)
         {
             auto action   = item->getAction();
             auto avatar   = _player->getAvatar();
-            auto origin   = avatar->getPosition() + Vec2::UNIT_Y * BLOCK_SIZE;
+            auto origin   = avatar->getPosition() + Vec2::UNIT_Y * BLOCK_SIZE * 0.8F;
             auto distance = worldCursorPos - origin;
 
             if (distance.length() > BLOCK_SIZE)
@@ -218,24 +218,26 @@ void DefaultInputManager::checkInput(float deltaTime)
                 const auto target = origin + direction * BLOCK_SIZE;  // Don't change, used as indicator position
                 worldCursorPos    = target;
 
-                // If mining and no applicable block exists at the target point,
-                // move the internal cursor one space further (if something exists there.)
+                // If we're mining, determine which block should be targeted.
+                // Unlike the original iOS implementation, we always prioritize front blocks over back blocks
+                // regardless of their distance from the player.
                 if (item->isMiningTool())
                 {
                     if (auto block = zone->getBlockAtNodePoint(target))
                     {
                         auto front = block->getFront();
+                        auto back  = block->getBack();
 
                         // Check for earth dug (519) as well so shovels don't get "stuck" on dug earth
                         // FIXME: Magic number bad
-                        if (front == 0 || (front == 519 && action == Item::Action::DIG) && block->getBack() == 0)
+                        if (front == 0 || (front == 519 && action == Item::Action::DIG))
                         {
-                            // Increase reach & check again
                             auto next = target + direction * BLOCK_SIZE;
 
                             if (auto block = zone->getBlockAtNodePoint(next))
                             {
-                                if (block->getFront() > 0 || block->getBack() > 0)
+                                // Only target the further back block if there isn't one closer
+                                if (block->getFront() > 0 || (block->getBack() > 0 && back == 0))
                                 {
                                     worldCursorPos = next;
                                 }
