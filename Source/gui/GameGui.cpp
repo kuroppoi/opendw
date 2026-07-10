@@ -27,6 +27,7 @@
 #define HUD_BUTTON_OPACITY 230   // TODO: should be a setting
 #define HUD_BUTTON_SCALE   0.5F
 #define MIN_ALERT_INTERVAL 1.5
+#define BIG_ALERT_TAG      0x3A2
 
 USING_NS_AX;
 
@@ -239,6 +240,7 @@ void GameGui::onEnter()
 #ifdef AX_PLATFORM_PC
     addEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED, AX_CALLBACK_0(GameGui::onWindowResized, this));
 #endif
+    addEventListener(events::kNotifyAccomplishment, EVENT_CALLBACK_REF(Value*, showAccomplishmentAlert));
     addEventListener(events::kNotifyAlert, EVENT_CALLBACK_REF(Value*, showAlert));
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
     addEventListener(events::kGuiWindowChangedPanel, AX_CALLBACK_0(GameGui::onGuiWindowPanelChanged, this));
@@ -674,7 +676,7 @@ void GameGui::showAlert(const std::string& text)
     auto label = MultiLabel::createWithBMFont("console-shadow.fnt", text);
     label->setMaxLineWidth(label->getBMFontSize() * 50.0F);  // 30 for small screen
     auto& winSize = _director->getWinSize();
-    label->setPosition(winSize.width * 0.5F, winSize.height * 0.4F);
+    label->setPosition(math_util::positionInViewport(0.5F, 0.4F));
     label->setOpacity(0);
     auto duration = text.length() > 50 ? 7.0F : 4.0F;
     auto moveUp   = MoveBy::create(duration, Vec2::UNIT_Y * 40.0F);
@@ -699,18 +701,29 @@ void GameGui::showAlert(const Value& data)
     }
 }
 
-void GameGui::showBigAlert(const std::string& title, const std::string& subtitle)
+void GameGui::showBigAlert(const std::string& title, const std::string& subtitle, const std::string& image, bool bottom)
 {
-    // TODO: finish
-    _announcementsNode->removeAllChildren();  // TODO: should fade out and remove all children
-    auto& winSize = _director->getWinSize();
+    // 0x1000615B8: Fade out and remove existing big alert nodes
+    auto& children = _announcementsNode->getChildren();
+
+    for (ssize_t i = 0; i < children.size(); i++)
+    {
+        auto child = children[i];
+
+        if (child->getTag() == BIG_ALERT_TAG)
+        {
+            child->stopAllActions();
+            ax_util::fadeOutAndRemove(child, 0.2F);
+            child->setTag(0);  // Prevent from running twice
+        }
+    }
 
     // 0x1000616E0: Create title label
     auto titleLabel = Label::createWithBMFont("menu.fnt", title);
-    titleLabel->setPosition(winSize.width * 0.5F, winSize.height * 0.75F);
-    titleLabel->setScale(0.4F);
+    titleLabel->setPosition(math_util::positionInViewport(0.5F, bottom ? 0.2F : 0.75F));
+    titleLabel->setScale(bottom ? 0.3F : 0.4F);
     titleLabel->setOpacity(0);
-    _announcementsNode->addChild(titleLabel);
+    _announcementsNode->addChild(titleLabel, 2, BIG_ALERT_TAG);
     ax_util::runFadeSequence(titleLabel, 0.2F, 2.5F, 1.0F);
     titleLabel->runAction(ScaleBy::create(3.7F, 1.2F));
 
@@ -723,26 +736,54 @@ void GameGui::showBigAlert(const std::string& title, const std::string& subtitle
         subtitleLabel->setScale(0.75F);
         subtitleLabel->setColor(color_util::hexToColor("E6E6E6"));
         subtitleLabel->setOpacity(0);
-        _announcementsNode->addChild(subtitleLabel);
+        _announcementsNode->addChild(subtitleLabel, 2, BIG_ALERT_TAG);
         ax_util::runFadeSequence(subtitleLabel, 0.2F, 2.5F, 1.0F);
         subtitleLabel->runAction(ScaleBy::create(3.7F, 1.2F));
     }
+
+    // 0x100061AEA: Create image sprite
+    if (!image.empty())
+    {
+        if (auto frame = SpriteFrameCache::getInstance()->getSpriteFrameByName(image))
+        {
+            auto sprite = Sprite::createWithTexture(frame->getTexture(), frame->getRect());
+            sprite->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
+            sprite->setPosition(titleLabel->getPositionX(),
+                                titleLabel->getPositionY() + titleLabel->getContentSize().height * 0.5F + 20.0F);
+            sprite->setOpacity(0);
+            _announcementsNode->addChild(sprite, 2, BIG_ALERT_TAG);
+            auto fadeIn    = FadeIn::create(0.2F);
+            auto delayTime = DelayTime::create(2.5F);
+            auto fadeOut   = FadeOut::create(1.0F);
+            auto callFunc  = CallFuncN::create(&Node::removeFromParent);
+            auto sequence  = Sequence::create({fadeIn, delayTime, fadeOut, callFunc});
+            auto scaleBy   = ScaleBy::create(3.0F, 1.2F);
+            sprite->runAction(Spawn::createWithTwoActions(sequence, scaleBy));
+        }
+    }
 }
 
-void GameGui::showBigAlert(const Value& data)
+void GameGui::showBigAlert(const Value& data, bool bottom)
 {
     if (data.getType() == Value::Type::MAP)
     {
         auto& map     = data.asValueMap();
         auto title    = map_util::getString(map, "t");
         auto subtitle = map_util::getString(map, "t2");
-        showBigAlert(title, subtitle);
+        auto image    = map_util::getString(map, "i");
+        showBigAlert(title, subtitle, image, bottom);
     }
     else
     {
         // Assume string
-        showBigAlert(data.asString());
+        showBigAlert(data.asString(), "", "", bottom);
     }
+}
+
+void GameGui::showAccomplishmentAlert(const Value& data)
+{
+    showBigAlert(data, true);
+    AudioManager::getInstance()->playSfx("sfx-flourish-1", 1.0F, 1.0F, 0.3F);
 }
 
 bool GameGui::isPointInGui(const Point& point) const

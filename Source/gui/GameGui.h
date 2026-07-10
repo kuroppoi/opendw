@@ -103,8 +103,15 @@ public:
     void showAlert(const ax::Value& data);
 
     /* FUNC: GameGui::showBigAlert:direction:sound: @ 0x1000614EC */
-    void showBigAlert(const std::string& title, const std::string& subtitle = "");
-    void showBigAlert(const ax::Value& data);
+    void showBigAlert(const std::string& title,
+                      const std::string& subtitle = "",
+                      const std::string& image    = "",
+                      bool bottom = false);
+
+    void showBigAlert(const ax::Value& data, bool bottom = false);
+
+    /* FUNC: GameGui::accomplishmentAlert: @ 0x1000640D7 */
+    void showAccomplishmentAlert(const ax::Value& data);
 
     /* FUNC: GameGui::pointerInGui: @ 0x10006714C */
     bool isPointInGui(const ax::Point& point) const;

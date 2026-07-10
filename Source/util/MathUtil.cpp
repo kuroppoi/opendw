@@ -5,6 +5,15 @@ USING_NS_AX;
 namespace opendw::math_util
 {
 
+Point positionInViewport(float x, float y)
+{
+    auto director = Director::getInstance();
+    auto origin   = director->getVisibleOrigin();
+    auto size     = director->getVisibleSize();
+    auto point    = Point(x, y);
+    return size * point + origin;
+}
+
 Vec2 rotateVector(const Vec2& vector, float rotation)
 {
     auto radians = MATH_DEG_TO_RAD(rotation);

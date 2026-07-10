@@ -439,6 +439,9 @@ void GameManager::notify(NotificationType type, const Value& data)
     case NotificationType::BIG_ALERT:
         event = events::kNotifyBigAlert;
         break;
+    case NotificationType::ACCOMPLISHMENT:
+        event = events::kNotifyAccomplishment;
+        break;
     case NotificationType::WELCOME:
         enterGame(data.asString());
         break;

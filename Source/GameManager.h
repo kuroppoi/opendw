@@ -26,11 +26,12 @@ class WorldZone;
 enum class MessageIdent : uint8_t;
 enum class NotificationType : uint32_t
 {
-    ALERT = 1,
-    EMOTE = 3,
-    FANCY_EMOTE,
-    BIG_ALERT = 6,
-    WELCOME   = 333
+    ALERT          = 1,
+    EMOTE          = 3,
+    FANCY_EMOTE    = 4,
+    BIG_ALERT      = 6,
+    ACCOMPLISHMENT = 10,
+    WELCOME        = 333
 };
 
 /*

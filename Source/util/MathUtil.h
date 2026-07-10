@@ -6,6 +6,9 @@
 namespace opendw::math_util
 {
 
+/* @return The pixel position in the *visible* viewport based on the provided normalized coordinates. */
+ax::Point positionInViewport(float x, float y);
+
 ax::Vec2 rotateVector(const ax::Vec2& vector, float rotation);
 
 /* Grows a rect by the specified size while maintaining its center and returns the result. */
