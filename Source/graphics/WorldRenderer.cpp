@@ -507,24 +507,24 @@ void WorldRenderer::renderBlockSprites()
         }
 
         auto block = _renderQueue[0];
-        auto front = block->getFrontItem();
         block->setRendering(true);
         block->recycleSprites();
         block->postPlace();
 
         // 0x100080BDF: Determine front node
         auto frontNode = _frontBlocksNode;
+        auto frontItem = block->getFrontItem();
 
         if (block->getFront() > 0)
         {
-            if (front->isWhole())
+            if (frontItem->isWhole())
             {
                 frontNode = _fronterBlocksNode;
             }
-            else if (auto frame = front->getSpriteFrame())
+            else if (auto frame = frontItem->getSpriteFrame())
             {
                 if (frame->getTexture() == _fronterBlocksNode->getBatchNode()->getTexture() &&
-                    front->getSpriteZ() != -1)  // Exception for assembled fossils
+                    frontItem->getSpriteZ() != -1)  // Exception for assembled fossils
                 {
                     frontNode = _fronterBlocksNode;
                 }

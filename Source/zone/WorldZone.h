@@ -106,6 +106,9 @@ public:
 
     ssize_t getPeerCount() const { return _peers.size(); }
 
+    /* FUNC: WorldZone::machinePartsDiscovered @ 0x10004A24E */
+    const ax::ValueMap& getMachinePartsDiscovered() const { return _machinePartsDiscovered; }
+
     /* FUNC: WorldZone::leave @ 0x1000497AB */
     void leave();
 
@@ -278,6 +281,7 @@ private:
     ax::Map<int32_t, Entity*> _entities;                    // WorldZone::entities @ 0x100310EB8
     ax::Map<int32_t, EntityAnimatedAvatar*> _peers;         // WorldZone::peers @ 0x100310EC8
     ax::Vector<BaseBlock*> _physicsBlockQueue;              // WorldZone::physicsBlockQueue @ 0x100310F40
+    ax::ValueMap _machinePartsDiscovered;                   // WorldZone::machinePartsDiscovered @ 0x100311148
     std::string _documentId;                                // WorldZone::documentId @ 0x100311170
     std::string _name;                                      // WorldZone::name @ 0x100311190
     std::string _biome;                                     // WorldZone::biome @ 0x100310F98

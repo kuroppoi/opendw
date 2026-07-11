@@ -27,8 +27,17 @@
 #define GIANT_CLOCK         761
 #define LANDSCAPE           797
 #define WINE_PRESS          863
+#define GECK_TUB            880
+#define GECK_COG_LARGE      886
+#define GECK_COG_SMALL      887
+#define COMPOSTER_CHAMBER   894
+#define COMPOSTER_TURBINE   899
 #define LANDMARK_PLAQUE     916
 #define MECHANICAL_SIGN     919
+#define RECYCLER_CHAMBER    927
+#define RECYCLER_GEAR       929
+#define EXPIATOR_FACE       1003
+#define EXPIATOR_GEAR       1006
 #define HELL_DISH           1010
 
 USING_NS_AX;
@@ -304,6 +313,133 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
         auto action = RepeatForever::create(RotateBy::create(0.25F, 360.0F));
         sprite->runAction(action);
         sprite->setTag(ACTION_SPRITE_TAG);
+        break;
+    }
+    // 0x1000AB0E4: Purifier
+    case GECK_TUB:
+    {
+        auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "p");
+        auto currentZ = 8;
+
+        for (auto& part : parts)
+        {
+            auto code = part.asUint();
+            auto item = config->getItemForCode(code);
+
+            if (!item)
+            {
+                continue;
+            }
+
+            auto sprite =
+                placeSprite(block, nullptr, item->getSpriteFrame(), false, true, ModType::NONE, 0, currentZ--);
+
+            // Animate gears if active
+            if (block->getFrontMod() > 0)
+            {
+                switch (code)
+                {
+                case GECK_COG_LARGE:
+                    sprite->setTag(ACTION_SPRITE_TAG);
+                    sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
+                    break;
+                case GECK_COG_SMALL:
+                    sprite->setTag(ACTION_SPRITE_TAG);
+                    sprite->runAction(RepeatForever::create(RotateBy::create(0.5F, -360.0F)));
+                    break;
+                }
+            }
+        }
+
+        break;
+    }
+    // 0x1000AA60C: Composter
+    // NOTE: The turbine is invisible because it's in front-1, which draws below front-0 where the other parts are.
+    case COMPOSTER_CHAMBER:
+    {
+        auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "c");
+        auto currentZ = 2;
+
+        for (auto& part : parts)
+        {
+            auto code = part.asUint();
+            auto item = config->getItemForCode(code);
+
+            if (!item)
+            {
+                continue;
+            }
+
+            auto sprite =
+                placeSprite(block, nullptr, item->getSpriteFrame(), false, true, ModType::NONE, 0, currentZ++);
+
+            // Animate turbine if active
+            if (block->getFrontMod() > 0 && code == COMPOSTER_TURBINE)
+            {
+                sprite->setTag(ACTION_SPRITE_TAG);
+                sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
+            }
+        }
+
+        break;
+    }
+    // 0x1000AAA48: Recycler
+    case RECYCLER_CHAMBER:
+    {
+        auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "r");
+        auto currentZ = 2;
+
+        for (auto& part : parts)
+        {
+            auto code = part.asUint();
+            auto item = config->getItemForCode(code);
+
+            if (!item)
+            {
+                continue;
+            }
+
+            auto sprite =
+                placeSprite(block, nullptr, item->getSpriteFrame(), false, true, ModType::NONE, 0, currentZ++);
+
+            // Animate gear if active
+            if (block->getFrontMod() > 0 && code == RECYCLER_GEAR)
+            {
+                sprite->setTag(ACTION_SPRITE_TAG);
+                sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
+            }
+        }
+
+        break;
+    }
+    // 0x1000AACF9: Expiator
+    // NOTE: The expiator only renders properly in hell biomes because the components are in its biome atlas.
+    case EXPIATOR_FACE:
+    {
+        auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "e");
+        auto currentZ = 8;
+
+        for (auto& part : parts)
+        {
+            auto code = part.asUint();
+            auto item = config->getItemForCode(code);
+
+            if (!item)
+            {
+                continue;
+            }
+
+            auto sprite =
+                placeSprite(block, nullptr, item->getSpriteFrame(), false, true, ModType::NONE, 0, currentZ--);
+
+            // Animate gear if active
+            if (block->getFrontMod() > 0 && code == EXPIATOR_GEAR)
+            {
+                sprite->setTag(ACTION_SPRITE_TAG);
+                sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
+            }
+        }
+
         break;
     }
     }

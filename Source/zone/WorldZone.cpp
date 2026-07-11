@@ -436,11 +436,39 @@ void WorldZone::updateTimedStatus(float deltaTime)
     MathUtil::smooth(&_cloudCover, cloudCover, deltaTime, smoothTime);
 }
 
+static bool compareValueInt(const Value& a, const Value& b)
+{
+    return b.asUint() > a.asUint();
+}
+
 void WorldZone::updateStatus(const ValueMap& status)
 {
-    if (status.contains("w"))
+    for (auto& entry : status)
     {
-        _timedStatus = map_util::getArray(status, "w");
+        auto& key   = entry.first;
+        auto& value = entry.second;
+
+        if (key == "w")
+        {
+            if (value.getType() == Value::Type::VECTOR)
+            {
+                _timedStatus = value.asValueVector();
+            }
+        }
+        else if (key == "machines")
+        {
+            if (value.getType() == Value::Type::MAP)
+            {
+                _machinePartsDiscovered = value.asValueMap();
+
+                // Sort item codes
+                for (auto& entry : _machinePartsDiscovered)
+                {
+                    auto& codes = entry.second.asValueVector();
+                    std::sort(codes.begin(), codes.end(), compareValueInt);
+                }
+            }
+        }
     }
 }
 
