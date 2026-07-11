@@ -95,12 +95,14 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     auto frontAltNode        = createLayerRenderer("front-1", BlockLayer::FRONT, "front-1+hd2.png");
     _frontBlocksNode         = createLayerRenderer("front-0a", BlockLayer::FRONT, "front-0+hd2.png");
     _frontBiomeBlocksNode    = createLayerRenderer("frontBiome", BlockLayer::FRONT, "front-0+hd2.png", true);
+    auto frontAltWholeNode   = createLayerRenderer("front-alt-whole", BlockLayer::FRONT, "front-whole+hd2.png");
     _signsNode               = createLayerRenderer("signs", BlockLayer::FRONT, "signs+hd2.png");
     _frontQualityBlocksNode  = createLayerRenderer("frontQuality", BlockLayer::FRONT, "front-quality+hd2.png");
     _frontBlocksNode->setPlaceBackgroundsInAlt(true);
     _frontBlocksNode->addAltRenderer(frontBackgroundNode);
     _frontBlocksNode->addAltRenderer(frontAltNode);
     _frontBlocksNode->addAltRenderer(_frontBiomeBlocksNode);
+    _frontBlocksNode->addAltRenderer(frontAltWholeNode);
     _frontBlocksNode->addAltRenderer(_signsNode);
     _frontBlocksNode->addAltRenderer(_frontQualityBlocksNode);
 
@@ -117,7 +119,6 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _liquidBlocksNode = createLayerRenderer("liquid", BlockLayer::LIQUID, "liquid+hd2.png");
 
     // 0x10007D824: Create fronter layer renderers
-    auto frontAltWholeNode  = createLayerRenderer("front-alt-whole", BlockLayer::FRONT, "front-whole+hd2.png");
     _fronterBiomeBlocksNode = createLayerRenderer("fronterBiome", BlockLayer::FRONT, "front-whole+hd2.png", true);
     _fronterBlocksNode      = createLayerRenderer("fronter", BlockLayer::FRONT, "front-whole+hd2.png");
     auto fronterBaseNode    = createLayerRenderer("fronterBase", BlockLayer::FRONT, "base+hd2.png");
@@ -125,7 +126,6 @@ bool WorldRenderer::initWithZone(WorldZone* zone)
     _fronterBlocksNode->addAltRenderer(_fronterBiomeBlocksNode);
     _fronterBlocksNode->addAltRenderer(fronterBaseNode);
     _fronterBlocksNode->addAltRenderer(_fronterAccentsNode);
-    _frontBlocksNode->addAltRenderer(frontAltWholeNode);
 
     // 0x10007D8FC: Create fronter entity nodes
     _animatedGhostlyEntitiesNode = Node::create();
@@ -507,21 +507,33 @@ void WorldRenderer::renderBlockSprites()
         }
 
         auto block = _renderQueue[0];
+        auto front = block->getFrontItem();
         block->setRendering(true);
         block->recycleSprites();
         block->postPlace();
 
-        if (block->getFrontItem()->isWhole())
+        // 0x100080BDF: Determine front node
+        auto frontNode = _frontBlocksNode;
+
+        if (block->getFront() > 0)
         {
-            _fronterBlocksNode->placeBlock(block);
-        }
-        else
-        {
-            _frontBlocksNode->placeBlock(block);
+            if (front->isWhole())
+            {
+                frontNode = _fronterBlocksNode;
+            }
+            else if (auto frame = front->getSpriteFrame())
+            {
+                if (frame->getTexture() == _fronterBlocksNode->getBatchNode()->getTexture() &&
+                    front->getSpriteZ() != -1)  // Exception for assembled fossils
+                {
+                    frontNode = _fronterBlocksNode;
+                }
+            }
         }
 
         // NOTE: Occlusion culling is handled by WorldLayerRenderer.
         // Also, there shouldn't be a need to render liquid blocks here.
+        frontNode->placeBlock(block);
         _backBlocksNode->placeBlock(block);
         _baseBlocksNode->placeBlock(block);
         block->setRendering(false);
