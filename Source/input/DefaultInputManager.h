@@ -68,6 +68,7 @@ private:
     ax::Sprite* _cursorSprite;                      // MacManager::cursorSprite @ 0x100310E88
     ax::Sprite* _placeSprite;
     ax::Sprite* _miningIndicator;  // From iOS
+    bool _smartMining;
     bool _placeSpriteVisible;
 };
 

@@ -66,7 +66,7 @@ void DefaultInputManager::enterGame()
     _cursorSprite->setVisible(false);
     _miningIndicator->setOpacity(0);
     _gameGui->addChild(_cursorSprite, 999);
-    _gameGui->addChild(_miningIndicator, 998);
+    _gameGui->addChild(_miningIndicator, -1);
 
     addEventListener(events::kCursorEntered, EVENT_CALLBACK_REF(bool*, onCursorEntered));
     addEventListener(events::kActiveHotbarItemChanged, EVENT_CALLBACK(Item*, onActiveHotbarItemChanged));
@@ -115,7 +115,7 @@ void DefaultInputManager::checkInput(float deltaTime)
     auto renderer = zone->getWorldRenderer();
     Vec2 moveDirection;
     auto zoomDirection = 0.0F;
-    auto smartMining   = false;
+    auto ctrlDown      = false;
 
     for (auto key : _keysPressed)
     {
@@ -152,7 +152,8 @@ void DefaultInputManager::checkInput(float deltaTime)
             zoomDirection += 1.0F;
             break;
         case KeyCode::KEY_CTRL:
-            smartMining = true;
+            _smartMining = true;
+            ctrlDown     = true;
             break;
         }
     }
@@ -200,8 +201,10 @@ void DefaultInputManager::checkInput(float deltaTime)
     _miningIndicator->setOpacity(math_util::lerp(_miningIndicator->getOpacity(), 0.0F, deltaTime * 5.0F));
     auto worldCursorPos   = renderer->getNodePointForScreenPoint(_cursorPosition);
     auto activeHotbarItem = _player->getActiveHotbarItem();
+    auto useButtonDown = _mouseButtons.contains(MouseButton::BUTTON_LEFT) || _keysPressed.contains(KeyCode::KEY_SPACE);
+    _smartMining &= useButtonDown;
 
-    if (smartMining && activeHotbarItem)
+    if (_smartMining && activeHotbarItem)
     {
         auto item = activeHotbarItem->getItem();
 
@@ -267,7 +270,7 @@ void DefaultInputManager::checkInput(float deltaTime)
     {
         auto item = activeHotbarItem->getItem();
 
-        if (item->isMiningTool() && _player->canDigAt(worldCursorPos))
+        if (item->isMiningTool() && (ctrlDown || _smartMining || _player->canDigAt(worldCursorPos)))
         {
             cursor = "dig";
         }
@@ -300,7 +303,7 @@ void DefaultInputManager::checkInput(float deltaTime)
             _placeSprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
         }
 
-        if (_mouseButtons.contains(MouseButton::BUTTON_LEFT) || _keysPressed.contains(KeyCode::KEY_SPACE))
+        if (useButtonDown)
         {
             usingItem  = activeHotbarItem;
             usingPoint = worldCursorPos;
