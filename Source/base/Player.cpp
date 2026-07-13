@@ -838,6 +838,7 @@ BaseBlock* Player::tryToUseBlockAtNodePoint(const Point& point)
             if (block)
             {
                 block->useLayer(block->getTopUsableLayer());
+                return block;
             }
         }
     }
@@ -1059,7 +1060,6 @@ bool Player::tryToPlaceInventoryItem(InventoryItem* invItem, const Point& point)
         AudioManager::getInstance()->playSfx("error", 1.0F, 0.0F, 0.3F);
     }
 
-    _nextAllowedPlaceTime = utils::gettime() + 0.1;
     return false;
 }
 
