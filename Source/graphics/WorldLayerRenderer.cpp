@@ -562,14 +562,16 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
 
     // Place continuity animation sprite (independent of sprite continuity)
     auto& continuityAnimation = item->getSpriteContinuityAnimation();
+    auto foregroundZ =
+        MAX(spriteZ, !tileable && (item->getWidth() > 1 || item->getHeight() > 1) ? 3 : 2) + (background ? 1 : 0);
 
     if (!continuityAnimation.empty())
     {
         auto& spriteInfo = continuityAnimation[continuity & 0xF].back();
         auto frame       = spriteInfo.options[0];
         auto rotation    = spriteInfo.rotation;
-        auto sprite      = placeSprite(block, nullptr, frame, true, true, ModType::ROTATION_DEGREES, rotation,
-                                       item->getSpriteZ() + 1);  // HACK: always render on top
+        auto sprite =
+            placeSprite(block, nullptr, frame, true, true, ModType::ROTATION_DEGREES, rotation, foregroundZ + 2);
         sprite->setOpacity(item->getSpriteContinuityAnimationOpacity());
         sprite->setTag(ANIMATED_SPRITE_TAG - 3 - (static_cast<uint8_t>(_layer) - 1));
     }
@@ -582,7 +584,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
 
     if (!spriteAnimation.empty())
     {
-        auto sprite = placeSprite(block, nullptr, spriteAnimation[0], false, true, modType, mod, 2);
+        auto sprite = placeSprite(block, nullptr, spriteAnimation[0], false, true, modType, mod, 3);  // Seemingly unaffected by sprite Z
         sprite->setTag(ANIMATED_SPRITE_TAG - (static_cast<uint8_t>(_layer) - 1));
         sprite->setColor(item->getSpriteAnimationColor());
     }
@@ -593,8 +595,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
 
         if (frame)
         {
-            auto sprite = placeSprite(block, nullptr, frame, true, true, ModType::ROTATION_DEGREES, data.rotation,
-                                      MAX(1, spriteZ));
+            auto sprite = placeSprite(block, nullptr, frame, true, true, ModType::ROTATION_DEGREES, data.rotation, foregroundZ);
             sprite->setFlippedX(data.flipX);
             sprite->setFlippedY(data.flipY);
         }
@@ -624,7 +625,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
 
         if (foreground)
         {
-            auto sprite = placeSprite(block, nullptr, foreground, tileable, !center, modType, mod, MAX(1, spriteZ));
+            auto sprite = placeSprite(block, nullptr, foreground, tileable, !center, modType, mod, foregroundZ);
             sprite->setColor(item->getSpriteColor());
 
             // Set mask frame if present
