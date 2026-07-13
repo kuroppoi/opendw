@@ -64,6 +64,7 @@ private:
     ax::ValueMap _config;                           // AudioEngine::config @ 0x100312820
     std::map<std::string, AUDIO_ID> _loopMap;       // AudioEngine::loopMap @ 0x1003127A0
     std::map<std::string, LoopLayer> _autoLoopMap;  // AudioEngine::autoLoopMap @ 0x1003127A8
+    std::map<std::string, double> _sfxPlayTime;     // AudioEngine::samplePlayTime @ 0x1003127B0
     AUDIO_ID _bgmId;
     float _masterVolume;
     float _sfxVolume;

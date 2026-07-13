@@ -5,6 +5,7 @@
 #include "util/MathUtil.h"
 #include "CommonDefs.h"
 
+#define MIN_SFX_INTERVAL 0.1  // Minimum amount of time that must pass before the same sfx is allowed to be played again
 #define MUSIC_VOLUME_KEY "musicVolume"
 #define AUDIO_FORMAT     "ogg"
 #define BUTTON_SFX       "click"
@@ -98,11 +99,17 @@ void AudioManager::updateTweenAction(float value, std::string_view key)
 
 AUDIO_ID AudioManager::playSfx(const std::string& name, float pitch, float pan, float gain)
 {
+    if (utils::gettime() < _sfxPlayTime[name] + MIN_SFX_INTERVAL)
+    {
+        return AudioEngine::INVALID_AUDIO_ID;
+    }
+
     auto volume = _masterVolume * _sfxVolume * gain;
     auto file   = name + "." + AUDIO_FORMAT;
     auto track  = AudioEngine::play2d(file, false, volume);
     AudioEngine::setPitch(track, pitch);
     AudioEngine::setPan(track, pan);
+    _sfxPlayTime[name] = utils::gettime();
     return track;
 }
 
