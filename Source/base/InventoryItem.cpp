@@ -160,7 +160,7 @@ void InventoryItem::moveToInitialPosition()
     {
         _slot = player->getNextInventorySlot(ContainerType::ACCESSORY);
 
-        if (_slot != -1)
+        if (_slot != -1 && _slot < player->getMaxAccessories())
         {
             _container = ContainerType::ACCESSORY;
             updateServer();
