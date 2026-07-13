@@ -1086,7 +1086,7 @@ bool Player::canDigAt(const Point& point) const
         return true;
     }
 
-    // Shitty ray cast
+    // Shitty raycast
     for (auto i = 0; i < 4; i++)
     {
         auto offset = (i % 2) ? 1 : -1;
@@ -1094,16 +1094,16 @@ bool Player::canDigAt(const Point& point) const
 
         if ((y ? origin->getY() : origin->getX()) + offset * 2 == (y ? target->getY() : target->getX()))
         {
-            auto block = zone->getBlockAt(origin->getX() + (y ? 0 : offset), origin->getY() + (y ? offset : 0));
+            auto block = zone->getBlockAt(target->getX() - (y ? 0 : offset), target->getY() - (y ? offset : 0));
 
-            if (!block || block->isWhole())
+            if (block && !block->isWhole())
             {
-                return false;  // Target is obstructed
+                return true;  // Target can be reached
             }
         }
     }
 
-    return true;  // No obstructions
+    return false;  // Target is obstructed
 }
 
 bool Player::canPlaceItem(Item* item, BaseBlock* block)
