@@ -40,7 +40,8 @@ void Panel::onEnter()
     Node::onEnter();
 
     // Create touch listener
-    _touchListener               = EventListenerTouchOneByOne::create();
+    _touchListener = EventListenerTouchOneByOne::create();
+    _touchListener->setSwallowTouches(true);
     _touchListener->onTouchBegan = AX_CALLBACK_2(Panel::onTouchBegan, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(_touchListener, this);
 }
@@ -360,7 +361,11 @@ bool Panel::onTouchBegan(Touch* touch, Event* event)
 
     if (isScreenPointInRect(location, Camera::getVisitingCamera(), getWorldToNodeTransform(), rect, nullptr))
     {
-        return onPointerDown(touch);
+        if (onPointerDown(touch))
+        {
+            event->stopPropagation();
+            return true;
+        }
     }
 
     return false;
