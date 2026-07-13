@@ -413,8 +413,9 @@ void GameGui::updateAccessoryBar()
         else
         {
             auto item = container->getItemAtSlot(i, 0);
-            auto color = item ? (item->getItem()->isAccessory() ? color_util::hexToColor("78FF78") : Color3B::RED)
-                              : Color3B::WHITE;
+            auto color =
+                item ? (item->getItem()->isEquippableAccessory() ? color_util::hexToColor("78FF78") : Color3B::RED)
+                     : Color3B::WHITE;
             container->setSlotSprite(i, "inventory-slot", color);
         }
     }
