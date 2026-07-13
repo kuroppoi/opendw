@@ -167,7 +167,8 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     // 0x10005AE56: Create world button
     _worldButton = createTopHudButton("world", true, 20.0F, color_util::hexToColor("C1B09D"));
-    _worldButton->setCallback([=]() { showTeleportInterface(nullptr); });
+    _worldButton->setCallback(
+        [=]() { _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportActivated); });
     _hudButtonsNode->addChild(_worldButton);
 
     // 0x10005AC33: Create social button
@@ -243,6 +244,7 @@ void GameGui::onEnter()
     addEventListener(events::kNotifyAccomplishment, EVENT_CALLBACK_REF(Value*, showAccomplishmentAlert));
     addEventListener(events::kNotifyAlert, EVENT_CALLBACK_REF(Value*, showAlert));
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
+    addEventListener(events::kZoneTeleportActivated, EVENT_CALLBACK(BaseBlock*, showTeleportInterface));
     addEventListener(events::kGuiWindowChangedPanel, AX_CALLBACK_0(GameGui::onGuiWindowPanelChanged, this));
     addEventListener(events::kPlayerAccessoriesChanged, EVENT_CALLBACK(Player*, onPlayerAccessoriesChanged));
     addEventListener(events::kPlayerSkillChanged, AX_CALLBACK_0(GameGui::onPlayerSkillChanged, this));
@@ -644,7 +646,7 @@ void GameGui::showTeleportInterface(BaseBlock* block)
     closeActiveWindow();
     setHudVisible(false);
     _teleportPanel->showFromBlock(block);
-    _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportActivated);
+    // FIXME: Calling this function directly won't cause haze to activate
 }
 
 void GameGui::hideTeleportInterface()

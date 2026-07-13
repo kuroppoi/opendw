@@ -5,6 +5,7 @@
 #include "base/Item.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
+#include "event/EventNames.h"
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/WorldLayerRenderer.h"
 #include "graphics/WorldRenderer.h"
@@ -697,7 +698,7 @@ void BaseBlock::useLayer(BlockLayer layer, bool sendMessage)
 
     if (item->isUsableType(UseType::ZONE_TELEPORT))
     {
-        // TODO: zone teleport
+        _zone->getEventDispatcher()->dispatchCustomEvent(events::kZoneTeleportActivated, this);
         return;
     }
 
