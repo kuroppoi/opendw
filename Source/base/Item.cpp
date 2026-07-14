@@ -500,10 +500,16 @@ Item::ContinuitySpriteMap Item::createContinuitySpriteMap(const std::string& nam
             auto suffix    = array[0].isNull() ? "" : std::format("-{}", array[0].asStringRef());
             auto frameName = std::format("{}{}{}", prefix, name, suffix);
             auto frame     = _config->getCurrentBiomeFrame(frameName);
-            auto options   = frames > 0 ? createSequentialSpriteList(frameName, frames) : SpriteList();
-            auto rotation  = (uint16_t)array[1].asUint();
-            auto flipX     = array.size() >= 3 && array[2].asBool();
-            auto flipY     = array.size() >= 4 && array[3].asBool();
+
+            if (!frame)
+            {
+                frame = _config->getCurrentBiomeFrame(std::format("{}-1", frameName));
+            }
+
+            auto options  = frames > 0 ? createSequentialSpriteList(frameName, frames) : SpriteList();
+            auto rotation = (uint16_t)array[1].asUint();
+            auto flipX    = array.size() >= 3 && array[2].asBool();
+            auto flipY    = array.size() >= 4 && array[3].asBool();
             spritesResult.push_back(ContinuitySprite(frame, options, rotation, flipX, flipY));
         }
 
