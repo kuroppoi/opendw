@@ -239,6 +239,7 @@ public:
 
     /* FUNC: BaseBlock::frontItem @ 0x10003357A */
     Item* getFrontItem() const { return _frontItem; }
+    Item* getRealFrontItem() const;
 
     /* FUNC: BaseBlock::liquidItem @ 0x10003359C */
     Item* getLiquidItem() const { return _liquidItem; }

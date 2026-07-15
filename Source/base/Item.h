@@ -372,6 +372,8 @@ public:
     /* FUNC: Item::isMirrorable @ 0x10004D726 */
     bool isMirrorable() const { return _mirrorable; }
 
+    bool isSteamPowered() const { return _steamPowered; }
+
     /* FUNC: Item::inventoryItem @ 0x10004E246 */
     Item* getInventoryItem() const { return _inventoryItem; }
 
@@ -575,6 +577,7 @@ private:
     int _spriteZ;                                    // Item::spriteZ @ 0x100311518
     bool _tool;
     bool _mirrorable;
+    bool _steamPowered;
 };
 
 }  // namespace opendw

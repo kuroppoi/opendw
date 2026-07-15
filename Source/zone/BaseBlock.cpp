@@ -24,6 +24,8 @@
 #define GLASS                    599
 #define BALLOON                  607
 #define BALLOON_STRIPED          678
+#define MECHANICAL_PIPE          860
+#define SPECIAL_PIPE_CONTINUITY  1  // Enable this if you want brass pipes to connect to steam-powered machine inputs
 #define SPECIAL_FRONT_CONTINUITY 1
 #define CRACKS_ACTION_TAG        1
 #define SCALE_ACTION_TAG         2
@@ -149,6 +151,13 @@ void BaseBlock::updateEnvironment(bool light, bool liquid, bool wholeness, bool 
                 _backModContinuity |= (block && block->getBackMod() > 0) << i;
                 _frontContinuity |= (!block || block->getFrontItem()->isContinuousFor(_frontItem)) << i;
                 _frontModContinuity |= (block && block->getFrontMod() > 0) << i;
+
+#if SPECIAL_PIPE_CONTINUITY
+                if (i == 1 && _front == MECHANICAL_PIPE && block && block->getRealFrontItem()->isSteamPowered())
+                {
+                    _frontContinuity |= CONTINUITY_RIGHT;
+                }
+#endif  // SPECIAL_PIPE_CONTINUITY
             }
 
             // 0x10003046A: Handle special front continuity
@@ -1147,6 +1156,12 @@ BaseBlock* BaseBlock::getRight() const
 bool BaseBlock::isWhole() const
 {
     return _frontItem->isWhole();
+}
+
+Item* BaseBlock::getRealFrontItem() const
+{
+    auto parent = _frontItem->getParentItem();
+    return parent ? parent : _frontItem;
 }
 
 void BaseBlock::getNeighbors(BaseBlock* neighbors[8]) const
