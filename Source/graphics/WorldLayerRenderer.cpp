@@ -26,6 +26,7 @@
 #define DAGUERREOTYPE_LARGE 755
 #define GIANT_CLOCK         761
 #define LANDSCAPE           797
+#define MIXING_BARREL       811
 #define WINE_PRESS          863
 #define GECK_TUB            880
 #define GECK_COG_LARGE      886
@@ -301,6 +302,24 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
             auto sequence = Sequence::createWithTwoActions(moveDown, moveUp);
             sprite->runAction(RepeatForever::create(sequence));
             sprite->setTag(ACTION_SPRITE_TAG);
+        }
+
+        break;
+    }
+    // 0x1000AB3AB: Mixing barrel
+    case MIXING_BARREL:
+    {
+        if (auto metaBlock = _zone->getMetaBlockAt(x, y))
+        {
+            auto& metadata = metaBlock->getMetadata();
+
+            if (metadata.contains("c"))
+            {
+                auto frame  = config->getCurrentBiomeFrame("containers/barrel-porthole-full");
+                auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 3);
+                sprite->setColor(color_util::hexToColor(map_util::getString(metadata, "c")));
+                sprite->setOpacity(212);
+            }
         }
 
         break;
