@@ -152,6 +152,8 @@ protected:
     ax::StringMap<Sprite*> _sprites;         // Entity::sprites @ 0x100312940
     ax::Point _realPosition;                 // Entity::realPosition @ 0x100312958
     float _realRotation;                     // Entity::realRotation @ 0x100312990
+    ax::Color3B _changeColor;                // Entity::changeColor @ 0x100312908
+    bool _colorize;                          // Entity::shouldColorize @ 0x100312910
     bool _positioned;                        // Entity::hasBeenPositioned @ 0x100312900
     bool _alive;                             // Entity::alive @ 0x1003128F0
     bool _stealthy;                          // Entity::isStealthy @ 0x100312978

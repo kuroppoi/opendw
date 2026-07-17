@@ -11,6 +11,7 @@
 #include "physics/ChipmunkBody.h"
 #include "physics/Physical.h"
 #include "util/AxUtil.h"
+#include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "zone/WorldZone.h"
@@ -302,6 +303,13 @@ void Entity::update(float deltaTime)
         _emoteOffset = clampf(_emoteOffset - deltaTime, 0.0F, 999.0F);
     }
 
+    // 0x1000BD03D: Update change color
+    if (_colorize)
+    {
+        auto color = color_util::lerpColor(_realColor, _changeColor, deltaTime * 2.0F);
+        setColor(color);
+    }
+
     // NOTE: Originally done in EntityAnimatedHuman::step:
     if (_alive && _grounded)
     {
@@ -370,6 +378,13 @@ void Entity::change(const ValueMap& data)
     if (data.contains("n"))
     {
         setEntityName(map_util::getString(data, "n"));
+    }
+
+    // 0x1000BCCAB: Update color
+    if (data.contains("e*"))
+    {
+        _changeColor = color_util::hexToColor(map_util::getString(data, "e*"));
+        _colorize    = true;
     }
 
     // 0x1000BCCED: Update stealth
