@@ -17,6 +17,7 @@
 #include "physics/ChipmunkSpace.h"
 #include "physics/Physical.h"
 #include "util/AxUtil.h"
+#include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
@@ -500,13 +501,29 @@ void Player::update(float deltaTime)
         _physical->setVelocity(_physical->getVelocity() * scalar);
     }
 
+    // 0x10001EB07: Update respawn effect
+    auto respawnTime = 0.0;
+
+    if (_respawnStartedAt > 0.0)
+    {
+        respawnTime = (utils::gettime() - _respawnStartedAt) / 0.667;
+    }
+
+    auto opacity = (1.0 - respawnTime) * 200.0 + 55.0;
+    opacity      = _avatar->isStealthy() ? MIN(32, opacity) : opacity;
+    opacity      = math_util::lerp(_avatar->getOpacity(), opacity, deltaTime * 3.0F);
+    _avatar->setOpacity(opacity);
+    // NOTE: This interferes with change color property (e*)
+    auto color = color_util::lerpColor(Color3B::WHITE, color_util::hexToColor("FF7F00"), respawnTime);
+    color      = color_util::lerpColor(_avatar->getColor(), color, deltaTime * 3.0F);
+    _avatar->setColor(color);
+
+    // Update avatar position
     _entitySlow = clampf(_entitySlow - deltaTime, 0.0F, 1.0F);
     body->setAngle(0.0F);
     _avatar->update(deltaTime);
     _avatar->setRotation(math_util::lerp(_avatar->getRotation(), 0.0F, deltaTime * 2.3125F));
     _avatar->animate(animation);
-
-    // Update avatar position
     auto target    = _physical->getPosition() + Point::UNIT_Y * BLOCK_SIZE * 1.6F * 0.06F;
     Point position = _avatar->getPosition();
     auto distance  = math_util::getDistance(target.x, target.y, position.x, position.y);
