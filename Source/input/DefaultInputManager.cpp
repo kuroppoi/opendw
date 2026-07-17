@@ -71,6 +71,12 @@ void DefaultInputManager::enterGame()
     addEventListener(events::kCursorEntered, EVENT_CALLBACK_REF(bool*, onCursorEntered));
     addEventListener(events::kActiveHotbarItemChanged, EVENT_CALLBACK(Item*, onActiveHotbarItemChanged));
 
+    // Event might get fired before listener is added, so let's call the handler manually once.
+    if (auto item = _player->getActiveHotbarItem())
+    {
+        onActiveHotbarItemChanged(item->getItem());
+    }
+
     // Create keyboard listener
     auto keyboardListener           = EventListenerKeyboard::create();
     keyboardListener->onKeyPressed  = AX_CALLBACK_2(DefaultInputManager::onKeyPressed, this);
@@ -97,6 +103,7 @@ void DefaultInputManager::exitGame()
     _keysPressed.clear();
     _mouseButtons.clear();
     _cursorSprite->removeFromParent();
+    _placeSprite->removeFromParent();
     _miningIndicator->removeFromParent();
 
     // getRenderView() can return nullptr if the window has been closed already
@@ -269,12 +276,12 @@ void DefaultInputManager::checkInput(float deltaTime)
     if (activeHotbarItem && !cursorInGui)
     {
         auto item = activeHotbarItem->getItem();
-
+        
         if (item->isMiningTool() && (ctrlDown || _smartMining || _player->canDigAt(worldCursorPos)))
         {
             cursor = "dig";
         }
-        else if (item->isPlaceable())
+        else if (item->isPlaceable() || item->isConsumable())
         {
             cursor = "place";
         }
@@ -284,7 +291,7 @@ void DefaultInputManager::checkInput(float deltaTime)
     _gameGui->showInventoryTooltipForPoint(_cursorPosition);
 
     // Update place sprite & process mouse input
-    _placeSprite->setVisible(_placeSpriteVisible && !cursorInGui);
+    _placeSprite->setVisible(!cursorInGui && _cursorSprite->isVisible());
     InventoryItem* usingItem = nullptr;
     auto usingPoint = Point::ZERO;
 
@@ -294,13 +301,21 @@ void DefaultInputManager::checkInput(float deltaTime)
 
         if (_placeSprite->isVisible() && activeHotbarItem)
         {
-            auto item    = activeHotbarItem->getItem();
-            auto color   = _player->canPlaceItem(item, block) ? "64FF64" : "FF6464";
-            auto offsetX = MIN(_placeSprite->getContentSize().width, BLOCK_SIZE) * 0.5F;
-            auto offsetY = MIN(_placeSprite->getContentSize().height, BLOCK_SIZE) * 0.5F;
-            _placeSprite->setPosition(point.x - offsetX, point.y - offsetY);
-            _placeSprite->setColor(color_util::hexToColor(color));
-            _placeSprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
+            auto item = activeHotbarItem->getItem();
+
+            if (item->isPlaceable())
+            {
+                auto color   = _player->canPlaceItem(item, block) ? "64FF64" : "FF6464";
+                auto offsetX = MIN(_placeSprite->getContentSize().width, BLOCK_SIZE) * 0.5F;
+                auto offsetY = MIN(_placeSprite->getContentSize().height, BLOCK_SIZE) * 0.5F;
+                _placeSprite->setPosition(point.x - offsetX, point.y - offsetY);
+                _placeSprite->setColor(color_util::hexToColor(color));
+                _placeSprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
+            }
+            else if (item->isConsumable())
+            {
+                _placeSprite->setPosition(_cursorPosition);
+            }
         }
 
         if (useButtonDown)
@@ -316,9 +331,16 @@ void DefaultInputManager::checkInput(float deltaTime)
 
 void DefaultInputManager::onActiveHotbarItemChanged(Item* item)
 {
-    if (item && item->isPlaceable())
+    _placeSprite->removeFromParent();
+    
+    if (!item)
     {
-        // Determine frame to use
+        return;
+    }
+
+    // Determine frame to use based on item properties
+    if (item->isPlaceable())
+    {
         auto frame = item->getBackground();
 
         if (!frame)
@@ -336,14 +358,14 @@ void DefaultInputManager::onActiveHotbarItemChanged(Item* item)
 
                 if (!frame)
                 {
-                    _placeSpriteVisible = false;
                     return;
                 }
             }
         }
 
-        _placeSpriteVisible = true;
         _placeSprite->setSpriteFrame(frame);
+        _placeSprite->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
+        _placeSprite->setScale(1.0F);
 
         if (item->isTileable())
         {
@@ -352,16 +374,20 @@ void DefaultInputManager::onActiveHotbarItemChanged(Item* item)
             rect.size.height = MIN(rect.size.height, BLOCK_SIZE);
             _placeSprite->setTextureRect(rect);
         }
-    }
-    else
-    {
-        _placeSpriteVisible = false;
-    }
 
-    // Add to world renderer's gui node if parentless
-    if (!_placeSprite->getParent())
-    {
         WorldRenderer::getMain()->getGuiNode()->addChild(_placeSprite, 10);
+    }
+    else if (item->isConsumable())
+    {
+        if (auto frame = item->getInventoryFrame())
+        {
+            _placeSprite->setSpriteFrame(frame);
+            _placeSprite->setAnchorPoint(Point::ANCHOR_MIDDLE);
+            _placeSprite->setScale(0.8F);
+            _placeSprite->setColor(Color3B::WHITE);
+            _placeSprite->setFlippedX(false);
+            _gameGui->addChild(_placeSprite, -999);
+        }
     }
 }
 
@@ -382,7 +408,7 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
 
         return;
     }
-
+    
     // Ignore key input if teleport window is visible
     if (keyCode != KeyCode::KEY_ESCAPE && _gameGui->isTeleportActive())
     {

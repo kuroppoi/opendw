@@ -120,6 +120,9 @@ public:
     /* FUNC: Player::tryToPlaceInventoryItem:atPoint: @ 0x100025346 */
     bool tryToPlaceInventoryItem(InventoryItem* invItem, const ax::Point& point);
 
+    /* FUNC: Player::useConsumable:details: @ 0x100026225 */
+    bool useConsumable(InventoryItem* invItem, const ax::Value& details = ax::Value::Null);
+
     /* FUNC: Player::canDigAt: @ 0x100027608 */
     bool canDigAt(const ax::Point& point) const;
 
@@ -437,6 +440,7 @@ private:
     int _miningAttempts;                                   // Player::miningAttempts @ 0x1003108F8
     double _nextAllowedPlaceTime;                          // Player::nextAllowedPlaceTime @ 0x100310910
     BaseBlock* _lastPlacedBlock;                           // Player::lastPlacedAt @ 0x100310918
+    double _canConsumeAt;                                  // Player::canConsumeAt @ 0x100310930
     bool _admin;                                           // Player::admin @ 0x100310958
     bool _clip;                                            // Player::clip @ 0x100310660
     bool _stomping;                                        // Player::isStomping @ 0x100310770

@@ -29,6 +29,7 @@
 #define MOVE_MESSAGE_INTERVAL  0.2
 #define JUMP_COOLDOWN          0.3
 #define STEAM_RESTORE_COOLDOWN 0.5
+#define CONSUMABLE_COOLDOWN    1.0
 #define BASE_HEALTH            5.0F
 #define BASE_MAX_STEAM         20.0F
 #define MAX_SKILL_LEVEL        15
@@ -812,6 +813,11 @@ bool Player::useInventoryItem(InventoryItem* invItem, const Point& point)
                 result = true;
                 _avatar->animateTool(point);
             }
+            else if (item->isConsumable())
+            {
+                result    = useConsumable(invItem);
+                usingItem = nullptr;
+            }
             else if (item->getAction() == Item::Action::SHIELD)
             {
                 // TODO: implement shields
@@ -1078,6 +1084,65 @@ bool Player::tryToPlaceInventoryItem(InventoryItem* invItem, const Point& point)
     }
 
     return false;
+}
+
+bool Player::useConsumable(InventoryItem* invItem, const Value& details)
+{
+    // Check if consumable can be used
+    if (isDead() || invItem->getQuantity() < 1 || utils::gettime() < _canConsumeAt)
+    {
+        return false;
+    }
+
+    auto item = invItem->getItem();
+
+    // Handle based on action type
+    switch (item->getAction())
+    {
+    case Item::Action::HEAL:
+        if (_health >= getMaxHealth())
+        {
+            return false;
+        }
+
+        setHealth(_health + item->getPower());
+        break;
+    case Item::Action::REFILL:
+        if (_steam >= getMaxSteam())
+        {
+            return false;
+        }
+
+        setSteam(_steam + item->getPower());
+        _steamCooldownAt = utils::gettime();
+        // TODO: emit particles
+        break;
+    case Item::Action::TELEPORT:
+        if (details.isNull())
+        {
+            // TODO: show teleport dialog
+            return false;
+        }
+        break;
+    case Item::Action::STEALTH:
+    case Item::Action::SKILL_RESET:
+    case Item::Action::NAME_CHANGE:
+        break;  // Handle normally
+    default:
+        return false;  // Invalid consumable
+    }
+
+    // Play random sound
+    if (item->hasSound())
+    {
+        AudioManager::getInstance()->playSfx(item->getRandomSound());
+    }
+
+    invItem->setQuantity(invItem->getQuantity() - 1);
+    emote(std::format("-1 {}", item->getTitle()), Color3B::WHITE, true, true);
+    _game->sendMessage(MessageIdent::INVENTORY_USE, 0, item->getCode(), 1, details);
+    _canConsumeAt = utils::gettime() + CONSUMABLE_COOLDOWN;
+    return true;
 }
 
 bool Player::canDigAt(const Point& point) const

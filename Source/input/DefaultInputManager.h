@@ -69,7 +69,6 @@ private:
     ax::Sprite* _placeSprite;
     ax::Sprite* _miningIndicator;  // From iOS
     bool _smartMining;
-    bool _placeSpriteVisible;
 };
 
 }  // namespace opendw
