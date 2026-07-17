@@ -129,6 +129,8 @@ bool Entity::initWithConfig(EntityConfig* config, const std::string& name, const
     auto scaleRange = _config->getScaleRange();
     auto scale      = random(scaleBase - scaleRange * 0.5F, scaleBase + scaleRange * 0.5F);
     setScale(scale);
+    setCascadeOpacityEnabled(true);
+    setCascadeColorEnabled(true);
     buildGraphics();
 
     if (!name.empty())
@@ -370,10 +372,18 @@ void Entity::change(const ValueMap& data)
         setEntityName(map_util::getString(data, "n"));
     }
 
+    // 0x1000BCCED: Update stealth
+    if (data.contains("xs"))
+    {
+        _stealthy = map_util::getBool(data, "xs");
+        setOpacity(_stealthy ? 32 : 255);
+        auto sfx = _stealthy ? "stealth-on" : "stealth-off";
+        AudioManager::getInstance()->playSfx(sfx, _position);
+    }
+
     // TODO: name icon
     // TODO: health
     // TODO: colorization
-    // TODO: stealth
     // TODO: shield
 }
 

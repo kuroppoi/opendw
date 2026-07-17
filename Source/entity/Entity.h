@@ -116,6 +116,9 @@ public:
     /* FUNC: Entity::alive @ 0x1000C1114 */
     bool isAlive() const { return _alive; }
 
+    /* FUNC: Entity::isStealthy @ 0x1000C1156 */
+    bool isStealthy() const { return _stealthy; }
+
     /* FUNC: Entity::setIsPlayerAvatar: @ 0x1000C1104 */
     void setIsPlayerAvatar(bool value) { _playerAvatar = value; }
 
@@ -151,6 +154,7 @@ protected:
     float _realRotation;                     // Entity::realRotation @ 0x100312990
     bool _positioned;                        // Entity::hasBeenPositioned @ 0x100312900
     bool _alive;                             // Entity::alive @ 0x1003128F0
+    bool _stealthy;                          // Entity::isStealthy @ 0x100312978
     bool _playerAvatar;                      // Entity::isPlayerAvatar @ 0x100312930
     bool _grounded;                          // Entity::grounded @ 0x100312948
     double _lastGroundedAt;                  // Entity::lastGroundedAt @ 0x100312950
