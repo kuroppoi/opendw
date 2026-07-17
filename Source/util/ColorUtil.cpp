@@ -1,6 +1,6 @@
 #include "ColorUtil.h"
 
-#include "math/MathUtil.h"
+#include "util/MathUtil.h"
 
 USING_NS_AX;
 
@@ -9,18 +9,18 @@ namespace opendw::color_util
 
 Color3B lerpColor(const Color3B& from, const Color3B& to, float alpha)
 {
-    auto r = MathUtil::lerp(from.r, to.r, alpha);
-    auto g = MathUtil::lerp(from.g, to.g, alpha);
-    auto b = MathUtil::lerp(from.b, to.b, alpha);
+    auto r = math_util::lerp(from.r, to.r, alpha);
+    auto g = math_util::lerp(from.g, to.g, alpha);
+    auto b = math_util::lerp(from.b, to.b, alpha);
     return Color3B(r, g, b);
 }
 
 Color3B saturate(const Color3B& color, float alpha)
 {
     auto average = static_cast<float>(color.r + color.g + color.b) / 3.0F;
-    auto r       = MathUtil::lerp(color.r, average, alpha);
-    auto g       = MathUtil::lerp(color.g, average, alpha);
-    auto b       = MathUtil::lerp(color.b, average, alpha);
+    auto r       = math_util::lerp(color.r, average, alpha);
+    auto g       = math_util::lerp(color.g, average, alpha);
+    auto b       = math_util::lerp(color.b, average, alpha);
     return Color3B(r, g, b);
 }
 
