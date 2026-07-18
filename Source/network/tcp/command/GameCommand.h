@@ -30,6 +30,7 @@ public:
         EFFECT           = 30,
         NOTIFICATION     = 33,
         SKILL            = 35,
+        DIALOG           = 45,
         KICK             = 255
     };
 

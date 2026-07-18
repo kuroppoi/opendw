@@ -5,6 +5,7 @@
 #include "network/tcp/command/GameCommandBlockMeta.h"
 #include "network/tcp/command/GameCommandBlocks.h"
 #include "network/tcp/command/GameCommandConfigure.h"
+#include "network/tcp/command/GameCommandDialog.h"
 #include "network/tcp/command/GameCommandEffect.h"
 #include "network/tcp/command/GameCommandEntityChange.h"
 #include "network/tcp/command/GameCommandEntityPosition.h"
@@ -61,6 +62,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandNotification();
     case Ident::SKILL:
         return new GameCommandSkill();
+    case Ident::DIALOG:
+        return new GameCommandDialog();
     case Ident::KICK:
         return new GameCommandKick();
     default:
