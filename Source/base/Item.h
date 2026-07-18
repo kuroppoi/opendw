@@ -110,7 +110,8 @@ public:
         MELEE,
         SKILL_RESET,
         REVIVE,
-        NAME_CHANGE
+        NAME_CHANGE,
+        UNKNOWN
     };
 
     enum class Fieldable

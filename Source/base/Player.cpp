@@ -1127,6 +1127,7 @@ bool Player::useConsumable(InventoryItem* invItem, const Value& details)
     case Item::Action::STEALTH:
     case Item::Action::SKILL_RESET:
     case Item::Action::NAME_CHANGE:
+    case Item::Action::UNKNOWN:
         break;  // Handle normally
     default:
         return false;  // Invalid consumable

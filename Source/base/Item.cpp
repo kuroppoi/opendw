@@ -660,7 +660,9 @@ UseType Item::getUseTypeForName(const std::string& name)
 
 Item::Action Item::getActionForName(const std::string& name)
 {
-    if (name == "mine")
+    if (name.empty())
+        return Action::NONE;
+    else if (name == "mine")
         return Action::MINE;
     else if (name == "dig")
         return Action::DIG;
@@ -689,7 +691,7 @@ Item::Action Item::getActionForName(const std::string& name)
     else if (name == "name change")
         return Action::NAME_CHANGE;
 
-    return Action::NONE;
+    return Action::UNKNOWN;
 }
 
 }  // namespace opendw
