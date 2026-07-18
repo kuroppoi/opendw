@@ -382,6 +382,7 @@ void DefaultInputManager::onActiveHotbarItemChanged(Item* item)
         if (auto frame = item->getInventoryFrame())
         {
             _placeSprite->setSpriteFrame(frame);
+            _placeSprite->setPosition(_cursorPosition);
             _placeSprite->setAnchorPoint(Point::ANCHOR_MIDDLE);
             _placeSprite->setScale(0.8F);
             _placeSprite->setColor(Color3B::WHITE);
