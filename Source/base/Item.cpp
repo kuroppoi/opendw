@@ -423,7 +423,7 @@ bool Item::isGun() const
 
 bool Item::isEquippableAccessory() const
 {
-    return _accessory && (isUsable() || _action != Action::NONE);
+    return _accessory && (isUsable() || _action != Action::NONE || _inventoryType == "accessory");
 }
 
 bool Item::isContinuousFor(Item* item) const
