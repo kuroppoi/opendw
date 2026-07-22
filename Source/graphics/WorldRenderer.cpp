@@ -605,6 +605,13 @@ void WorldRenderer::processEffects()
                     sprite->setTag(tag);
                 }
 
+                // Apply glow effect
+                if (item->getGlow() > 0.0F)
+                {
+                    auto sprite = block->getTopSpriteForLayer(layer);
+                    sprite->setOpacity(random(0xF0, 0xFF));
+                }
+
                 // Cycle continuity animation
                 auto& continuityAnimation = item->getSpriteContinuityAnimation();
 
