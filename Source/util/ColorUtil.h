@@ -12,6 +12,11 @@ ax::Color3B saturate(const ax::Color3B& color, float alpha);
 ax::Color3B hexToColor(const std::string& hex);
 ax::Color4B hexToColor4(const std::string& hex);
 
+ax::Color3B rgbToColor(int rgb);
+ax::Color4B rgbaToColor(int rgba);
+
+ax::Color4B randomColorRanged(const ax::Color4B& base, const ax::Color4B& range);
+
 }  // namespace opendw::color_util
 
 #endif  // __COLOR_UTIL_H__

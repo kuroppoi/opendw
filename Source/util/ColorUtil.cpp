@@ -55,4 +55,30 @@ Color4B hexToColor4(const std::string& hex)
     return Color4B(r, g, b, a);
 }
 
+Color3B rgbToColor(int rgb)
+{
+    auto r = static_cast<uint8_t>((rgb >> 16) & 0xFF);
+    auto g = static_cast<uint8_t>((rgb >> 8) & 0xFF);
+    auto b = static_cast<uint8_t>(rgb & 0xFF);
+    return Color3B(r, g, b);
+}
+
+Color4B rgbaToColor(int rgba)
+{
+    auto r = static_cast<uint8_t>((rgba >> 24) & 0xFF);
+    auto g = static_cast<uint8_t>((rgba >> 16) & 0xFF);
+    auto b = static_cast<uint8_t>((rgba >> 8) & 0xFF);
+    auto a = static_cast<uint8_t>(rgba & 0xFF);
+    return Color4B(r, g, b, a);
+}
+
+Color4B randomColorRanged(const Color4B& base, const Color4B& range)
+{
+    auto r = clampf(base.r + range.r * rand_minus1_1() * 0.5F, 0.0F, 255.0F);
+    auto g = clampf(base.g + range.g * rand_minus1_1() * 0.5F, 0.0F, 255.0F);
+    auto b = clampf(base.b + range.b * rand_minus1_1() * 0.5F, 0.0F, 255.0F);
+    auto a = clampf(base.a + range.a * rand_minus1_1() * 0.5F, 0.0F, 255.0F);
+    return Color4B(r, g, b, a);
+}
+
 }  // namespace opendw::color_util

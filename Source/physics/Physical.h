@@ -18,7 +18,8 @@ enum class CollisionType : cpCollisionType
 {
     NONE,
     ENTITY,
-    PLAYER
+    PLAYER,
+    DEBRIS
 };
 
 /*
@@ -49,6 +50,10 @@ public:
 
     /* FUNC: Physical::addToSpace @ 0x10007B949 */
     void addToSpace();
+    void removeFromSpace();
+
+    /* FUNC: Physical::clear @ 0x10007BC41 */
+    void clear();
 
     /* FUNC: Physical::setLayer: @ 0x10007A8AA */
     void setLayer(uint32_t layer);

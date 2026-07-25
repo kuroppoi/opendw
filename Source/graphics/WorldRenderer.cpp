@@ -1,5 +1,6 @@
 #include "WorldRenderer.h"
 
+#include "base/Emitter.h"
 #include "base/GameConfig.h"
 #include "base/Item.h"
 #include "base/Player.h"
@@ -9,6 +10,7 @@
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/backend/MaskedSpriteBatchNode.h"
 #include "graphics/CavernRenderer.h"
+#include "graphics/Debris.h"
 #include "graphics/Lightmapper.h"
 #include "graphics/SkyRenderer.h"
 #include "graphics/VectorLayer.h"
@@ -19,6 +21,7 @@
 #include "physics/Physical.h"
 #include "physics/PhysicsDebugNode.h"
 #include "util/AxUtil.h"
+#include "util/ColorUtil.h"
 #include "util/MathUtil.h"
 #include "zone/BaseBlock.h"
 #include "zone/WorldZone.h"
@@ -29,7 +32,11 @@
 #define MAX_BLOCK_RENDER_FRAME 0.1
 #define FX_PROCESS_INTERVAL    0.2
 #define LIQUID_CYCLE_INTERVAL  0.333
+#define BLOCK_DEBRIS_INTERVAL  0.0789
 #define GLOW_SPRITE_ITERATIONS 3
+#define GECK_TUB               880
+#define COMPOSTER_CHAMBER      894
+#define DEBRIS_POOL_SIZE       2000
 
 USING_NS_AX;
 
@@ -39,6 +46,17 @@ namespace opendw
 WorldRenderer::~WorldRenderer()
 {
     AX_SAFE_RELEASE(_miningCracksAnimation);
+
+    // Free debris pool
+    if (_debrisPool)
+    {
+        for (ssize_t i = 0; i < DEBRIS_POOL_SIZE; i++)
+        {
+            AX_SAFE_RELEASE(_debrisPool[i]);
+        }
+
+        delete[] _debrisPool;
+    }
 }
 
 WorldRenderer* WorldRenderer::createWithZone(WorldZone* zone)
@@ -236,6 +254,20 @@ void WorldRenderer::ready()
     _cavern->rebuild();
     _initialArrange = true;
     updateViewport(0.0F);
+
+    // 0x10007E86A: Preallocate debris pool
+    if (!_debrisPool)
+    {
+        _debrisPool = new Debris*[DEBRIS_POOL_SIZE];
+
+        for (ssize_t i = 0; i < DEBRIS_POOL_SIZE; i++)
+        {
+            auto debris = Debris::createWithZone(_zone);
+            debris->retain();
+            debris->setPoolIndex(i);
+            _debrisPool[i] = debris;
+        }
+    }
 }
 
 void WorldRenderer::clear()
@@ -258,6 +290,12 @@ void WorldRenderer::clear()
         {
             child->removeAllChildren();
         }
+    }
+
+    // Clear remaining debris
+    while (_freeDebrisIndex != 0)
+    {
+        _debrisPool[_freeDebrisIndex - 1]->removeFromParent();
     }
 }
 
@@ -282,6 +320,11 @@ void WorldRenderer::update(float deltaTime)
     {
         for (auto& child : _liquidBlocksNode->getBatchNode()->getChildren())
         {
+            if (!child->isVisible())
+            {
+                continue;
+            }
+
             auto sprite = static_cast<MaskedSprite*>(child);
             auto tag    = sprite->getTag();
             auto liquid = tag & 0xFF;
@@ -315,6 +358,7 @@ void WorldRenderer::update(float deltaTime)
     }
 
     // 0x10007EFE8: Update game objects
+    // TODO: there's a lot more going on here...
     for (auto body : _zone->getSpace()->getBodies())
     {
         if (body->getType() == CP_BODY_TYPE_STATIC)
@@ -329,6 +373,12 @@ void WorldRenderer::update(float deltaTime)
             auto rect         = math_util::growRect(_visibleRect, {size, size});
             auto onscreen     = rect.containsPoint(body->getPosition());
             entity->updateOnscreen(deltaTime, onscreen);
+        }
+        else
+        {
+            auto node = static_cast<Node*>(body->getUserData());
+            node->setPosition(body->getPosition());
+            node->setRotation(MATH_RAD_TO_DEG(body->getAngle()));
         }
     }
 
@@ -544,15 +594,29 @@ void WorldRenderer::renderBlockSprites()
 void WorldRenderer::processEffects()
 {
     // TODO: use captured screen blocks which is set by LightMapper for some mysterious reason
-    for (auto x = _blockRect.getMinX(); x < _blockRect.getMaxX(); x++)
+    for (auto y = _blockRect.getMinY(); y < _blockRect.getMaxY(); y++)
     {
-        for (auto y = _blockRect.getMinY(); y < _blockRect.getMaxY(); y++)
+        for (auto x = _blockRect.getMinX(); x < _blockRect.getMaxX(); x++)
         {
             auto block = _zone->getBlockAt((uint16_t)x, (uint16_t)y);
 
             if (!block)
             {
                 continue;
+            }
+
+            // 0x1000811EF: Emit block particles
+            auto frontItem = block->getFrontItem();
+            auto emitter   = frontItem->getEmitter();
+
+            if (!emitter)
+            {
+                emitter = block->getLiquidItem()->getEmitter();
+            }
+
+            if (emitter)
+            {
+                emitParticle(emitter, block);
             }
 
             // Base, back, front
@@ -587,7 +651,7 @@ void WorldRenderer::processEffects()
                     break;
                 case BlockLayer::FRONT:
                     renderer = _frontBlocksNode;
-                    item     = block->getFrontItem();
+                    item     = frontItem;
                     mod      = block->getFrontMod();
                     break;
                 }
@@ -630,8 +694,48 @@ void WorldRenderer::processEffects()
                     sprite->setOpacity(item->getSpriteContinuityAnimationOpacity());
                     sprite->setTag(tag);
                 }
+            }
 
-                // TODO: emitters
+            // 0x100081582: Special emitters
+            if (frontItem->getSpecialPlacement() != SpecialPlacement::NONE)
+            {
+                switch (frontItem->getCode())
+                {
+                // Purifier
+                case GECK_TUB:
+                {
+                    if (block->getFrontMod() > 0)
+                    {
+                        if (auto emitter = GameConfig::getMain()->getEmitterForName("sparkle up"))
+                        {
+                            auto position = block->getWorldPosition();
+                            emitParticle(emitter, position + Vec2(BLOCK_SIZE * 0.5F, BLOCK_SIZE * 2.0F));
+                            emitParticle(emitter, position + Vec2(BLOCK_SIZE * 1.5F, BLOCK_SIZE * 2.0F));
+                        }
+                    }
+                    break;
+                }
+                // Composter
+                case COMPOSTER_CHAMBER:
+                {
+                    if (block->getFrontMod() > 0)
+                    {
+                        if (auto emitter = GameConfig::getMain()->getEmitterForName("shadow steam"))
+                        {
+                            auto position = block->getWorldPosition();
+                            position.y += BLOCK_SIZE * 2.5F;
+
+                            if (auto particle = emitParticle(emitter, position))
+                            {
+                                particle->getPhysical()->setVelocity(Vec2::UNIT_Y * BLOCK_SIZE);
+                            }
+                        }
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
             }
         }
     }
@@ -814,8 +918,38 @@ void WorldRenderer::generateEffect(const std::string& name, ssize_t quantity, co
 {
     auto playerPos = Player::getMain()->getPosition();
     auto distance  = math_util::getDistance(position.x, position.y, playerPos.x, playerPos.y) / BLOCK_SIZE;
+    auto visible   = _blockRect.containsPoint(_zone->getBlockPointAtNodePoint(position));
+    auto config    = GameConfig::getMain();
 
-    // TODO: emitters
+    // 0x1000835B4: Handle emitter
+    if (auto emitter = config->getEmitterForName(name))
+    {
+        if (visible)
+        {
+            for (ssize_t i = 0; i < quantity; i++)
+            {
+                emitParticle(emitter, position);
+            }
+        }
+        else  // Play sound effect (if it has one) even if not on screen
+        {
+            auto& sound = emitter->getSound();
+
+            if (!sound.empty())
+            {
+                if (emitter->shouldLocalizeSound())
+                {
+                    AudioManager::getInstance()->playSfx(sound, position);
+                }
+                else
+                {
+                    AudioManager::getInstance()->playSfx(sound);
+                }
+            }
+        }
+
+        return;
+    }
 
     // 0x100083625: Handle earthquake
     if (name == "earthquake")
@@ -827,101 +961,131 @@ void WorldRenderer::generateEffect(const std::string& name, ssize_t quantity, co
      
     // TODO: levelup
 
-    // 0x1000837C3: Special bomb effect handling
+    // 0x1000837C3: Handle bomb effect
     if (name.starts_with("bomb") && distance < 100.0F)
     {
-        auto sound       = ""s;
-        auto animation   = ""s;
-        auto frameCount  = 0;
-        auto screenShake = 0.0F;
+        struct Bomb
+        {
+            std::string sound;
+            std::string animation;
+            std::string emitter;
+            ssize_t frameCount;
+            float screenShake;
+            float emission;
+        } bomb{};
 
         // 0x100083804: Determine effect properties based on explosion type
         if (name.ends_with("stomp"))
         {
-            sound       = "ExplosionPip";
-            frameCount  = 6;
-            screenShake = clampf(quantity * 0.2F + 0.4F, 0.0F, 1.0F);
+            bomb = {"ExplosionPip", "", "explosion cloud small", 6, clampf(quantity * 0.2F + 0.4F, 0.0F, 1.0F), 0.15F};
         }
         else if (name.ends_with("fire"))
         {
-            sound       = "ExplosionIncendiary";
-            animation   = "boom-incendiary";
-            frameCount  = 6;
-            screenShake = 0.7F;
+            bomb = {"ExplosionIncendiary", "boom-incendiary", "explosion cloud small", 6, 0.7F, 0.65F};
         }
         else if (name.ends_with("acid"))
         {
-            animation   = "boom-acid";
-            frameCount  = 5;
-            screenShake = 0.7F;
+            bomb = {"ExplosionIncendiary", "boom-acid", "explosion cloud steam", 5, 0.7F, 0.25F};
         }
         else if (name.ends_with("frost"))
         {
-            sound       = "ExplosionPip";
-            animation   = "boom-frost";
-            frameCount  = 6;
-            screenShake = 0.7F;
+            bomb = {"ExplosionPip", "boom-frost", "explosion cloud steam", 6, 0.7F, 0.3F};
         }
         else if (name.ends_with("electric"))
         {
-            sound       = "electrical_burst_01";
-            animation   = "boom-electric";
-            frameCount  = 6;
-            screenShake = 0.7F;
+            bomb = {"electrical_burst_01", "boom-electric", "explosion cloud small", 6, 0.7F, 0.3F};
         }
         else if (name.ends_with("teleport"))
         {
-            sound       = "electrical_fuse_burst_08";
-            animation   = "boom-teleport";
-            frameCount  = 7;
-            screenShake = 0.45F;
+            bomb = {"electrical_fuse_burst_08", "boom-teleport", "explosion cloud small", 7, 0.45F, 0.0F};
         }
-        else  // Default
+        else
         {
-            animation   = "boom";
-            frameCount  = 7;
-            screenShake = 1.0F;
+            bomb = {"ExplosionIncendiary", "boom", "explosion cloud small", 7, 1.0F, 1.0F};
         }
 
-        // TODO: emitter
-
-        // 0x100083C5B: Create explosion animation
-        if (!animation.empty())
+        if (visible)
         {
-            auto sprite = Sprite::createWithSpriteFrameName(std::format("explosions/{}-1", animation));
-            sprite->setScale(random(quantity * 0.4F, quantity * 0.5F));
-            Vector<SpriteFrame*> frames;
-            frames.reserve(frameCount);
-
-            for (auto i = 0; i < frameCount; i++)
+            // 0x10008399D: Emit explosion particles
+            if (bomb.emission > 0.0F)
             {
-                auto frame = SpriteFrameCache::getInstance()->getSpriteFrameByName(
-                    std::format("explosions/{}-{}", animation, i + 1));
-
-                if (frame)
+                if (auto emitter = config->getEmitterForName(bomb.emitter))
                 {
-                    frames.pushBack(frame);
+                    auto cloudCount = (int)random(quantity * 2.0F, quantity * 3.5F) * bomb.emission;
+
+                    if (cloudCount > 0.0F)
+                    {
+                        auto spread = quantity * bomb.emission / 3.0F;
+
+                        for (auto i = 0; i < cloudCount; i++)
+                        {
+                            if (auto particle = emitParticle(emitter, position))
+                            {
+                                auto physical = particle->getPhysical();
+                                physical->setPosition(position.lerp(physical->getPosition(), spread));
+                                particle->setScale(particle->getScale() * math_util::lerp(0.5F, 1.0F, spread));
+                            }
+                        }
+                    }
                 }
             }
 
-            auto animate  = Animate::create(Animation::createWithSpriteFrames(frames, 0.08F));
-            auto scaleBy  = ScaleBy::create(0.3F, quantity * 0.15F);
-            auto spawn    = Spawn::createWithTwoActions(animate, scaleBy);
-            auto callFunc = CallFuncN::create(&Node::removeFromParent);
-            auto sequence = Sequence::createWithTwoActions(spawn, callFunc);
-            sprite->runAction(sequence);
-            sprite->setPosition(position);
-            sprite->setRotation(random(0.0F, 360.0F));
-            _effectsNode->addChild(sprite);
-            auto flash = math_util::lerp(1.0F, 0.0F, distance / 20.0F);
-            _lightmapper->flash(flash);
+            if (bomb.emission > 0.25F)
+            {
+                if (auto emitter = config->getEmitterForName("explosion cloud large"))
+                {
+                    auto cloudCount = (int)random(quantity * 0.3F, quantity * 0.6F) * bomb.emission;
+
+                    if (cloudCount > 0.0F)
+                    {
+                        for (auto i = 0; i < cloudCount; i++)
+                        {
+                            emitParticle(emitter, position);
+                        }
+                    }
+                }
+            }
+
+            // 0x100083C5B: Create explosion animation
+            if (!bomb.animation.empty())
+            {
+                auto sprite = Sprite::createWithSpriteFrameName(std::format("explosions/{}-1", bomb.animation));
+                sprite->setScale(random(quantity * 0.4F, quantity * 0.5F));
+                Vector<SpriteFrame*> frames;
+                frames.reserve(bomb.frameCount);
+
+                for (auto i = 0; i < bomb.frameCount; i++)
+                {
+                    auto frame = SpriteFrameCache::getInstance()->getSpriteFrameByName(
+                        std::format("explosions/{}-{}", bomb.animation, i + 1));
+
+                    if (frame)
+                    {
+                        frames.pushBack(frame);
+                    }
+                }
+
+                auto animate  = Animate::create(Animation::createWithSpriteFrames(frames, 0.08F));
+                auto scaleBy  = ScaleBy::create(0.3F, quantity * 0.15F);
+                auto spawn    = Spawn::createWithTwoActions(animate, scaleBy);
+                auto callFunc = CallFuncN::create(&Node::removeFromParent);
+                auto sequence = Sequence::createWithTwoActions(spawn, callFunc);
+                sprite->runAction(sequence);
+                sprite->setPosition(position);
+                sprite->setRotation(random(0.0F, 360.0F));
+                _effectsNode->addChild(sprite);
+                auto flash = math_util::lerp(1.0F, 0.0F, distance / 20.0F);
+                _lightmapper->flash(flash);
+            }
         }
 
         // 0x100083EF8: Update screen shake value
-        screenShake *= math_util::lerp(quantity * 0.2F, 0.0F, distance / 20.0F);
-        _explosion = MAX(_explosion, screenShake);
+        auto shake = bomb.screenShake * math_util::lerp(quantity * 0.2F, 0.0F, distance / 20.0F);
+        _explosion = MAX(_explosion, shake);
 
         // 0x100083F51: Automatically determine sound to use based on quantity and distance
+        std::string sound = bomb.sound;  // Copy
+
         if (sound.empty())
         {
             sound = distance >= 30.0F ? "ExplosionDistant" : quantity >= 6 ? "ExplosionPop" : "ExplosionPip";
@@ -943,6 +1107,148 @@ Action* WorldRenderer::generateMiningCracks(BaseBlock* block, BlockLayer layer, 
     _effectsNode->addChild(sprite);
     sprite->runAction(sequence);
     return sequence;
+}
+
+void WorldRenderer::generateMiningDebris(BaseBlock* block, BlockLayer layer, bool ineffectual)
+{
+    if (block && utils::gettime() > _nextDebrisAt)
+    {
+        _nextDebrisAt = utils::gettime() + BLOCK_DEBRIS_INTERVAL;
+        generateBlockDebris(block, layer, ineffectual, random(2, 4));
+    }
+}
+
+void WorldRenderer::generateBlockDebris(BaseBlock* block, BlockLayer layer, bool ineffectual, ssize_t count)
+{
+    if (_freeDebrisIndex >= DEBRIS_POOL_SIZE)
+    {
+        return;  // Debris pool empty, skip
+    }
+
+    if (auto sprite = block->getMainSpriteForLayer(layer))
+    {
+        // This check serves as a replacement for the layerRendererForItem function
+        // TODO: there should be a less vague way to determine if a block should emit mining debris
+        auto renderer = static_cast<WorldLayerRenderer*>(sprite->getUserData());
+        auto texture  = renderer->getBatchNode()->getTexture();
+
+        if (texture != _baseBlocksNode->getBatchNode()->getTexture() &&
+            texture != _backBlocksNode->getBatchNode()->getTexture() &&
+            texture != _fronterBlocksNode->getBatchNode()->getTexture() &&
+            texture != _fronterBiomeBlocksNode->getBatchNode()->getTexture())
+        {
+            return;
+        }
+
+        // Determine position & velocity
+        auto playerPos = Player::getMain()->getPosition();
+        auto blockPos  = block->getWorldPosition();
+        auto direction = (blockPos - playerPos).getNormalized();
+        auto velocity  = direction * random(1000.0F, 2500.0F);
+        velocity       = velocity * random(-0.1F, 0.1F) + Vec2(velocity.y, -velocity.x) * random(-0.1F, 0.1F);
+        auto offsetX   = rand_minus1_1() * 0.5F * BLOCK_SIZE;
+        auto offsetY   = rand_minus1_1() * 0.5F * BLOCK_SIZE;
+        auto position  = blockPos + Vec2(offsetX, offsetY);
+
+        // Spawn particles
+        for (ssize_t i = 0; i < count; i++)
+        {
+            if (_freeDebrisIndex >= DEBRIS_POOL_SIZE)
+            {
+                break;  // Debris pool empty, stop
+            }
+
+            auto debris = _debrisPool[_freeDebrisIndex++];
+            auto angle  = MATH_DEG_TO_RAD(random(0.0F, 360.0F));
+
+            if (!ineffectual)
+            {
+                debris->spawnForSprite(sprite, position, velocity);
+                debris->getPhysical()->getBody()->setAngle(angle);
+            }
+            else
+            {
+                if (auto emitter = GameConfig::getMain()->getEmitterForName("steam"))
+                {
+                    debris->spawnParticle(emitter, position);
+                    auto body = debris->getPhysical()->getBody();
+                    body->setVelocity(velocity * 0.5F);
+                    body->setAngle(angle);
+                    debris->setColor(color_util::rgbToColor(0x5A3C1E));
+                    debris->setScale(debris->getScale() * 0.5F);
+                    _nextDebrisAt += 0.05F;
+                }
+            }
+        }
+    }
+}
+
+Debris* WorldRenderer::emitParticle(Emitter* emitter, BaseBlock* block)
+{
+    auto point = block->getWorldPosition();
+    point.x += (rand_0_1() - 0.5F) * BLOCK_SIZE;
+    point.y += (rand_0_1() - 0.5F) * BLOCK_SIZE;
+    return emitParticle(emitter, point);
+}
+
+Debris* WorldRenderer::emitParticle(Emitter* emitter, const Point& point)
+{
+    return emitParticle(emitter, point, emitter->getFrequency());
+}
+
+Debris* WorldRenderer::emitParticle(Emitter* emitter, const Point& point, float frequency)
+{
+    if (rand_0_1() >= frequency)
+    {
+        return nullptr;
+    }
+
+    Debris* debris = nullptr;
+    AX_ASSERT(_freeDebrisIndex >= 0);
+
+    if (_freeDebrisIndex < DEBRIS_POOL_SIZE)
+    {
+        debris      = _debrisPool[_freeDebrisIndex++];
+        Vec2 offset = emitter->getPositionRange();  // Copy
+        offset.x *= rand_minus1_1() * 0.5F * BLOCK_SIZE;
+        offset.y *= rand_minus1_1() * 0.5F * BLOCK_SIZE;
+        debris->spawnParticle(emitter, point + offset);
+    }
+
+    auto& sound = emitter->getSound();
+
+    if (!sound.empty())
+    {
+        if (emitter->shouldLocalizeSound())
+        {
+            AudioManager::getInstance()->playSfx(sound, point);
+        }
+        else
+        {
+            AudioManager::getInstance()->playSfx(sound);
+        }
+    }
+
+    return debris;
+}
+
+void WorldRenderer::recycleDebris(Debris* debris)
+{
+    if (debris->isActive())
+    {
+        AX_ASSERT(_freeDebrisIndex > 0);
+        _freeDebrisIndex--;
+        auto src = debris->getPoolIndex();
+
+        if (src != _freeDebrisIndex)
+        {
+            auto free = _debrisPool[_freeDebrisIndex];
+            _debrisPool[src] = free;
+            free->setPoolIndex(src);
+            _debrisPool[_freeDebrisIndex] = debris;
+            debris->setPoolIndex(_freeDebrisIndex);
+        }
+    }
 }
 
 void WorldRenderer::emitItemAnimation(Item* item, const Point& position, ssize_t count)

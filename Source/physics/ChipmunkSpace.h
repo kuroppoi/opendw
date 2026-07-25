@@ -76,6 +76,12 @@ public:
     /* FUNC: ChipmunkSpace::remove: @ 0x1000992F4 */
     void remove(ChipmunkObject* object);
 
+    /* FUNC: ChipmunkSpace::smartAdd: @ 0x10009950B */
+    void smartAdd(ChipmunkObject* object);
+
+    /* FUNC: ChipmunkSpace::smartRemove: @ 0x10009955C */
+    void smartRemove(ChipmunkObject* object);
+
     /* FUNC: ChipmunkSpace::addBody: @ 0x100099FDF */
     void addBody(ChipmunkBody* body);
 

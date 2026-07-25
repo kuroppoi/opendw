@@ -11,9 +11,6 @@ namespace opendw
 class MaskedSprite;
 class MaskedQuadBatch;
 
-/*
- * CLASS: CCSpriteBatchNodeMasked : CCSpriteBatchNode @ 0x100318098
- */
 class MaskedSpriteBatchNode : public ax::Node, ax::TextureProtocol
 {
 public:
@@ -23,7 +20,6 @@ public:
                                                     ax::Texture2D* maskTexture,
                                                     ssize_t capacity = 0);
 
-    /* FUNC: CCSpriteBatchNodeMasked::initWithTexture:capacity: @ 0x1000A2660 */
     bool initWithTexture(ax::Texture2D* texture, ax::Texture2D* maskTexture, ssize_t capacity = 0);
 
     void visit(ax::Renderer* renderer, const ax::Mat4& transform, uint32_t flags) override;
@@ -41,7 +37,6 @@ public:
     void setTexture(ax::Texture2D* texture) override { _texture = texture; }
     ax::Texture2D* getTexture() const override { return _texture; }
 
-    /* FUNC: CCSpriteBatchNodeMasked::setMaskTexture: @ 0x1000A28C0*/
     void setMaskTexture(ax::Texture2D* texture) { _maskTexture = texture; }
     ax::Texture2D* getMaskTexture() const { return _maskTexture; }
 

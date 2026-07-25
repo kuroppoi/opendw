@@ -82,6 +82,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _use                 = map_util::getMap(data, "use");
     _spriteZ             = map_util::getInt32(data, "sprite_z");
     _steamPowered        = map_util::getBool(data, "steam");
+    _emitter             = config->getEmitterForName(map_util::getString(data, "emitter"));
 
     // 0x10004A98C: Configure physics shape
     auto shape = map_util::getString(data, "shape");

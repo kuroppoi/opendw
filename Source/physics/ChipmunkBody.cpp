@@ -18,10 +18,18 @@ ChipmunkBody* ChipmunkBody::createWithMass(float mass, float moment)
     CREATE_INIT(ChipmunkBody, initWithMass, mass, moment);
 }
 
+static void velocityUpdateFunc(cpBody* cpBody, cpVect gravity, cpFloat damping, cpFloat deltaTime)
+{
+    auto body = static_cast<ChipmunkBody*>(cpBodyGetUserData(cpBody));
+    cpBodyUpdateVelocity(cpBody, gravity * body->getGravity(), damping, deltaTime);
+}
+
 bool ChipmunkBody::initWithMass(float mass, float moment)
 {
     cpBodyInit(&_body, mass, moment);
     cpBodySetUserData(&_body, this);
+    cpBodySetVelocityUpdateFunc(&_body, (cpBodyVelocityFunc)velocityUpdateFunc);
+    setGravity(1.0F);
     return true;
 }
 
@@ -33,6 +41,11 @@ void ChipmunkBody::addToSpace(ChipmunkSpace* space)
 void ChipmunkBody::removeFromSpace(ChipmunkSpace* space)
 {
     space->removeBody(this);
+}
+
+void ChipmunkBody::applyForceAtLocalPoint(const Vec2& force, const Point& point)
+{
+    cpBodyApplyForceAtLocalPoint(&_body, cpv(force.x, force.y), cpv(point.x, point.y));
 }
 
 void ChipmunkBody::applyImpulseAtLocalPoint(const Vec2& impulse, const Point& point)
@@ -100,6 +113,16 @@ void ChipmunkBody::setAngle(float angle)
 float ChipmunkBody::getAngle() const
 {
     return cpBodyGetAngle(&_body);
+}
+
+void ChipmunkBody::setAngularVelocity(float angularVelocity)
+{
+    cpBodySetAngularVelocity(&_body, angularVelocity);
+}
+
+float ChipmunkBody::getAngularVelocity() const
+{
+    return cpBodyGetAngularVelocity(&_body);
 }
 
 }  // namespace opendw

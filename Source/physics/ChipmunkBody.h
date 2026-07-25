@@ -30,6 +30,9 @@ public:
     /* FUNC: ChipmunkBody::removeFromSpace: @ 0x10006FE97 */
     void removeFromSpace(ChipmunkSpace* space) override;
 
+    /* FUNC: ChipmunkBody::applyForce:atLocalPoint: @ 0x10006FD7E */
+    void applyForceAtLocalPoint(const ax::Vec2& force, const ax::Point& point = ax::Point::ZERO);
+
     /* FUNC: ChipmunkBody::applyImpulse:atLocalPoint: @ 0x10006FDA0 */
     void applyImpulseAtLocalPoint(const ax::Vec2& impulse, const ax::Point& point = ax::Point::ZERO);
 
@@ -69,6 +72,12 @@ public:
     /* FUNC: ChipmunkBody::angle @ 0x10006FCA0 */
     float getAngle() const;
 
+    /* FUNC: ChipmunkBody::setAngularVelocity: @ 0x10006FCD3 */
+    void setAngularVelocity(float angularVelocity);
+
+    /* FUNC: ChipmunkBody::angularVelocity @ 0x10006FCC2 */
+    float getAngularVelocity() const;
+
     /* FUNC: ChipmunkBody::body @ 0x10006FBA0 */
     cpBody* getBody() const { return (cpBody*)&_body; }
 
@@ -78,9 +87,15 @@ public:
     /* FUNC: ChipmunkBody::userData @ 0x10006FF97 */
     ax::Object* getUserData() const { return _userData; }
 
+    void setGravity(float gravity) { _gravity = gravity; }
+
+    /* @return Scalar representing how much this body is affected by gravity. */
+    float getGravity() const { return _gravity; }
+
 private:
     cpBody _body;           // ChipmunkBody::_body @ 0x100311B68
     ax::Object* _userData;  // ChipmunkBody::_userData @ 0x100311B70
+    float _gravity;
 };
 
 }  // namespace opendw

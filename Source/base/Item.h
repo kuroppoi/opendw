@@ -6,6 +6,7 @@
 namespace opendw
 {
 
+class Emitter;
 class GameConfig;
 enum class BlockLayer : uint8_t;
 enum class ModType : uint8_t
@@ -375,6 +376,9 @@ public:
 
     bool isSteamPowered() const { return _steamPowered; }
 
+    /* FUNC: Item::emitter @ 0x10004E3CF */
+    Emitter* getEmitter() const { return _emitter; }
+
     /* FUNC: Item::inventoryItem @ 0x10004E246 */
     Item* getInventoryItem() const { return _inventoryItem; }
 
@@ -550,6 +554,7 @@ private:
     double _attackInterval;                          // Item::attackInterval @ 0x100311340
     ax::Color3B _lightColor;                         // Item::lightColor @ 0x1003113C0
     ax::Point _lightPosition;                        // Item::lightPosition @ 0x1003113C8
+    Emitter* _emitter;                               // Item::emitter @ 0x1003113F8
     Item* _inventoryItem;                            // Item::inventoryItem @ 0x100311498
     Item* _decayInventoryItem;                       // Item::decayInventoryItem @ 0x1003114A0
     Item* _parentItem;                               // Item::parentItem @ 0x100311528

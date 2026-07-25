@@ -1,5 +1,6 @@
 #include "GameConfig.h"
 
+#include "base/Emitter.h"
 #include "base/Item.h"
 #include "entity/EntityConfig.h"
 #include "util/ArrayUtil.h"
@@ -21,6 +22,28 @@ bool GameConfig::initWithData(const ValueMap& data)
     AXASSERT(_data.empty(), "Reinitialization is not allowed");
     auto start = utils::gettime();
     _data      = data;
+
+    // 0x10004E6E8: Configure emitters
+    auto emitterStart = utils::gettime();
+    auto& emitters    = map_util::getMap(_data, "emitters");
+    _emittersByName.reserve(emitters.size());
+    _emittersByCode.reserve(emitters.size());
+
+    for (auto& entry : emitters)
+    {
+        auto& name   = entry.first;
+        auto& data   = entry.second.asValueMap();
+        auto emitter = Emitter::createWithData(data, name);
+        _emittersByName.insert(name, emitter);
+        auto code = emitter->getCode();
+
+        if (code > 0)
+        {
+            _emittersByCode.insert(code, emitter);
+        }
+    }
+
+    AXLOGI("[GameConfig] Configured {} emitters in {:.2f}s", _emittersByName.size(), utils::gettime() - emitterStart);
 
     // 0x10004ED08: Configure items
     size_t itemCount = 0;
@@ -235,6 +258,23 @@ bool GameConfig::initWithData(const ValueMap& data)
     AXLOGI("[GameConfig] Configuration took {:.2f}s", utils::gettime() - start);
     sMain = this;
     return true;
+}
+
+Emitter* GameConfig::getEmitterForName(const std::string& name) const
+{
+    if (name.empty())
+    {
+        return nullptr; 
+    }
+
+    auto it = _emittersByName.find(name);
+    return it == _emittersByName.end() ? nullptr : (*it).second;
+}
+
+Emitter* GameConfig::getEmitterForCode(uint16_t code) const
+{
+    auto it = _emittersByCode.find(code);
+    return it == _emittersByCode.end() ? nullptr : (*it).second;
 }
 
 Item* GameConfig::registerItem(const std::string& name, const ValueMap& data)

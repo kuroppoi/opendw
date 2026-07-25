@@ -8,9 +8,6 @@
 namespace opendw
 {
 
-/*
- * CLASS: CCTextureAtlasMasked : CCTextureAtlas @ 0x1003180C0
- */
 class MaskedQuadBatch : public ax::Object
 {
 public:

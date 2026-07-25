@@ -6,6 +6,7 @@
 namespace opendw
 {
 
+class Emitter;
 class EntityConfig;
 class Item;
 
@@ -27,6 +28,12 @@ public:
 
     /* FUNC: Config::initWithDictionary: @ 0x10004E60C */
     bool initWithData(const ax::ValueMap& data);
+
+    /* FUNC: Config::emitterForName: @ 0x100051B47 */
+    Emitter* getEmitterForName(const std::string& name) const;
+
+    /* FUNC: Config::emitterForCode: @ 0x100051B64 */
+    Emitter* getEmitterForCode(uint16_t code) const;
 
     /* FUNC: Config::registerItemNamed:config: @ 0x100051AD0 */
     Item* registerItem(const std::string& name, const ax::ValueMap& data);
@@ -73,6 +80,8 @@ private:
     inline static GameConfig* sMain;  // 0x10032EAC8
 
     ax::ValueMap _data;                                            // Config::data @ 0x100311540
+    ax::StringMap<Emitter*> _emittersByName;                       // Config::emittersByName @ 0x100311550
+    ax::Map<uint16_t, Emitter*> _emittersByCode;                   // Config::emittersByCode @ 0x100311560
     ax::StringMap<Item*> _itemsByName;                             // Config::itemsByName @ 0x100311568
     ax::Map<uint16_t, Item*> _itemsByCode;                         // Config::itemsByCode @ 0x100311578
     ax::StringMap<EntityConfig*> _entitiesByName;                  // Config::entitiesByName @ 0x100311588

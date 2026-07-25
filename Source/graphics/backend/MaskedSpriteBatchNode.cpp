@@ -103,8 +103,8 @@ void MaskedSpriteBatchNode::addChild(Node* child, int zOrder, int tag)
 {
     auto sprite = dynamic_cast<MaskedSprite*>(child);
     AXASSERT(sprite, "Child must be of type MaskedSprite");
-    AXASSERT(sprite->getTexture() == _texture && sprite->getMaskTexture() == _maskTexture,
-             "Sprite textures must be the same as the batch node's");
+    // AXASSERT(sprite->getTexture() == _texture && sprite->getMaskTexture() == _maskTexture,
+    //          "Sprite textures must be the same as the batch node's");
     Node::addChild(child, zOrder, tag);
     insertSprite(sprite);
 }
@@ -113,8 +113,8 @@ void MaskedSpriteBatchNode::addChild(Node* child, int zOrder, std::string_view n
 {
     auto sprite = dynamic_cast<MaskedSprite*>(child);
     AXASSERT(sprite, "Child must be of type MaskedSprite");
-    AXASSERT(sprite->getTexture() == _texture && sprite->getMaskTexture() == _maskTexture,
-             "Sprite textures must be the same as the batch node's");
+    // AXASSERT(sprite->getTexture() == _texture && sprite->getMaskTexture() == _maskTexture,
+    //          "Sprite textures must be the same as the batch node's");
     Node::addChild(child, zOrder, name);
     insertSprite(sprite);
 }
@@ -131,7 +131,7 @@ void MaskedSpriteBatchNode::removeAllChildrenWithCleanup(bool cleanup)
 {
     for (auto& sprite : _descendants)
     {
-        sprite->setBatchNode(nullptr);
+        sprite->setMaskedBatchNode(nullptr);
     }
 
     Node::removeAllChildrenWithCleanup(cleanup);
@@ -141,13 +141,13 @@ void MaskedSpriteBatchNode::removeAllChildrenWithCleanup(bool cleanup)
 
 void MaskedSpriteBatchNode::updateSprite(MaskedSprite* sprite)
 {
-    _quadBatch->setQuad(sprite->getBatchIndex(), sprite->getQuad());
+    _quadBatch->setQuad(sprite->getMaskedBatchIndex(), sprite->getMaskedQuad());
 }
 
 void MaskedSpriteBatchNode::insertSprite(MaskedSprite* sprite)
 {
     _reorderChildDirty = true;
-    sprite->setBatchNode(this);
+    sprite->setMaskedBatchNode(this);
     sprite->setDirty(true);
     auto capacity = _quadBatch->getCapacity();
 
@@ -158,8 +158,8 @@ void MaskedSpriteBatchNode::insertSprite(MaskedSprite* sprite)
 
     auto index = static_cast<ssize_t>(_descendants.size());
     _descendants.push_back(sprite);
-    sprite->setBatchIndex(index);
-    auto&& quad = sprite->getQuad();
+    sprite->setMaskedBatchIndex(index);
+    auto&& quad = sprite->getMaskedQuad();
     _quadBatch->insertQuad(index, quad);
 
     // Recursively insert child sprites
@@ -180,12 +180,12 @@ void MaskedSpriteBatchNode::removeSprite(MaskedSprite* sprite)
     for (auto next = std::next(it); next != _descendants.end(); next++)
     {
         auto descendant = static_cast<MaskedSprite*>(*next);
-        descendant->setBatchIndex(descendant->getBatchIndex() - 1);
+        descendant->setMaskedBatchIndex(descendant->getMaskedBatchIndex() - 1);
     }
 
     _descendants.erase(it);
-    _quadBatch->removeQuad(sprite->getBatchIndex());
-    sprite->setBatchNode(nullptr);
+    _quadBatch->removeQuad(sprite->getMaskedBatchIndex());
+    sprite->setMaskedBatchNode(nullptr);
 
     // Recursively remove child sprites
     for (auto& child : sprite->getChildren())
@@ -228,7 +228,7 @@ void MaskedSpriteBatchNode::updateBatchIndices(MaskedSprite* sprite, ssize_t* cu
 
     if (children.empty())
     {
-        auto oldIndex = sprite->getBatchIndex();
+        auto oldIndex = sprite->getMaskedBatchIndex();
 
         if (oldIndex != *currentIndex)
         {
@@ -243,7 +243,7 @@ void MaskedSpriteBatchNode::updateBatchIndices(MaskedSprite* sprite, ssize_t* cu
 
     if (children[0]->getLocalZOrder() >= 0)
     {
-        auto oldIndex = sprite->getBatchIndex();
+        auto oldIndex = sprite->getMaskedBatchIndex();
 
         if (oldIndex != *currentIndex)
         {
@@ -258,7 +258,7 @@ void MaskedSpriteBatchNode::updateBatchIndices(MaskedSprite* sprite, ssize_t* cu
     {
         if (needsNewIndex && child->getLocalZOrder() >= 0)
         {
-            auto oldIndex = sprite->getBatchIndex();
+            auto oldIndex = sprite->getMaskedBatchIndex();
 
             if (oldIndex != *currentIndex)
             {
@@ -274,7 +274,7 @@ void MaskedSpriteBatchNode::updateBatchIndices(MaskedSprite* sprite, ssize_t* cu
 
     if (needsNewIndex)
     {
-        auto oldIndex = sprite->getBatchIndex();
+        auto oldIndex = sprite->getMaskedBatchIndex();
 
         if (oldIndex != *currentIndex)
         {
@@ -294,8 +294,8 @@ void MaskedSpriteBatchNode::swapBatchIndices(ssize_t oldIndex, ssize_t newIndex)
     _quadBatch->setDirty(true);
     auto oldIt = std::next(_descendants.begin(), oldIndex);
     auto newIt = std::next(_descendants.begin(), newIndex);
-    (*newIt)->setBatchIndex(oldIndex);
-    (*oldIt)->setBatchIndex(newIndex);
+    (*newIt)->setMaskedBatchIndex(oldIndex);
+    (*oldIt)->setMaskedBatchIndex(newIndex);
     std::swap(*oldIt, *newIt);
 }
 
@@ -308,7 +308,7 @@ bool MaskedSpriteBatchNode::setCapacity(ssize_t capacity)
         return true;
     }
 
-    AXLOGI("[MaskedSpriteBatchNode] Resizing MaskedQuadBatch capacity from {} to {}", currentCapacity, capacity);
+    AXLOGD("[MaskedSpriteBatchNode] Resizing MaskedQuadBatch capacity from {} to {}", currentCapacity, capacity);
     return _quadBatch->setCapacity(capacity);
 }
 

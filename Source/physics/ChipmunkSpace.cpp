@@ -186,6 +186,42 @@ void ChipmunkSpace::remove(ChipmunkObject* object)
     }
 }
 
+static void postStepAdditionFunc(cpSpace* cpSpace, void* key, void* data)
+{
+    auto space = static_cast<ChipmunkSpace*>(cpSpaceGetUserData(cpSpace));
+    space->add(static_cast<ChipmunkObject*>(data));
+}
+
+void ChipmunkSpace::smartAdd(ChipmunkObject* object)
+{
+    if (cpSpaceIsLocked(_space))
+    {
+        cpSpaceAddPostStepCallback(_space, (cpPostStepFunc)postStepAdditionFunc, object, object);
+    }
+    else
+    {
+        add(object);
+    }
+}
+
+static void postStepRemovalFunc(cpSpace* cpSpace, void* key, void* data)
+{
+    auto space = static_cast<ChipmunkSpace*>(cpSpaceGetUserData(cpSpace));
+    space->remove(static_cast<ChipmunkObject*>(data));
+}
+
+void ChipmunkSpace::smartRemove(ChipmunkObject* object)
+{
+    if (cpSpaceIsLocked(_space))
+    {
+        cpSpaceAddPostStepCallback(_space, (cpPostStepFunc)postStepRemovalFunc, object, object);
+    }
+    else
+    {
+        remove(object);
+    }
+}
+
 void ChipmunkSpace::addBody(ChipmunkBody* body)
 {
     cpSpaceAddBody(_space, body->getBody());

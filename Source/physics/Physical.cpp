@@ -51,7 +51,20 @@ void Physical::useStaticBody()
 void Physical::addToSpace()
 {
     AX_ASSERT(sGlobalSpace);
-    sGlobalSpace->add(this);
+    sGlobalSpace->smartAdd(this);
+}
+
+void Physical::removeFromSpace()
+{
+    AX_ASSERT(sGlobalSpace);
+    sGlobalSpace->smartRemove(this);
+}
+
+void Physical::clear()
+{
+    removeFromSpace();
+    clearShapes();
+    AX_SAFE_RELEASE_NULL(_body);
 }
 
 void Physical::setLayer(uint32_t layer)

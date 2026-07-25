@@ -69,6 +69,9 @@ public:
     /* FUNC: Player::climbBlock:delta: @ 0x100020A28 */
     bool climbBlock(BaseBlock* block, float deltaTime);
 
+    /* FUNC: Player::emitPoweredSteam:point:velocity: @ 0x100020583 */
+    void emitPoweredSteam(Item* item, const ax::Point& point, const ax::Vec2& velocity);
+
     /* Equivalent to `getAvatar()->emote(text, color, quick, replaceLast);` */
     void emote(const std::string& text, const ax::Color3B& color, bool quick = false, bool replaceLast = false);
 
@@ -446,6 +449,7 @@ private:
     bool _stomping;                                        // Player::isStomping @ 0x100310770
     double _lastStompedAt;                                 // Player::lastStompedAt @ 0x100310860
     Item* _stompAccessory;
+    double _nextPoweredSteamAt;
     bool _running;
     bool _shouldUpdateAccessories;
     std::set<int64_t> _categoriesToArrange;

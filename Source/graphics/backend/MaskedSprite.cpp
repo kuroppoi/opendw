@@ -32,38 +32,84 @@ bool MaskedSprite::initWithTexture(Texture2D* texture, Texture2D* maskTexture)
     return true;
 }
 
+void MaskedSprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
+{
+    if (_renderMode == RenderMode::QUAD_BATCHNODE)
+    {
+        return;
+    }
+
+    setMVPMatrixUniform();
+
+#if AX_USE_CULLING
+    // No need to optimize: there likely won't be a lot of self-drawing MaskedSprites.
+    _insideBounds = renderer->checkVisibility(transform, _contentSize);
+
+    if (!_insideBounds)
+    {
+        return;
+    }
+#endif
+
+    updateColor();
+    copyQuadToMaskedQuad();
+
+    if (_maskDirty)
+    {
+        updateMaskCoords();
+        _maskDirty = false;
+    }
+
+
+    _maskedQuadCommand.init(_globalZOrder, _texture, _maskTexture, _blendFunc, &_maskedQuad, 1, transform, flags);
+    _maskedQuadCommand.populateBuffers();
+    renderer->addCommand(&_maskedQuadCommand);
+}
+
 void MaskedSprite::updateTransform()
 {
-    // TODO: clean up
-    AXASSERT(_batchNode, "Calling updateTransform is only valid in a batching context");
+    if (_renderMode != RenderMode::QUAD_BATCHNODE)
+    {
+        return;
+    }
 
+    if (!_maskedBatchNode)
+    {
+        Sprite::updateTransform();  // Delegate to superclass
+        return;
+    }
+
+    auto updateInBatch = false;
+
+    // Copied from Sprite with a few changed/additions to support masking
     if (isDirty())
     {
-        if (!_visible || (_parent && _parent != _batchNode && static_cast<MaskedSprite*>(_parent)->_shouldBeHidden))
+        if (!_visible ||
+            (_parent && _parent != _maskedBatchNode && static_cast<MaskedSprite*>(_parent)->_shouldBeHidden))
         {
-            _quad.br.position.setZero();
-            _quad.tl.position.setZero();
-            _quad.tr.position.setZero();
-            _quad.bl.position.setZero();
+            _quad.br.vertices.setZero();
+            _quad.tl.vertices.setZero();
+            _quad.tr.vertices.setZero();
+            _quad.bl.vertices.setZero();
             _shouldBeHidden = true;
         }
         else
         {
             _shouldBeHidden = false;
 
-            if (!_parent || _parent == _batchNode)
+            if (!_parent || _parent == _maskedBatchNode)
             {
                 _transformToBatch = getNodeToParentTransform();
             }
             else
             {
-                AXASSERT(dynamic_cast<MaskedSprite*>(_parent), "Logic error in Sprite. Parent must be a Sprite");
+                AXASSERT(dynamic_cast<MaskedSprite*>(_parent),
+                         "Logic error in MaskedSprite. Parent must be a MaskedSprite");
                 const Mat4& nodeToParent = getNodeToParentTransform();
                 Mat4& parentTransform    = static_cast<MaskedSprite*>(_parent)->_transformToBatch;
                 _transformToBatch        = parentTransform * nodeToParent;
             }
 
-            // Update vertex positions
             Vec2& size = _rect.size;
             float x1   = _offsetPosition.x;
             float y1   = _offsetPosition.y;
@@ -83,109 +129,42 @@ void MaskedSprite::updateTransform()
             float cy   = x2 * sr + y2 * cr2 + y;
             float dx   = x1 * cr - y2 * sr2 + x;
             float dy   = x1 * sr + y2 * cr2 + y;
-            _quad.bl.position.set(SPRITE_RENDER_IN_SUBPIXEL(ax), SPRITE_RENDER_IN_SUBPIXEL(ay), _positionZ);
-            _quad.br.position.set(SPRITE_RENDER_IN_SUBPIXEL(bx), SPRITE_RENDER_IN_SUBPIXEL(by), _positionZ);
-            _quad.tl.position.set(SPRITE_RENDER_IN_SUBPIXEL(dx), SPRITE_RENDER_IN_SUBPIXEL(dy), _positionZ);
-            _quad.tr.position.set(SPRITE_RENDER_IN_SUBPIXEL(cx), SPRITE_RENDER_IN_SUBPIXEL(cy), _positionZ);
-
-            // Update texture coordinates
-            setTextureCoords(_rect);
-            _quad.bl.texCoord = Sprite::_quad.bl.texCoords;
-            _quad.br.texCoord = Sprite::_quad.br.texCoords;
-            _quad.tl.texCoord = Sprite::_quad.tl.texCoords;
-            _quad.tr.texCoord = Sprite::_quad.tr.texCoords;
+            _quad.bl.vertices.set(SPRITE_RENDER_IN_SUBPIXEL(ax), SPRITE_RENDER_IN_SUBPIXEL(ay), _positionZ);
+            _quad.br.vertices.set(SPRITE_RENDER_IN_SUBPIXEL(bx), SPRITE_RENDER_IN_SUBPIXEL(by), _positionZ);
+            _quad.tl.vertices.set(SPRITE_RENDER_IN_SUBPIXEL(dx), SPRITE_RENDER_IN_SUBPIXEL(dy), _positionZ);
+            _quad.tr.vertices.set(SPRITE_RENDER_IN_SUBPIXEL(cx), SPRITE_RENDER_IN_SUBPIXEL(cy), _positionZ);
+            setTextureCoords(_rect, &_quad);
         }
 
-        if (_maskDirty)
-        {
-            updateMaskCoords();
-            _maskDirty = false;
-        }
-
-        _batchNode->updateSprite(this);
+        copyQuadToMaskedQuad();
+        updateInBatch   = true;
         _recursiveDirty = false;
         setDirty(false);
+    }
+
+    if (_maskDirty)
+    {
+        updateMaskCoords();
+        _maskDirty    = false;
+        updateInBatch = true;
+    }
+
+    if (updateInBatch)
+    {
+        _maskedBatchNode->updateSprite(this);
     }
 
     Node::updateTransform();
 }
 
-void MaskedSprite::updateColor()
-{
-    Color4B color(_displayedColor.r, _displayedColor.g, _displayedColor.b, _displayedOpacity);
-
-    if (_opacityModifyRGB)
-    {
-        color.r *= _displayedOpacity / 255.0F;
-        color.g *= _displayedOpacity / 255.0F;
-        color.b *= _displayedOpacity / 255.0F;
-    }
-
-    _quad.tl.color = color;
-    _quad.bl.color = color;
-    _quad.tr.color = color;
-    _quad.br.color = color;
-
-    if (_batchNode)
-    {
-        if (_batchIndex != INDEX_NOT_INITIALIZED)
-        {
-            _batchNode->updateSprite(this);
-        }
-        else
-        {
-            setDirty(true);
-        }
-    }
-}
-
-void MaskedSprite::draw(Renderer* renderer, const Mat4& transform, uint32_t flags)
-{
-    // Don't self-draw if batch node is present
-    if (_batchNode)
-    {
-        return;
-    }
-
-    setMVPMatrixUniform();
-
-#if AX_USE_CULLING
-    // No need to optimize: there likely won't be a lot self-drawing MaskedSprites.
-    _insideBounds = renderer->checkVisibility(transform, _contentSize);
-
-    if (!_insideBounds)
-    {
-        return;
-    }
-#endif
-
-    copyQuadToMaskedQuad();
-    updateColor();
-
-    if (_maskDirty)
-    {
-        updateMaskCoords();
-        _maskDirty = false;
-    }
-
-    _quadCommand.init(_globalZOrder, _texture, _maskTexture, _blendFunc, &_quad, 1, transform, flags);
-    _quadCommand.populateBuffers();
-    renderer->addCommand(&_quadCommand);
-}
-
-void MaskedSprite::copyQuadToMaskedQuad()
-{
-    // Yes, this is a hack. Yes, it sucks.
-    auto vertexSize = sizeof(V3F_C4B_T2F);
-    memcpy(&_quad.tl, &Sprite::_quad.tl, vertexSize);
-    memcpy(&_quad.tr, &Sprite::_quad.tr, vertexSize);
-    memcpy(&_quad.bl, &Sprite::_quad.bl, vertexSize);
-    memcpy(&_quad.br, &Sprite::_quad.br, vertexSize);
-}
-
 void MaskedSprite::updateMaskCoords()
 {
-    auto maskTexture        = _batchNode ? _batchNode->getMaskTexture() : _maskTexture;
+    if (_renderMode == RenderMode::QUAD_BATCHNODE && !_maskedBatchNode)
+    {
+        return;  // We're in a regular SpriteBatchNode, so do nothing.
+    }
+
+    auto maskTexture        = _maskedBatchNode ? _maskedBatchNode->getMaskTexture() : _maskTexture;
     const auto& textureSize = maskTexture->getContentSize();
 
     auto tl = _maskRect.origin / textureSize;     // Top left
@@ -196,50 +175,40 @@ void MaskedSprite::updateMaskCoords()
     switch (_maskOrientation)
     {
     case MaskOrientation::LEFT:
-        _quad.tl.maskCoord = bl;
-        _quad.br.maskCoord = tr;
-        _quad.tr.maskCoord = tl;
-        _quad.bl.maskCoord = br;
+        _maskedQuad.tl.maskCoord = bl;
+        _maskedQuad.br.maskCoord = tr;
+        _maskedQuad.tr.maskCoord = tl;
+        _maskedQuad.bl.maskCoord = br;
         break;
     case MaskOrientation::UP:
-        _quad.tl.maskCoord = br;
-        _quad.br.maskCoord = tl;
-        _quad.tr.maskCoord = bl;
-        _quad.bl.maskCoord = tr;
+        _maskedQuad.tl.maskCoord = br;
+        _maskedQuad.br.maskCoord = tl;
+        _maskedQuad.tr.maskCoord = bl;
+        _maskedQuad.bl.maskCoord = tr;
         break;
     case MaskOrientation::RIGHT:
-        _quad.tl.maskCoord = tr;
-        _quad.br.maskCoord = bl;
-        _quad.tr.maskCoord = br;
-        _quad.bl.maskCoord = tl;
+        _maskedQuad.tl.maskCoord = tr;
+        _maskedQuad.br.maskCoord = bl;
+        _maskedQuad.tr.maskCoord = br;
+        _maskedQuad.bl.maskCoord = tl;
         break;
-    default:  // Assume down
-        _quad.tl.maskCoord = tl;
-        _quad.br.maskCoord = br;
-        _quad.tr.maskCoord = tr;
-        _quad.bl.maskCoord = bl;
+    case MaskOrientation::DOWN:
+    default:
+        _maskedQuad.tl.maskCoord = tl;
+        _maskedQuad.br.maskCoord = br;
+        _maskedQuad.tr.maskCoord = tr;
+        _maskedQuad.bl.maskCoord = bl;
         break;
     }
 }
 
-void MaskedSprite::setTextureRect(const Rect& rect, bool rotated, const Vec2& untrimmedSize)
+void MaskedSprite::copyQuadToMaskedQuad()
 {
-    Sprite::setTextureRect(rect, rotated, untrimmedSize);
-    _quad.bl.texCoord = Sprite::_quad.bl.texCoords;
-    _quad.br.texCoord = Sprite::_quad.br.texCoords;
-    _quad.tl.texCoord = Sprite::_quad.tl.texCoords;
-    _quad.tr.texCoord = Sprite::_quad.tr.texCoords;
-    if (_batchNode)
-    {
-        if (_batchIndex != INDEX_NOT_INITIALIZED)
-        {
-            _batchNode->updateSprite(this);
-        }
-        else
-        {
-            setDirty(true);
-        }
-    }
+    auto vertexSize = sizeof(V3F_C4B_T2F);
+    memcpy(&_maskedQuad.tl, &_quad.tl, vertexSize);
+    memcpy(&_maskedQuad.tr, &_quad.tr, vertexSize);
+    memcpy(&_maskedQuad.bl, &_quad.bl, vertexSize);
+    memcpy(&_maskedQuad.br, &_quad.br, vertexSize);
 }
 
 void MaskedSprite::setMaskFrame(std::string_view frameName)
@@ -258,27 +227,106 @@ void MaskedSprite::setMaskFrame(std::string_view frameName)
 
 void MaskedSprite::setMaskRect(const Rect& rect)
 {
-    _maskRect  = rect;
-    _maskDirty = true;
+    if (!_maskRect.equals(rect))
+    {
+        _maskRect  = rect;
+        _maskDirty = true;
+    }
 }
 
 void MaskedSprite::setMaskOrientation(MaskOrientation orientation)
 {
-    _maskOrientation = orientation;
-    _maskDirty       = true;
+    if (_maskOrientation != orientation)
+    {
+        _maskOrientation = orientation;
+        _maskDirty       = true;
+    }
 }
 
-void MaskedSprite::setBatchNode(MaskedSpriteBatchNode* batchNode)
+void MaskedSprite::setMaskedBatchNode(MaskedSpriteBatchNode* batchNode)
 {
-    _batchNode = batchNode;
+    _maskedBatchNode = batchNode;  // Weak ref
 
-    if (!batchNode)
+    if (batchNode)
     {
-        _batchIndex = INDEX_NOT_INITIALIZED;
+        _renderMode       = RenderMode::QUAD_BATCHNODE;
+        _transformToBatch = Mat4::IDENTITY;
+    }
+    else
+    {
+        _renderMode       = RenderMode::QUAD;
+        _maskedBatchIndex = INDEX_NOT_INITIALIZED;
+        _recursiveDirty   = false;
+        setDirty(false);
+        float x1 = _offsetPosition.x;
+        float y1 = _offsetPosition.y;
+        float x2 = x1 + _rect.size.width;
+        float y2 = y1 + _rect.size.height;
+        _quad.bl.vertices.set(x1, y1, 0);
+        _quad.br.vertices.set(x2, y1, 0);
+        _quad.tl.vertices.set(x1, y2, 0);
+        _quad.tr.vertices.set(x2, y2, 0);
+    }
+}
+
+void MaskedSprite::updateColor()
+{
+    if (!_maskedBatchNode)
+    {
+        Sprite::updateColor();  // Delegate to superclass
         return;
     }
 
-    _transformToBatch = Mat4::IDENTITY;
+    Color4B color(_displayedColor.r, _displayedColor.g, _displayedColor.b, _displayedOpacity);
+
+    if (_opacityModifyRGB)
+    {
+        color.r *= _displayedOpacity / 255.0F;
+        color.g *= _displayedOpacity / 255.0F;
+        color.b *= _displayedOpacity / 255.0F;
+    }
+
+    _quad.tl.colors = color;
+    _quad.bl.colors = color;
+    _quad.tr.colors = color;
+    _quad.br.colors = color;
+
+    if (_maskedBatchIndex != INDEX_NOT_INITIALIZED)
+    {
+        copyQuadToMaskedQuad();
+        _maskedBatchNode->updateSprite(this);
+    }
+    else
+    {
+        setDirty(true);
+    }
+}
+
+void MaskedSprite::setTextureCoords(const ax::Rect& rect, ax::V3F_C4B_T2F_Quad* outQuad)
+{
+    if (!_maskedBatchNode)
+    {
+        Sprite::setTextureCoords(rect, outQuad);  // Delegate to superclass
+        return;
+    }
+
+    // This is a very stupid hack, but it works!
+    auto batched = _renderMode == RenderMode::QUAD_BATCHNODE;
+    auto texture = _texture;
+
+    if (batched)
+    {
+        _renderMode = RenderMode::QUAD;
+        _texture    = _maskedBatchNode->getTexture();
+    }
+
+    Sprite::setTextureCoords(rect, outQuad);
+
+    if (batched)
+    {
+        _renderMode = RenderMode::QUAD_BATCHNODE;
+        _texture    = texture;
+    }
 }
 
 }  // namespace opendw

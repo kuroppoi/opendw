@@ -8,6 +8,8 @@ namespace opendw
 
 class BaseBlock;
 class CavernRenderer;
+class Debris;
+class Emitter;
 class Entity;
 class Item;
 class Lightmapper;
@@ -102,6 +104,24 @@ public:
     /* FUNC: WorldRenderer::generateMiningCracks:forLayer:duration: @ 0x100084065 */
     ax::Action* generateMiningCracks(BaseBlock* block, BlockLayer layer, float duration);
 
+    /* FUNC: WorldRenderer::generateMiningDebris:ineffectual: @ 0x100084201 */
+    void generateMiningDebris(BaseBlock* block, BlockLayer layer, bool ineffectual);
+
+    /* FUNC: WorldRenderer::generateBlockDebris:ineffectual:count: @ 0x1000842AA */
+    void generateBlockDebris(BaseBlock* block, BlockLayer layer, bool ineffectual, ssize_t count);
+
+    /* FUNC: WorldRenderer::emitParticle:fromBlock: @ 0x100084876 */
+    Debris* emitParticle(Emitter* particle, BaseBlock* block);
+
+    /* FUNC: WorldRenderer::emitParticle:fromPoint: @ 0x10008497E */
+    Debris* emitParticle(Emitter* emitter, const ax::Point& point);
+
+    /* FUNC: WorldRenderer::emitParticle:fromPoint:frequency: @ 0x1000849D8 */
+    Debris* emitParticle(Emitter* emitter, const ax::Point& point, float frequency);
+
+    /* FUNC: WorldRenderer::recycleDebris: @ 0x100084D39 */
+    void recycleDebris(Debris* debris);
+
     /* FUNC: WorldRenderer::emitItemAnimation:fromPoint: @ 0x100084BDF */
     void emitItemAnimation(Item* item, const ax::Point& position, ssize_t count = 1);
 
@@ -131,6 +151,9 @@ public:
 
     /* FUNC: WorldRenderer::animatedCharactersNode @ 0x100086EA2 */
     ax::Node* getAnimatedCharactersNode() const { return _animatedCharactersNode; }
+
+    /* FUNC: WorldRenderer::effectsNode @ 0x100086EE6 */
+    ax::SpriteBatchNode* getEffectsNode() const { return _effectsNode; }
 
     /* FUNC: WorldRenderer::guiNode @ 0x100086EF7 */
     ax::Node* getGuiNode() const { return _guiNode; }
@@ -188,6 +211,8 @@ private:
     ax::Animation* _miningCracksAnimation;        // WorldRenderer::miningCracksAnimation @ 0x100311F30
     CornerMasks _wholenessCornerMasks;            // WorldRenderer::wholenessCornerMasks @ 0x100311F38
     CornerMasks _continuityCornerMasks;           // WorldRenderer::continuityCornerMasks @ 0x100311F40
+    Debris** _debrisPool;                         // WorldRenderer::debrisPool @ 0x100311F78
+    double _nextDebrisAt;                         // WorldRenderer::nextDebris @ 0x100311DF0
     double _nextFX;                               // WorldRenderer::nextFX @ 0x100311F90
     size_t _fxFrame;                              // WorldRenderer::fxFrame @ 0x100311F50
     double _nextLiquidCycle;                      // WorldRenderer::nextLiquidCycle @ 0x100311F98
@@ -196,6 +221,7 @@ private:
     float _explosion;                             // WorldRenderer::explosion @ 0x100311FB8
     size_t _liquidFrame;                          // 0x100320BC0
     bool _initialArrange;
+    ssize_t _freeDebrisIndex;
     ax::Point _cameraPosition;
 };
 

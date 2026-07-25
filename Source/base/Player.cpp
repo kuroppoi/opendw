@@ -7,6 +7,7 @@
 #include "entity/EntityAnimatedAvatar.h"
 #include "entity/EntityConfig.h"
 #include "event/EventNames.h"
+#include "graphics/Debris.h"
 #include "graphics/WorldRenderer.h"
 #include "gui/widget/ItemContainer.h"
 #include "gui/GameGui.h"
@@ -30,6 +31,7 @@
 #define JUMP_COOLDOWN          0.3
 #define STEAM_RESTORE_COOLDOWN 0.5
 #define CONSUMABLE_COOLDOWN    1.0
+#define POWERED_STEAM_INTERVAL 1.0 / 60.0
 #define BASE_HEALTH            5.0F
 #define BASE_MAX_STEAM         20.0F
 #define MAX_SKILL_LEVEL        15
@@ -592,7 +594,6 @@ void Player::stopIfHorizontalOverlap()
 void Player::useFlyAccessory(Item* item, float deltaTime)
 {
     // TODO: flight suppression
-    // TODO: emit particles
     auto speedX    = _destination.x - _physical->getPosition().x;
     auto flySpeed  = getFlyingSpeed() * BLOCK_SIZE * deltaTime;
     auto direction = abs(speedX) < FLT_EPSILON ? 0.0F : speedX > 0.0F ? 1.0F : -1.0F;
@@ -600,6 +601,9 @@ void Player::useFlyAccessory(Item* item, float deltaTime)
     auto tilt     = speedX / BLOCK_SIZE * 42.0F;
     auto rotation = math_util::lerp(_avatar->getRotation(), tilt, deltaTime * 1.75F);
     _avatar->setRotation(rotation);
+    auto steamPosition = _avatar->getPosition() + Vec2(BLOCK_SIZE * 0.5F * -_lookDirection, BLOCK_SIZE * 0.2F);
+    auto steamVelocity = Vec2(-_physical->getVelocity().x, BLOCK_SIZE * -4.0F);
+    emitPoweredSteam(item, steamPosition, steamVelocity);
 
     if (!hasAfterburner())
     {
@@ -616,7 +620,6 @@ bool Player::useStompAccessory(Item* item, float deltaTime)
         return false;
     }
 
-    // TODO: emit particles
     auto speedX     = _destination.x - _physical->getPosition().x;
     auto stompSpeed = BLOCK_SIZE * deltaTime;
     auto direction  = abs(speedX) < FLT_EPSILON ? 0.0F : speedX > 0.0F ? 1.0F : -1.0F;
@@ -624,6 +627,10 @@ bool Player::useStompAccessory(Item* item, float deltaTime)
         {stompSpeed * direction * 0.33F, item->getPower() * stompSpeed * -21.5F * 8.0F});
     auto rotation = math_util::lerp(_avatar->getRotation(), 0.0F, deltaTime * 4.0F);
     _avatar->setRotation(rotation);
+    auto steamDirection = (~(rand() * 2) & 2) - 1;
+    auto steamPosition  = _avatar->getPosition() + Vec2::UNIT_Y * BLOCK_SIZE * steamDirection * 0.5F;
+    auto steamVelocity  = Vec2(BLOCK_SIZE * steamDirection * 4.0F, -BLOCK_SIZE);
+    emitPoweredSteam(item, steamPosition, steamVelocity);
     setSteam(_steam - item->getRate() * deltaTime / getSteamEfficiency());
     _stomping = true;
     return true;
@@ -646,6 +653,53 @@ bool Player::climbBlock(BaseBlock* block, float deltaTime)
     _physical->setPosition(position);
     _physical->setVelocity(velocity);
     return true;
+}
+
+void Player::emitPoweredSteam(Item* item, const Point& point, const Vec2& velocity)
+{
+    if (utils::gettime() < _nextPoweredSteamAt)
+    {
+        return;
+    }
+
+    auto emitter = item->getEmitter();
+
+    if (!emitter)
+    {
+        return;
+    }
+
+    _nextPoweredSteamAt = utils::gettime() + POWERED_STEAM_INTERVAL;
+    auto renderer = _game->getZone()->getWorldRenderer();
+
+    if (auto particle = renderer->emitParticle(emitter, point, 10.0F))
+    {
+        particle->getPhysical()->setVelocity(velocity);
+
+        if (item->getPower() > 1.25F)
+        {
+            if (auto particle = renderer->emitParticle(emitter, point, 10.0F))
+            {
+                auto x = rand_minus1_1() * 0.5F * BLOCK_SIZE;
+                auto y = rand_minus1_1() * 0.5F * BLOCK_SIZE;
+                particle->setScale(particle->getScale() * 0.6F);
+                particle->getPhysical()->setVelocity(_physical->getVelocity() * 0.9F + Vec2(x, y));
+
+                if (hasAfterburner())
+                {
+                    particle->setColor(Color3B::YELLOW);
+                    auto tintToRed = TintTo::create(0.5F, 255, 50, 0);
+                    auto tintToGray = TintTo::create(0.5F, 30, 30, 30);
+                    particle->runAction(Sequence::createWithTwoActions(tintToRed, tintToGray));
+                }
+                else
+                {
+                    particle->setColor(color_util::rgbToColor(0xFFDC00));
+                    particle->runAction(TintTo::create(1.0F, color_util::rgbToColor(0x3C3C3C)));
+                }
+            }
+        }
+    }
 }
 
 void Player::emote(const std::string& text, const ax::Color3B& color, bool quick, bool replaceLast)
@@ -913,8 +967,6 @@ BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* 
         _avatar->animateTool();
     }
 
-    // TODO: generate mining debris
-
     // 0x100024695: Process mining attempt
     auto toolSwung = true;
 
@@ -982,7 +1034,7 @@ BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* 
     // 0x100024960: Check mining skill
     if (!isSkilledToMine(targetItem))
     {
-        // TODO: generate debris
+        WorldRenderer::getMain()->generateMiningDebris(target, layer, true);
 
         // 0x100024A42: Show unskilled alert
         if (_miningAttempts == 3)
@@ -1021,6 +1073,7 @@ BaseBlock* Player::tryToMineBlockAtNodePoint(const Point& point, InventoryItem* 
 
     setMiningBlock(target);
     setMiningLayer(layer);
+    WorldRenderer::getMain()->generateMiningDebris(_miningBlock, _miningLayer, false);
     return target;
 }
 
