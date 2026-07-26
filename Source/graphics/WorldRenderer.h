@@ -123,7 +123,7 @@ public:
     void recycleDebris(Debris* debris);
 
     /* FUNC: WorldRenderer::emitItemAnimation:fromPoint: @ 0x100084BDF */
-    void emitItemAnimation(Item* item, const ax::Point& position, ssize_t count = 1);
+    void emitItemAnimation(Item* item, const ax::Point& position);
 
     /* FUNC: WorldRenderer::setWorldScale: @ 0x100082B33 */
     void setWorldScale(float scale) { _worldScale = scale; }

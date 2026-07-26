@@ -28,7 +28,7 @@ public:
     void updateServer();
     
     /* FUNC: InventoryItem::emit @ 0x10006D983 */
-    void emit(ssize_t count);
+    void emit();
 
     /* FUNC: InventoryItem::shouldNotifyOnIncrease @ 0x10006D290 */
     bool shouldNotifyOnIncrease() const;
@@ -62,6 +62,8 @@ public:
     int64_t getCategory() const { return _category; }
 
 private:
+    void emit(float /* deltaTime */) { emit(); }  // Selector for scheduler
+
     Item* _item;               // InventoryItem::item @ 0x100311B08
     int64_t _quantity;         // InventoryItem::count @ 0x100311AF0
     ContainerType _container;  // InventoryItem::container @ 0x100311B00

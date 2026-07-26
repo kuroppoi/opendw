@@ -100,11 +100,11 @@ void InventoryItem::updateServer()
     }
 }
 
-void InventoryItem::emit(ssize_t count)
+void InventoryItem::emit()
 {
     auto position = Player::getMain()->getPosition();
     position.y += BLOCK_SIZE * 2.0F;
-    WorldRenderer::getMain()->emitItemAnimation(_item, position, count);
+    WorldRenderer::getMain()->emitItemAnimation(_item, position);
 }
 
 bool InventoryItem::shouldNotifyOnIncrease() const
@@ -194,7 +194,8 @@ void InventoryItem::setQuantity(int64_t quantity)
     // Notify if quantity increased
     if (quantity > _quantity)
     {
-        auto gained = quantity - _quantity;
+        auto gained    = quantity - _quantity;
+        auto emitCount = MIN(10, gained);
 
         if (shouldNotifyOnIncrease())
         {
@@ -202,7 +203,15 @@ void InventoryItem::setQuantity(int64_t quantity)
             Player::getMain()->getAvatar()->emote(text, Color3B::WHITE, true, true);
         }
 
-        emit(MIN(10, gained));
+        if (emitCount == 1)
+        {
+            emit();
+        }
+        else
+        {
+            auto scheduler = Director::getInstance()->getScheduler();
+            scheduler->schedule(AX_SCHEDULE_SELECTOR(InventoryItem::emit), this, 0.075F, emitCount - 1, 0.0F, false);
+        }
     }
 
     _quantity = quantity;
