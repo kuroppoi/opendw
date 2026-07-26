@@ -2,6 +2,7 @@
 
 #include "base/InventoryItem.h"
 #include "base/Item.h"
+#include "base/ItemCodes.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
@@ -238,9 +239,8 @@ void DefaultInputManager::checkInput(float deltaTime)
                         auto front = block->getFront();
                         auto back  = block->getBack();
 
-                        // Check for earth dug (519) as well so shovels don't get "stuck" on dug earth
-                        // FIXME: Magic number bad
-                        if (front == 0 || (front == 519 && action == Item::Action::DIG))
+                        // Check for dug earth as well so shovels don't get "stuck" on it
+                        if (front == 0 || (front == item_codes::EARTH_DUG && action == Item::Action::DIG))
                         {
                             auto next = target + direction * BLOCK_SIZE;
 

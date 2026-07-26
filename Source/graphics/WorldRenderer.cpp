@@ -3,6 +3,7 @@
 #include "base/Emitter.h"
 #include "base/GameConfig.h"
 #include "base/Item.h"
+#include "base/ItemCodes.h"
 #include "base/Player.h"
 #include "entity/Entity.h"
 #include "entity/EntityAnimated.h"
@@ -34,8 +35,6 @@
 #define LIQUID_CYCLE_INTERVAL  0.333
 #define BLOCK_DEBRIS_INTERVAL  0.0789
 #define GLOW_SPRITE_ITERATIONS 3
-#define GECK_TUB               880
-#define COMPOSTER_CHAMBER      894
 #define DEBRIS_POOL_SIZE       2000
 
 USING_NS_AX;
@@ -702,7 +701,7 @@ void WorldRenderer::processEffects()
                 switch (frontItem->getCode())
                 {
                 // Purifier
-                case GECK_TUB:
+                case item_codes::GECK_TUB:
                 {
                     if (block->getFrontMod() > 0)
                     {
@@ -716,7 +715,7 @@ void WorldRenderer::processEffects()
                     break;
                 }
                 // Composter
-                case COMPOSTER_CHAMBER:
+                case item_codes::COMPOSTER_CHAMBER:
                 {
                     if (block->getFrontMod() > 0)
                     {

@@ -2,6 +2,7 @@
 
 #include "base/GameConfig.h"
 #include "base/Item.h"
+#include "base/ItemCodes.h"
 #include "graphics/backend/MaskedSprite.h"
 #include "graphics/backend/MaskedSpriteBatchNode.h"
 #include "graphics/WorldRenderer.h"
@@ -14,32 +15,6 @@
 #include "zone/WorldZone.h"
 #include "CommonDefs.h"
 #include "GameManager.h"
-
-#define BASE_EARTH          2
-#define BASE_MAW            5
-#define BASE_PIPE           6
-#define PLUGGED_MAW         7
-#define PLUGGED_PIPE        8
-#define WATER               192
-#define RUBY_PLAQUE         399
-#define DAGUERREOTYPE_SMALL 754
-#define DAGUERREOTYPE_LARGE 755
-#define GIANT_CLOCK         761
-#define LANDSCAPE           797
-#define MIXING_BARREL       811
-#define WINE_PRESS          863
-#define GECK_TUB            880
-#define GECK_COG_LARGE      886
-#define GECK_COG_SMALL      887
-#define COMPOSTER_CHAMBER   894
-#define COMPOSTER_TURBINE   899
-#define LANDMARK_PLAQUE     916
-#define MECHANICAL_SIGN     919
-#define RECYCLER_CHAMBER    927
-#define RECYCLER_GEAR       929
-#define EXPIATOR_FACE       1003
-#define EXPIATOR_GEAR       1006
-#define HELL_DISH           1010
 
 USING_NS_AX;
 
@@ -125,7 +100,7 @@ void WorldLayerRenderer::placeSpecialItem(BaseBlock* block, Item* item)
         }
 
         // 0x1000A93C3: Place landscape damage sprite
-        if (item->getCode() == LANDSCAPE)
+        if (item->getCode() == item_codes::LANDSCAPE)
         {
             auto frame    = config->getCurrentBiomeFrame("furniture/painting-distress");
             auto random   = block->getX() + block->getY();
@@ -211,7 +186,7 @@ void WorldLayerRenderer::placeSpecialItem(BaseBlock* block, Item* item)
         }
 
         // 0x1000A9CAD: Place gears & front cover for giant clock
-        if (item->getCode() == GIANT_CLOCK)
+        if (item->getCode() == item_codes::GIANT_CLOCK)
         {
             // Place gears
             float directions[] = {1.0F, -1.0F};
@@ -251,7 +226,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
     switch (item->getCode())
     {
     // 0x1000AAFA4: Small daguerreotype
-    case DAGUERREOTYPE_SMALL:
+    case item_codes::DAGUERREOTYPE_SMALL:
     {
         auto type  = (x + y) % 12;
         auto name  = std::format("furniture/daguerreotype-image-{}", type + 1);
@@ -263,7 +238,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
         break;
     }
     // 0x1000AA42E: Large daguerreotype
-    case DAGUERREOTYPE_LARGE:
+    case item_codes::DAGUERREOTYPE_LARGE:
     {
         struct Portrait
         {
@@ -290,7 +265,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
         break;
     }
     // 0x1000AA8C8: Wine press
-    case WINE_PRESS:
+    case item_codes::WINE_PRESS:
     {
         if (block->getFrontMod() > 0)
         {
@@ -307,7 +282,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
         break;
     }
     // 0x1000AB3AB: Mixing barrel
-    case MIXING_BARREL:
+    case item_codes::MIXING_BARREL:
     {
         if (auto metaBlock = _zone->getMetaBlockAt(x, y))
         {
@@ -325,7 +300,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
         break;
     }
     // 0x1000AA340: Infernal protector
-    case HELL_DISH:
+    case item_codes::HELL_DISH:
     {
         auto frame  = config->getCurrentBiomeFrame("hell/dish-spinner");
         auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 5);
@@ -335,7 +310,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
         break;
     }
     // 0x1000AB0E4: Purifier
-    case GECK_TUB:
+    case item_codes::GECK_TUB:
     {
         auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "p");
         auto currentZ = 8;
@@ -358,11 +333,11 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
             {
                 switch (code)
                 {
-                case GECK_COG_LARGE:
+                case item_codes::GECK_COG_LARGE:
                     sprite->setTag(ACTION_SPRITE_TAG);
                     sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
                     break;
-                case GECK_COG_SMALL:
+                case item_codes::GECK_COG_SMALL:
                     sprite->setTag(ACTION_SPRITE_TAG);
                     sprite->runAction(RepeatForever::create(RotateBy::create(0.5F, -360.0F)));
                     break;
@@ -374,7 +349,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
     }
     // 0x1000AA60C: Composter
     // NOTE: The turbine is invisible because it's in front-1, which draws below front-0 where the other parts are.
-    case COMPOSTER_CHAMBER:
+    case item_codes::COMPOSTER_CHAMBER:
     {
         auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "c");
         auto currentZ = 2;
@@ -393,7 +368,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
                 placeSprite(block, nullptr, item->getSpriteFrame(), false, true, ModType::NONE, 0, currentZ++);
 
             // Animate turbine if active
-            if (block->getFrontMod() > 0 && code == COMPOSTER_TURBINE)
+            if (block->getFrontMod() > 0 && code == item_codes::COMPOSTER_TURBINE)
             {
                 sprite->setTag(ACTION_SPRITE_TAG);
                 sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
@@ -403,7 +378,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
         break;
     }
     // 0x1000AAA48: Recycler
-    case RECYCLER_CHAMBER:
+    case item_codes::RECYCLER_CHAMBER:
     {
         auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "r");
         auto currentZ = 2;
@@ -422,7 +397,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
                 placeSprite(block, nullptr, item->getSpriteFrame(), false, true, ModType::NONE, 0, currentZ++);
 
             // Animate gear if active
-            if (block->getFrontMod() > 0 && code == RECYCLER_GEAR)
+            if (block->getFrontMod() > 0 && code == item_codes::RECYCLER_GEAR)
             {
                 sprite->setTag(ACTION_SPRITE_TAG);
                 sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
@@ -433,7 +408,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
     }
     // 0x1000AACF9: Expiator
     // NOTE: The expiator only renders properly in hell biomes because the components are in its biome atlas.
-    case EXPIATOR_FACE:
+    case item_codes::EXPIATOR_FACE:
     {
         auto& parts   = map_util::getArray(_zone->getMachinePartsDiscovered(), "e");
         auto currentZ = 8;
@@ -452,7 +427,7 @@ void WorldLayerRenderer::placeUniqueItem(BaseBlock* block, Item* item)
                 placeSprite(block, nullptr, item->getSpriteFrame(), false, true, ModType::NONE, 0, currentZ--);
 
             // Animate gear if active
-            if (block->getFrontMod() > 0 && code == EXPIATOR_GEAR)
+            if (block->getFrontMod() > 0 && code == item_codes::EXPIATOR_GEAR)
             {
                 sprite->setTag(ACTION_SPRITE_TAG);
                 sprite->runAction(RepeatForever::create(RotateBy::create(0.25F, 360.0F)));
@@ -478,19 +453,20 @@ void WorldLayerRenderer::placeBlock(BaseBlock* block)
         auto code = item->getCode();
 
         // 0x1000A3D13: Place plugs on plugged spawners
-        if (code == PLUGGED_MAW)
+        if (code == item_codes::PLUGGED_MAW)
         {
             auto frame  = GameManager::getInstance()->getConfig()->getCurrentBiomeFrame("base/maw-plug");
             auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 11);
             sprite->setAnchorPoint({0.5F, 0.7F});
         }
-        else if (code == PLUGGED_PIPE)
+        else if (code == item_codes::PLUGGED_PIPE)
         {
             auto frame  = GameManager::getInstance()->getConfig()->getCurrentBiomeFrame("base/pipe-plug");
             auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 11);
             sprite->setAnchorPoint({0.5F, 0.65F});
         }
-        else if (code != BASE_MAW && code != BASE_PIPE && (block->isBackOpaque() || block->isFrontOpaque()))
+        else if (code != item_codes::BASE_MAW && code != item_codes::BASE_PIPE &&
+                 (block->isBackOpaque() || block->isFrontOpaque()))
         {
             // Don't draw block if it is behind an opaque block unless it is a maw or pipe
             return;
@@ -814,7 +790,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
                 // 0x1000A634D: Border wholeness
                 // NOTE: it explicitly uses the border wholeness of base/earth
                 // auto& borderWholeness = item->getBorderWholeness();
-                auto& borderWholeness = config->getItemForCode(BASE_EARTH)->getBorderWholeness();
+                auto& borderWholeness = config->getItemForCode(item_codes::BASE_EARTH)->getBorderWholeness();
 
                 if (!borderWholeness.empty())
                 {
@@ -877,9 +853,9 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
             auto& color        = item->getColor();
             auto code          = item->getCode();
             auto fontScale     = 0.5F;  // FIXME: Why is the font size too big!?
-            auto letterSpacing = code == MECHANICAL_SIGN ? 10.0F : 0.0F;
-            auto maxLabelScale = (code == MECHANICAL_SIGN ? 1.2F : 1.0F) * fontScale;
-            auto landmark      = code == RUBY_PLAQUE || code == LANDMARK_PLAQUE;
+            auto letterSpacing = code == item_codes::MECHANICAL_SIGN ? 10.0F : 0.0F;
+            auto maxLabelScale = (code == item_codes::MECHANICAL_SIGN ? 1.2F : 1.0F) * fontScale;
+            auto landmark      = code == item_codes::RUBY_PLAQUE || code == item_codes::LANDMARK_PLAQUE;
             auto paddingX      = (landmark ? 0.1F : 0.0F) * fontScale;
             auto linePadding   = (landmark ? -2.0F : 2.0F) * fontScale;
             auto signSprite    = block->getTopSpriteForLayer(BlockLayer::FRONT);
@@ -937,7 +913,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
                 labelY -= label->getContentSize().height * 0.5F + linePadding;
 
                 // 0x1000A5F2A: Draw mechanical letter borders
-                if (code == MECHANICAL_SIGN)
+                if (code == item_codes::MECHANICAL_SIGN)
                 {
                     auto borderColor = color_util::hexToColor("3C3732");
 
@@ -1171,7 +1147,7 @@ MaskedSprite* WorldLayerRenderer::placeSprite(BaseBlock* block,
         sprite->setTag((tileX << 16) | (tileY << 8) | liquid);
 
         // 0x1000A85C5: Hard coded opacity
-        sprite->setOpacity(liquid == WATER ? 192 : 222);
+        sprite->setOpacity(liquid == item_codes::LIQUID_WATER ? 192 : 222);
     }
 
     // Offset position

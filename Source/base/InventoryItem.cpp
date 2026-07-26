@@ -1,6 +1,7 @@
 #include "InventoryItem.h"
 
 #include "base/Item.h"
+#include "base/ItemCodes.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
@@ -109,7 +110,7 @@ void InventoryItem::emit()
 
 bool InventoryItem::shouldNotifyOnIncrease() const
 {
-    return _item->getCode() != 512;  // ground/earth
+    return _item->getCode() != item_codes::EARTH;
 }
 
 void InventoryItem::moveToContainer(ContainerType container, int64_t slot, int64_t category)

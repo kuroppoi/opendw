@@ -1,16 +1,12 @@
 #include "Item.h"
 
 #include "base/GameConfig.h"
+#include "base/ItemCodes.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "zone/BaseBlock.h"  // BlockLayer
 #include "CommonDefs.h"
 #include "GameManager.h"
-
-#define BASE_EARTH        2
-#define BASE_LIMESTONE    4
-#define BASE_WATER        9
-#define BASE_EARTH_ACCENT 15
 
 USING_NS_AX;
 
@@ -433,8 +429,9 @@ bool Item::isContinuousFor(Item* item) const
     auto code  = item->getCode();
 
     // 0x10004D932: Weird hack for base layer continuity
-    if (layer == BlockLayer::BASE && _code >= BASE_EARTH &&
-        (code == BASE_EARTH || (code > BASE_LIMESTONE && code < BASE_WATER) || code == BASE_EARTH_ACCENT))
+    if (layer == BlockLayer::BASE && _code >= item_codes::BASE_EARTH &&
+        (code == item_codes::BASE_EARTH || (code > item_codes::BASE_LIMESTONE && code < item_codes::BASE_WATER) ||
+         code == item_codes::BASE_EARTH_ACCENT))
     {
         return true;
     }

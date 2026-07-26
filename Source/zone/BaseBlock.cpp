@@ -3,6 +3,7 @@
 #include "base/GameConfig.h"
 #include "base/InventoryItem.h"
 #include "base/Item.h"
+#include "base/ItemCodes.h"
 #include "base/Player.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
@@ -20,11 +21,6 @@
 #include "CommonDefs.h"
 #include "GameManager.h"
 
-#define EARTH_DUG                519
-#define GLASS                    599
-#define BALLOON                  607
-#define BALLOON_STRIPED          678
-#define MECHANICAL_PIPE          860
 #define SPECIAL_PIPE_CONTINUITY  1  // Enable this if you want brass pipes to connect to steam-powered machine inputs
 #define SPECIAL_FRONT_CONTINUITY 1
 #define CRACKS_ACTION_TAG        1
@@ -153,7 +149,8 @@ void BaseBlock::updateEnvironment(bool light, bool liquid, bool wholeness, bool 
                 _frontModContinuity |= (block && block->getFrontMod() > 0) << i;
 
 #if SPECIAL_PIPE_CONTINUITY
-                if (i == 1 && _front == MECHANICAL_PIPE && block && block->getRealFrontItem()->isSteamPowered())
+                if (i == 1 && _front == item_codes::MECHANICAL_PIPE && block &&
+                    block->getRealFrontItem()->isSteamPowered())
                 {
                     _frontContinuity |= CONTINUITY_RIGHT;
                 }
@@ -162,7 +159,7 @@ void BaseBlock::updateEnvironment(bool light, bool liquid, bool wholeness, bool 
 
             // 0x10003046A: Handle special front continuity
 #if SPECIAL_FRONT_CONTINUITY
-            if (_front == GLASS || _front == BALLOON || _front == BALLOON_STRIPED)
+            if (_front == item_codes::GLASS || _front == item_codes::BALLOON || _front == item_codes::BALLOON_STRIPED)
             {
                 // Unset top continuity if front is continuous with its right neighbor but not with its top right
                 // neighbor OR if it is continuous with its left neighbor but not with its top left neighbor
@@ -776,7 +773,7 @@ void BaseBlock::startMining(BlockLayer layer, Item* tool)
 
     if (tool && tool->getAction() == Item::Action::DIG)
     {
-        if (item->getCode() == EARTH_DUG)
+        if (item->getCode() == item_codes::EARTH_DUG)
         {
             return;
         }
@@ -835,7 +832,7 @@ void BaseBlock::completeMining(BlockLayer layer)
 
     if (tool && tool->getAction() == Item::Action::DIG && item->isDiggable())
     {
-        setLayer(layer, EARTH_DUG, 0);
+        setLayer(layer, item_codes::EARTH_DUG, 0);
     }
     else
     {
