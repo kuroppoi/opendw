@@ -46,8 +46,10 @@ bool EntityConfig::initWithData(const ValueMap& data)
     _spineSkin   = map_util::getString(data, "spine_skin");
     _sprites     = map_util::getArray(data, "sprites");
     _obstruction = map_util::getFloat(data, "obstacle");
-    _scaleBase   = map_util::getFloat(data, "spine_scale_base", map_util::getFloat(data, "scale_base", 1.0F));  // Orig. scale base
-    _scaleRange  = map_util::getFloat(data, "scale_range");  // Orig. scale range
+    _scaleBase =
+        map_util::getFloat(data, "spine_scale_base", map_util::getFloat(data, "scale_base", 1.0F));  // Orig. scale base
+    _scaleRange = map_util::getFloat(data, "scale_range");  // Orig. scale range
+    _emitters   = map_util::getMap(data, "emitters");
 
     // 0x10011F944: Configure size
     auto& size = map_util::getArray(data, "size");

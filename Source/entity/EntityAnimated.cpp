@@ -2,10 +2,15 @@
 
 #include "spine/SkeletonAnimation.h"
 
+#include "base/GameConfig.h"
 #include "entity/EntityConfig.h"
 #include "entity/SpineManager.h"
+#include "graphics/Debris.h"
+#include "graphics/WorldRenderer.h"
+#include "physics/Physical.h"
 #include "util/ArrayUtil.h"
 #include "util/MapUtil.h"
+#include "util/MathUtil.h"
 
 USING_NS_AX;
 
@@ -91,6 +96,34 @@ bool EntityAnimated::runAnimation(int32_t id)
     setRealRotation(animation.rotation);
     _currentAnimation = id;
     return true;
+}
+
+void EntityAnimated::runEmitters()
+{
+    for (auto& entry : _aggregateConfig->getEmitters())
+    {
+        if (auto slot = getSlot(entry.first))
+        {
+            auto& data = entry.second.asValueVector();
+
+            if (data.size() == 3)
+            {
+                if (auto emitter = GameConfig::getMain()->getEmitterForName(data[0].asString()))
+                {
+                    auto& array = data[1].asValueVector();  // Anchor vector
+                    AX_ASSERT(array.size() >= 2);
+                    auto anchor   = Vec2(array[0].asFloat(), array[1].asFloat());
+                    auto angle    = MATH_DEG_TO_RAD(data[2].asFloat());
+                    auto position = getSlotWorldPosition(slot, anchor);
+
+                    if (auto particle = WorldRenderer::getMain()->emitParticle(emitter, position))
+                    {
+                        particle->getPhysical()->setVelocity(Vec2(sin(angle), -cos(angle)) * 200.0F);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void EntityAnimated::setFlippedX(bool flippedX)
@@ -201,5 +234,32 @@ spine::Slot* EntityAnimated::getSlot(const std::string& name) const
 {
     return _mainSkeleton->findSlot(name);  // TODO: cache result
 }
+
+Point EntityAnimated::getSlotPosition(spine::Slot* slot, const Vec2& anchor) const
+{
+    if (auto attachment = dynamic_cast<spine::RegionAttachment*>(slot->getAttachment()))
+    {
+        float vertices[8];
+        attachment->computeWorldVertices(*slot, vertices, 0);
+        auto bl = Vec2(vertices[2], vertices[3]);  // Bottom left
+        auto tr = Vec2(vertices[6], vertices[7]);  // Top right
+        auto x  = math_util::lerp(bl.x, tr.x, anchor.x);
+        auto y  = math_util::lerp(bl.y, tr.y, anchor.y);
+        return {x, y};
+    }
+
+    return Point::ZERO;
+}
+
+Point EntityAnimated::getSlotWorldPosition(spine::Slot* slot, const Vec2& anchor) const
+{
+    auto position = getSlotPosition(slot, anchor);
+    position.x += _mainSkeleton->getPositionX();
+    position.y -= _mainSkeleton->getPositionY();
+    position = position * Vec2(_scaleX, _scaleY);
+    position = math_util::rotateVector(position, -getRotation());
+    return position + getPosition();
+}
+
 
 }  // namespace opendw

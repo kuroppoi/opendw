@@ -50,6 +50,9 @@ public:
     /* FUNC: Entity::runAnimation: @ 0x1000BEA8D */
     virtual bool runAnimation(int32_t id) { return false; }
 
+    /* FUNC: Entity::runEmitters @ 0x1000BF450 */
+    virtual void runEmitters();
+
     /* FUNC: Entity::animateViolentDeath @ 0x1000BF10B */
     virtual void animateViolentDeath();
 
@@ -164,6 +167,7 @@ protected:
     double _lastEmoteAt;                     // Entity::lastEmoteAt @ 0x1003129E8
     float _emoteOffset;                      // Entity::emoteCount @ 0x100312998
     Physical* _physical;                     // NOTE: Originally inherited from GameObject
+    double _nextFX;
 };
 
 }  // namespace opendw

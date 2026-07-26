@@ -28,6 +28,9 @@ public:
     /* FUNC: EntityAnimated::runAnimation: @ 0x100170468 */
     virtual bool runAnimation(int32_t id) override;
 
+    /* FUNC: EntityAnimated::runEmitters @ 0x100171367 */
+    virtual void runEmitters() override;
+
     /* FUNC: EntityAnimated::setFlipX: @ 0x10017099C */
     virtual void setFlippedX(bool flippedX) override;
 
@@ -48,6 +51,12 @@ public:
 
     /* FUNC: EntityAnimated::getSlot: @ 0x1001717AC */
     spine::Slot* getSlot(const std::string& name) const;
+
+    /* FUNC: EntityAnimated::positionForSlot:offset:anchor: @ 0x100171A5C */
+    ax::Point getSlotPosition(spine::Slot* slot, const ax::Vec2& anchor) const;
+
+    /* FUNC: EntityAnimated::worldPositionForSlot:anchor: @ 0x100171AE7 */
+    ax::Point getSlotWorldPosition(spine::Slot* slot, const ax::Vec2& anchor) const;
 
     /* FUNC: EntityAnimated::mainSkeleton @ 0x100171C87 */
     spine::SkeletonAnimation* getMainSkeleton() const { return _mainSkeleton; }

@@ -18,6 +18,8 @@
 #include "AudioManager.h"
 #include "CommonDefs.h"
 
+#define EMITTER_INTERVAL 1.0 / 60.0 * 4.0
+
 USING_NS_AX;
 
 namespace opendw
@@ -287,6 +289,13 @@ void Entity::update(float deltaTime)
         setRotation(rotation);
     }
 
+    // 0x1000BCEBF: Run emitters
+    if (utils::gettime() >= _nextFX)
+    {
+        runEmitters();
+        _nextFX = utils::gettime() + EMITTER_INTERVAL;
+    }
+
     // 0x1000BCF33: Randomly play an ambient sound
     auto& ambientSounds = _config->getAmbientSounds();
 
@@ -414,6 +423,11 @@ void Entity::createNameLabel()
     AX_SAFE_RETAIN(_nameLabel);
     _nameLabel->setScale(BLOCK_SIZE / 100.0F);
     _nameLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
+}
+
+void Entity::runEmitters()
+{
+    // TODO: implement
 }
 
 void Entity::animateViolentDeath()

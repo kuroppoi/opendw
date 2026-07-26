@@ -87,6 +87,9 @@ public:
 
     int32_t getAnimationByName(const std::string& name) const;
 
+    /* FUNC: EntityConfig::emitters @ 0x100120CE1 */
+    const ax::ValueMap& getEmitters() const { return _emitters; }
+
     /* FUNC: EntityConfig::slots @ 0x100120E6E */
     const std::vector<std::string>& getSlots() const { return _slots; }
 
@@ -125,6 +128,7 @@ protected:
     ax::ValueVector _sprites;                          // EntityConfig::sprites @ 0x100313CE8
     std::vector<Animation> _animations;                // EntityConfig::animations @ 0x100313CF0
     std::map<std::string, int32_t> _animationsByName;  // EntityConfig::animationsByName @ 0x100313CF8
+    ax::ValueMap _emitters;                            // EntityConfig::emitters @ 0x100313D48
     std::vector<std::string> _slots;                   // EntityConfig::slots @ 0x100313E00
     std::vector<std::string> _attachments;             // EntityConfig::attachments @ 0x100313E08
     std::vector<std::string> _sounds;                  // EntityConfig::sound @ 0x100313D50
