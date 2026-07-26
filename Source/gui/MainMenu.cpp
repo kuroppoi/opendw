@@ -66,7 +66,7 @@ bool MainMenu::init()
 
     // 0x1000875B3: Create background cavern renderer
     _cavern = CavernRenderer::createWithZone(nullptr);
-    _cavern->setColors(color_util::hexToColor("28152E"), color_util::hexToColor("E6B5FF"));
+    _cavern->setColors(color_util::rgbToColor(0x28152E), color_util::rgbToColor(0xE6B5FF));
     _cavern->updateColors(1.0F);
     _background->addChild(_cavern);
 
@@ -115,8 +115,8 @@ bool MainMenu::init()
 
     // 0x100087DAA: Create music button
     // TODO: build toggle support into SpriteButton (or create a subclass or something)
-    auto activeColor   = color_util::hexToColor("D19D22");
-    auto inactiveColor = color_util::hexToColor("606060");
+    auto activeColor   = color_util::rgbToColor(0xD19D22);
+    auto inactiveColor = color_util::rgbToColor(0x606060);
     _musicButton       = SpriteButton::createWithSpriteFrame("buttons/music");
     _musicButton->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
     _musicButton->setScale(0.6F);
@@ -323,7 +323,7 @@ void MainMenu::showAlert(const std::string& message)
     // Create alert label
     auto label = Label::createWithBMFont("console.fnt", message);
     label->setMaxLineWidth(_currentMenu->getContentSize().width - x);
-    label->setColor(color_util::hexToColor("FFC800"));
+    label->setColor(color_util::rgbToColor(0xFFC800));
     label->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
     label->setPosition(x, y - 10.0F);
     _currentMenu->addChild(label);
@@ -338,7 +338,7 @@ void MainMenu::addMenuButtons(const std::string& actionTitle, const Callback& ac
     button->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
     button->setPosition(30.0F, 40.0F);
     button->setScale(0.75F);
-    ax_util::runBlinkSequence(button, color_util::hexToColor("CDCDCD"), button->getColor());
+    ax_util::runBlinkSequence(button, color_util::rgbToColor(0xCDCDCD), button->getColor());
     _currentMenu->addChild(button, 1);
 
     // Create action button if present
@@ -351,8 +351,8 @@ void MainMenu::addMenuButtons(const std::string& actionTitle, const Callback& ac
         actionButton->setPosition(button->getPosition() + Vec2::UNIT_X * math_util::getScaledWidth(button));
         actionButton->setScale(0.75F);
         actionButton->setTitleOffset({-10.0F, 0.0F});
-        actionButton->setColor(color_util::hexToColor("64E864"));
-        ax_util::runBlinkSequence(actionButton, color_util::hexToColor("32B632"), actionButton->getColor());
+        actionButton->setColor(color_util::rgbToColor(0x64E864));
+        ax_util::runBlinkSequence(actionButton, color_util::rgbToColor(0x32B632), actionButton->getColor());
         _currentMenu->addChild(actionButton, 1);
     }
 }
@@ -439,7 +439,7 @@ void MainMenu::showPlayMenu()
         menuItems.pushBack(loginButton);
     }
 
-    auto color = color_util::hexToColor("281401");
+    auto color = color_util::rgbToColor(0x281401);
 
     // Create help button
     auto helpButton = MenuItemLabel::create(Label::createWithBMFont("console.fnt", "Help"));
@@ -474,15 +474,15 @@ void MainMenu::showPlayMenu()
     // Create update button if there is an update available
     if (GameManager::getInstance()->isUpdateAvailable())
     {
-        auto color  = color_util::hexToColor("FFDC0A");
+        auto color  = color_util::rgbToColor(0xFFDC0A);
         auto button = MenuItemLabel::create(Label::createWithBMFont("console.fnt", "New update available!"));
         button->setColor(color);
         button->setCallback([=](Object*) {
             AudioManager::getInstance()->playButtonSfx();
             Application::getInstance()->openURL(LATEST_RELEASE_URL);
-            ax_util::runBlinkSequence(button, color_util::hexToColor("D8B208"), color);  // For some reason, clicking a button cancels all actions on it
+            ax_util::runBlinkSequence(button, color_util::rgbToColor(0xD8B208), color);  // For some reason, clicking a button cancels all actions on it
         });
-        ax_util::runBlinkSequence(button, color_util::hexToColor("D8B208"), color);
+        ax_util::runBlinkSequence(button, color_util::rgbToColor(0xD8B208), color);
         menuItems.pushBack(button);
         offsetY = math_util::getScaledHeight(button) * 0.333F;
     }
@@ -594,7 +594,7 @@ void MainMenu::showHelpMenu()
         button->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
         button->setPosition(x, y);
         button->setTitle(info.title);
-        button->setTitleColor(color_util::hexToColor("FFDC0A"));
+        button->setTitleColor(color_util::rgbToColor(0xFFDC0A));
         button->setTitleOffset({0.0F, button->getContentSize().height * -0.5F - 15.0F});
         _currentMenu->addChild(button);
         x += _currentMenu->getContentSize().width * 0.3F;
@@ -608,7 +608,7 @@ void MainMenu::showServerMenu()
     auto currentValue = UserDefault::getInstance()->getStringForKey("gatewayServer", DEFAULT_GATEWAY);
     auto serverField  = createMenuTextField(
         "Server", "NOTE: Only connect to servers that you trust.\nThe game must be restarted after saving.");
-    serverField->setHintColor(color_util::hexToColor("FF0000"));
+    serverField->setHintColor(color_util::rgbToColor(0xFF0000));
     serverField->setMaxLength(128);
     serverField->setText(std::string(currentValue));
     addMenuButtons("Save", [=]() {
@@ -678,7 +678,7 @@ void MainMenu::showNews(const std::vector<News>& news)
         dateLabel->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
         dateLabel->setPositionY(currentY);
         dateLabel->setScale(0.75F);
-        dateLabel->setColor(color_util::hexToColor("9FAC59"));
+        dateLabel->setColor(color_util::rgbToColor(0x9FAC59));
         node->addChild(dateLabel);
         currentY -= math_util::getScaledHeight(dateLabel) + 19.0F;
 
@@ -688,7 +688,7 @@ void MainMenu::showNews(const std::vector<News>& news)
         contentLabel->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
         contentLabel->setPositionY(currentY);
         contentLabel->setScale(0.8F);
-        contentLabel->setColor(color_util::hexToColor("D4D4D4"));
+        contentLabel->setColor(color_util::rgbToColor(0xD4D4D4));
         node->addChild(contentLabel);
 
         if (count > 1)
@@ -709,7 +709,7 @@ TextField* MainMenu::createMenuTextField(const std::string& title, const std::st
     auto offsetY      = previous ? previous->getPositionY() - 10.0F : contentSize.height - 15.0F;
     auto textField    = TextField::createWithFont("console.fnt");
     textField->setTitle(title);
-    textField->setTextColor(color_util::hexToColor("FFDC0A"));
+    textField->setTextColor(color_util::rgbToColor(0xFFDC0A));
     textField->setHint(hint);
     textField->setWidth(contentSize.width - 40.0F);
     textField->updateLayout();
@@ -734,7 +734,7 @@ void MainMenu::setAssetLoadStatus(const std::string& message, float progress)
         label = Label::createWithBMFont("console.fnt", " ");
         label->setPosition(_spinner->getPositionX(),
                            _spinner->getPositionY() - math_util::getScaledHeight(_spinner) + 25.0F);
-        label->setColor(color_util::hexToColor("FFDC0A"));
+        label->setColor(color_util::rgbToColor(0xFFDC0A));
         _currentMenu->addChild(label, 10, PROGRESS_LABEL_TAG);
     }
 
@@ -748,7 +748,7 @@ void MainMenu::setAssetLoadStatus(const std::string& message, float progress)
     // Update progress bar
     _progressBar->setVisible(true);
     _progressBar->setPercentage(progress * 100.0F);
-    _spinner->setColor(color_util::hexToColor("808080"));
+    _spinner->setColor(color_util::rgbToColor(0x808080));
 
     if (progress >= 1.0F)
     {

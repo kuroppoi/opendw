@@ -517,7 +517,7 @@ void Player::update(float deltaTime)
     opacity      = math_util::lerp(_avatar->getOpacity(), opacity, deltaTime * 3.0F);
     _avatar->setOpacity(opacity);
     // NOTE: This interferes with change color property (e*)
-    auto color = color_util::lerpColor(Color3B::WHITE, color_util::hexToColor("FF7F00"), respawnTime);
+    auto color = color_util::lerpColor(Color3B::WHITE, color_util::rgbToColor(0xFF7F00), respawnTime);
     color      = color_util::lerpColor(_avatar->getColor(), color, deltaTime * 3.0F);
     _avatar->setColor(color);
 

@@ -238,7 +238,7 @@ void SkyRenderer::updateColors(float deltaTime)
         // 0x1000C4F62: Hard-coded biome rules
         if (biome == Biome::HELL)
         {
-            cloudColor    = color_util::hexToColor("100000");
+            cloudColor    = color_util::rgbToColor(0x100000);
             farCloudColor = color_util::lerpColor(cloudColor, skyColor, 0.3F);
         }
         else if (biome == Biome::BRAIN)

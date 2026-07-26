@@ -72,7 +72,7 @@ void CraftingPanel::onEnter()
     // 0x10018141A: Create crafting label
     auto craftingLabel = Label::createWithBMFont("console.fnt", "Crafting:");
     craftingLabel->setScale(0.8F);
-    craftingLabel->setColor(color_util::hexToColor("FFDC0A"));
+    craftingLabel->setColor(color_util::rgbToColor(0xFFDC0A));
     craftingLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     craftingLabel->setPosition(panelPadding + 32.0F, background->getBoundingBox().getMaxY() + 3.0F);
     addChild(craftingLabel);

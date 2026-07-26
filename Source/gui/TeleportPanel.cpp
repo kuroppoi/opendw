@@ -48,7 +48,7 @@ bool TeleportPanel::init()
     _groupIndicator = Sprite::createWithSpriteFrameName("icons/triangle-up");
     _groupIndicator->setRotation(-90.0F);
     _groupIndicator->setScale(0.4F);
-    _groupIndicator->setColor(color_util::hexToColor("393224"));
+    _groupIndicator->setColor(color_util::rgbToColor(0x393224));
     addChild(_groupIndicator, 1);
     return true;
 }
@@ -189,8 +189,8 @@ void TeleportPanel::showGroups(const ValueVector& groups)
     // 0x1000FE0AE: Create exit button
     auto exitButton = SpriteButton::createWithSpriteFrame("buttons/brass");
     exitButton->setTitle("Exit");
-    exitButton->setTitleColor(color_util::hexToColor("FFF032"));
-    exitButton->setColor(color_util::hexToColor("96320A"));
+    exitButton->setTitleColor(color_util::rgbToColor(0xFFF032));
+    exitButton->setColor(color_util::rgbToColor(0x96320A));
     exitButton->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
     exitButton->setPositionY(currentY);
     exitButton->setCallback([=]() { GameGui::getMain()->hideTeleportInterface(); });
@@ -203,7 +203,7 @@ void TeleportPanel::showGroups(const ValueVector& groups)
 SpriteButton* TeleportPanel::createGroupButton(const Value& group)
 {
     std::string key = "Back";
-    auto color      = color_util::hexToColor("FAC80A");
+    auto color      = color_util::rgbToColor(0xFAC80A);
 
     // 0x1000FE6C1: Determine title & color
     if (!group.isNull())
@@ -223,7 +223,7 @@ SpriteButton* TeleportPanel::createGroupButton(const Value& group)
     auto button = SpriteButton::createWithSpriteFrame("buttons/brass");
     button->setAnchorPoint(Point::ANCHOR_TOP_RIGHT);
     button->setTitle(key);
-    button->setTitleColor(color_util::hexToColor("FFF032"));
+    button->setTitleColor(color_util::rgbToColor(0xFFF032));
     button->setColor(color);
     button->setCallback([=]() { onGroupSelected(group); });
     _groupNode->addChild(button);

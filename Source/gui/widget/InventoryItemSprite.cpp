@@ -60,7 +60,7 @@ void InventoryItemSprite::getTooltipComponents(std::vector<Node*>& output)
         text[0]          = std::toupper(text[0]);
         auto label       = Label::createWithBMFont("console.fnt", text);
         label->setScale(0.7F);
-        label->setColor(color_util::hexToColor("850000"));
+        label->setColor(color_util::rgbToColor(0x850000));
         output.push_back(label);
     }
 
@@ -72,7 +72,7 @@ void InventoryItemSprite::getTooltipComponents(std::vector<Node*>& output)
         std::replace(text.begin(), text.end(), '|', '\n');
         auto label = Label::createWithBMFont("console.fnt", text);
         label->setScale(0.6F);
-        label->setColor(color_util::hexToColor("323232"));
+        label->setColor(color_util::rgbToColor(0x323232));
         output.push_back(label);
     }
 }

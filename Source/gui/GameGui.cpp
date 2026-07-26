@@ -103,7 +103,7 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     // 0x100059A15: Create health bar
     _healthBar = IconBar::createWithIcon("hud/heart", 5.0F);
-    _healthBar->setIconColor(color_util::hexToColor("FF4A34"));
+    _healthBar->setIconColor(color_util::rgbToColor(0xFF4A34));
     _healthBar->setPadding(1.0F);
     _healthBar->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
     _healthBar->setScale(GUI_SCALE * 0.4F);
@@ -160,19 +160,19 @@ bool GameGui::initWithZone(WorldZone* zone)
     _hudButtonsNode->addChild(_shopButton);
     _crownsLabel = Label::createWithBMFont("console-shadow.fnt", "0");
     _crownsLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
-    _crownsLabel->setColor(color_util::hexToColor("FFFFA0"));
+    _crownsLabel->setColor(color_util::rgbToColor(0xFFFFA0));
     _crownsLabel->setPosition(_shopButton->getForegroundSprite()->getPosition() - Vec2::UNIT_Y * 48.0F);
     _crownsLabel->setScale(1.25F);
     _shopButton->addChild(_crownsLabel);
 
     // 0x10005AE56: Create world button
-    _worldButton = createTopHudButton("world", true, 20.0F, color_util::hexToColor("C1B09D"));
+    _worldButton = createTopHudButton("world", true, 20.0F, color_util::rgbToColor(0xC1B09D));
     _worldButton->setCallback(
         [=]() { _eventDispatcher->dispatchCustomEvent(events::kZoneTeleportActivated); });
     _hudButtonsNode->addChild(_worldButton);
 
     // 0x10005AC33: Create social button
-    _socialButton = createTopHudButton("social", true, 30.0F, color_util::hexToColor("C1B09D"));
+    _socialButton = createTopHudButton("social", true, 30.0F, color_util::rgbToColor(0xC1B09D));
     _socialButton->setCallback(defaultCallback);
     _hudButtonsNode->addChild(_socialButton);
     _socialLabel = Label::createWithBMFont("console-shadow.fnt", "1", TextHAlignment::CENTER);
@@ -182,13 +182,13 @@ bool GameGui::initWithZone(WorldZone* zone)
     _socialButton->addChild(_socialLabel);
 
     // 0x10005A980: Create crafting button
-    _craftingButton = createTopHudButton("crafting", true, 20.0F, color_util::hexToColor("C1B09D"));
+    _craftingButton = createTopHudButton("crafting", true, 20.0F, color_util::rgbToColor(0xC1B09D));
     _craftingButton->setCallback([this]() {
         _guiWindow->toggle(GameGuiWindow::PanelType::CRAFTING); });  // 0x10005C7F7
     _hudButtonsNode->addChild(_craftingButton);
 
     // 0x10005A843: Create inventory button
-    _inventoryButton = createTopHudButton("inventory", false, 20.0F, color_util::hexToColor("C1B09D"));
+    _inventoryButton = createTopHudButton("inventory", false, 20.0F, color_util::rgbToColor(0xC1B09D));
     _inventoryButton->setCallback(
         [this]() { _guiWindow->toggle(GameGuiWindow::PanelType::INVENTORY); });  // 0x10005C7A7
     _hudButtonsNode->addChild(_inventoryButton);
@@ -204,7 +204,7 @@ bool GameGui::initWithZone(WorldZone* zone)
     // 0x10005B057: Create console button
     _consoleButton = SpriteButton::createWithBackground("hud/bubble-corner", "hud/bubble-icon-chat");
     _consoleButton->setCallback(defaultCallback);
-    _consoleButton->setColor(color_util::hexToColor("E0CCAD"));
+    _consoleButton->setColor(color_util::rgbToColor(0xE0CCAD));
     _consoleButton->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     _consoleButton->setOpacity(HUD_BUTTON_OPACITY);
     _consoleButton->setScale(GUI_SCALE * HUD_BUTTON_SCALE);
@@ -414,7 +414,7 @@ void GameGui::updateAccessoryBar()
         {
             auto item = container->getItemAtSlot(i, 0);
             auto color =
-                item ? (item->getItem()->isEquippableAccessory() ? color_util::hexToColor("78FF78") : Color3B::RED)
+                item ? (item->getItem()->isEquippableAccessory() ? color_util::rgbToColor(0x78FF78) : Color3B::RED)
                      : Color3B::WHITE;
             container->setSlotSprite(i, "inventory-slot", color);
         }
@@ -590,7 +590,7 @@ void GameGui::toggleGameMenu()
     }
 
     // 0x100064DA2: Create gradient
-    _gameMenu = LayerGradient::create(color_util::hexToColor4("42424282"), color_util::hexToColor4("00000082"));
+    _gameMenu = LayerGradient::create(color_util::rgbaToColor(0x42424282), color_util::rgbaToColor(0x00000082));
     addChild(_gameMenu, 21);
 
     // 0x100064E3E: Create leave button
@@ -737,7 +737,7 @@ void GameGui::showBigAlert(const std::string& title, const std::string& subtitle
         subtitleLabel->setPosition(titleLabel->getPositionX(),
                                    titleLabel->getPositionY() - math_util::getScaledHeight(titleLabel) - 10.0F);
         subtitleLabel->setScale(0.75F);
-        subtitleLabel->setColor(color_util::hexToColor("E6E6E6"));
+        subtitleLabel->setColor(color_util::rgbToColor(0xE6E6E6));
         subtitleLabel->setOpacity(0);
         _announcementsNode->addChild(subtitleLabel, 2, BIG_ALERT_TAG);
         ax_util::runFadeSequence(subtitleLabel, 0.2F, 2.5F, 1.0F);

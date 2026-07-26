@@ -878,7 +878,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
                 auto textWidth = label->getContentSize().width;
                 auto scaleX    = MIN(maxLabelScale, signWidth / textWidth);
                 label->setScale((scaleX - paddingX) * 0.925F);
-                label->setColor(color.g != 0xFF ? color : color_util::hexToColor("0A0A0A"));  // Wow! This sucks.
+                label->setColor(color.g != 0xFF ? color : color_util::rgbToColor(0x0A0A0A));  // Wow! This sucks.
                 labels.push_back(label);
                 totalHeight += label->getContentSize().height * 0.5F + linePadding;
             }
@@ -896,7 +896,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
                 // 0x1000A5ADB: Draw vote/xp count
                 auto count = map_util::getInt32(metadata, "vc");
                 auto label = Label::createWithBMFont("sign-font-small-1+hd.fnt", std::to_string(count));
-                label->setColor(color_util::hexToColor("FFDC0A"));
+                label->setColor(color_util::rgbToColor(0xFFDC0A));
                 label->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
                 label->setScale(0.8F * fontScale);
                 auto x = point.x + (item->getWidth() * 0.5F - 0.39F) * BLOCK_SIZE;
@@ -915,7 +915,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
                 // 0x1000A5F2A: Draw mechanical letter borders
                 if (code == item_codes::MECHANICAL_SIGN)
                 {
-                    auto borderColor = color_util::hexToColor("3C3732");
+                    auto borderColor = color_util::rgbToColor(0x3C3732);
 
                     for (auto i = 0; i < label->getStringLength(); i++)
                     {

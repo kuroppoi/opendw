@@ -80,8 +80,8 @@ bool TextField::initWithFont(const std::string& fontFile)
     // Misc
     setText("");
     setMaxLength(20);
-    setTitleColor(color_util::hexToColor("FFDC0A"));
-    setHintColor(color_util::hexToColor("281401"));
+    setTitleColor(color_util::rgbToColor(0xFFDC0A));
+    setHintColor(color_util::rgbToColor(0x281401));
     setWidth(400.0F);
     setPadding(6.0F);
     setCascadeOpacityEnabled(true);

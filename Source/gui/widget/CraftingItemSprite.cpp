@@ -103,7 +103,7 @@ static std::vector<Node*> getItemComponents(const std::vector<Recipe::Ingredient
         // Create title label
         auto titleLabel = Label::createWithBMFont("console.fnt", item->getTitle());
         titleLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_LEFT);
-        titleLabel->setColor(color_util::hexToColor("5C5C5C"));
+        titleLabel->setColor(color_util::rgbToColor(0x5C5C5C));
         titleLabel->setPosition(quantityLabel->getBoundingBox().getMaxX() + 10.0F, quantityLabel->getPositionY());
         titleLabel->setScale(0.7F);
 
@@ -141,7 +141,7 @@ void CraftingItemSprite::getTooltipComponents(std::vector<Node*>& output)
     if (quantity > 1)
     {
         auto quantityLabel = Label::createWithBMFont("console.fnt", std::format("Makes {}", _recipe->getQuantity()));
-        quantityLabel->setColor(color_util::hexToColor("645014"));
+        quantityLabel->setColor(color_util::rgbToColor(0x645014));
         quantityLabel->setScale(0.7F);
         output.push_back(quantityLabel);
     }
@@ -158,12 +158,12 @@ void CraftingItemSprite::getTooltipComponents(std::vector<Node*>& output)
     {
         // 0x1000F4077: Create divider
         auto divider = Sprite::createWithSpriteFrameName("white");
-        divider->setColor(color_util::hexToColor("645014"));
+        divider->setColor(color_util::rgbToColor(0x645014));
         output.push_back(divider);
 
         // 0x1000F3FF3: Create label
         auto label = Label::createWithBMFont("console.fnt", "Workshop Requirements");
-        label->setColor(color_util::hexToColor("645014"));
+        label->setColor(color_util::rgbToColor(0x645014));
         label->setScale(0.7F);
         output.push_back(label);
 
@@ -185,7 +185,7 @@ void CraftingItemSprite::getTooltipComponents(std::vector<Node*>& output)
         auto text         = std::format("Level {} {}", item->getCraftingSkillLevel(), skill);
         auto label        = Label::createWithBMFont("console.fnt", text);
         label->setScale(0.6F);
-        label->setColor(color_util::hexToColor("FF3232"));
+        label->setColor(color_util::rgbToColor(0xFF3232));
         output.push_back(label);
     }
 }

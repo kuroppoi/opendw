@@ -251,7 +251,7 @@ void GameManager::snapshotScreenAsSpinner(bool snapshotZone)
     _snapshotSpinner->addChild(renderTexture, 1);
 
     // 0x100037148: Create overlay
-    auto layer = LayerColor::create(color_util::hexToColor4("000032FF"));
+    auto layer = LayerColor::create(color_util::rgbaToColor(0x000032FF));
     layer->setOpacity(0);
     _snapshotSpinner->addChild(layer, 2);
     layer->runAction(FadeTo::create(3.0F, 0x80));
@@ -434,7 +434,7 @@ void GameManager::notify(NotificationType type, const Value& data)
         _player->emote(data.asString(), Color3B::WHITE, true);
         break;
     case NotificationType::FANCY_EMOTE:
-        _player->emote(data.asString(), color_util::hexToColor("FFE61E"), true);
+        _player->emote(data.asString(), color_util::rgbToColor(0xFFE61E), true);
         break;
     case NotificationType::BIG_ALERT:
         event = events::kNotifyBigAlert;

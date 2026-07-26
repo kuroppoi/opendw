@@ -25,11 +25,11 @@
 
 USING_NS_AX;
 
-static const auto kOverlayColor      = Color4F(25.0F, 15.0F, 3.0F, 250.0F);
-static const auto kDeathOverlayColor = Color4F(30.0F, 5.0F, 5.0F, 160.0F);
-
 namespace opendw
 {
+
+static const auto kOverlayColor      = Color4F{25.0F, 15.0F, 3.0F, 250.0F};
+static const auto kDeathOverlayColor = Color4F{30.0F, 5.0F, 5.0F, 160.0F};
 
 Lightmapper::~Lightmapper()
 {

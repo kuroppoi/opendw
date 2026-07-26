@@ -76,7 +76,7 @@ void InventoryPanel::onEnter()
     // 0x100180ECB: Create inventory label
     auto inventoryLabel = Label::createWithBMFont("console.fnt", "Inventory:");
     inventoryLabel->setScale(0.8F);
-    inventoryLabel->setColor(color_util::hexToColor("FFDC0A"));
+    inventoryLabel->setColor(color_util::rgbToColor(0xFFDC0A));
     inventoryLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     inventoryLabel->setPosition(panelPadding + 14.0F, background->getBoundingBox().getMaxY() + 3.0F);
     addChild(inventoryLabel);
@@ -100,7 +100,7 @@ void InventoryPanel::onEnter()
     // 0x1001807F1: Create accessories label
     auto accessoryLabel = Label::createWithBMFont("console.fnt", "Accessories");
     accessoryLabel->setScale(0.8F);
-    accessoryLabel->setColor(color_util::hexToColor("FFDC0A"));
+    accessoryLabel->setColor(color_util::rgbToColor(0xFFDC0A));
     accessoryLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     accessoryLabel->setPosition(accessoryContainer->getBoundingBox().getMinX(),
                                 accessoryContainer->getBoundingBox().getMaxY());

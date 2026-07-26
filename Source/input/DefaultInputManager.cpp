@@ -305,11 +305,11 @@ void DefaultInputManager::checkInput(float deltaTime)
 
             if (item->isPlaceable())
             {
-                auto color   = _player->canPlaceItem(item, block) ? "64FF64" : "FF6464";
+                auto color   = _player->canPlaceItem(item, block) ? 0x64FF64 : 0xFF6464;
                 auto offsetX = MIN(_placeSprite->getContentSize().width, BLOCK_SIZE) * 0.5F;
                 auto offsetY = MIN(_placeSprite->getContentSize().height, BLOCK_SIZE) * 0.5F;
                 _placeSprite->setPosition(point.x - offsetX, point.y - offsetY);
-                _placeSprite->setColor(color_util::hexToColor(color));
+                _placeSprite->setColor(color_util::rgbToColor(color));
                 _placeSprite->setFlippedX(item->isMirrorable() && _player->getLookDirection() == -1);
             }
             else if (item->isConsumable())

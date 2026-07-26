@@ -55,7 +55,7 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
     auto iconSprite = Sprite::createWithSpriteFrameName(icon);
     iconSprite->setScale(0.7F);
     iconSprite->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
-    iconSprite->setColor(_inaccessible ? color_util::hexToColor("FFDCDC") : Color3B::WHITE);
+    iconSprite->setColor(_inaccessible ? color_util::rgbToColor(0xFFDCDC) : Color3B::WHITE);
     addChild(iconSprite);
 
     // 0x100100D71: Create marker icon
@@ -70,7 +70,7 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
     nameLabel->setScale(0.75F);
     nameLabel->setPositionY(-13.0F);
     nameLabel->setColor(
-        color_util::lerpColor(color_util::hexToColor("352A0A"), Color3B::RED, _inaccessible ? 0.234F : 0.0F));
+        color_util::lerpColor(color_util::rgbToColor(0x352A0A), Color3B::RED, _inaccessible ? 0.234F : 0.0F));
     addChild(nameLabel);
 
     // 0x100100F8E: Create status label
@@ -81,7 +81,7 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
     statusLabel->setScale(0.6F);
     statusLabel->setPositionY(-29.0F);
     statusLabel->setColor(
-        color_util::lerpColor(color_util::hexToColor("503C2B"), Color3B::RED, _inaccessible ? 0.234F : 0.0F));
+        color_util::lerpColor(color_util::rgbToColor(0x503C2B), Color3B::RED, _inaccessible ? 0.234F : 0.0F));
     addChild(statusLabel);
 
     // 0x100101069: Create scenario label if necessary
@@ -100,7 +100,7 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
         auto lockSprite = Sprite::createWithSpriteFrameName("map/locked");
         lockSprite->setScale(0.5F);
         lockSprite->setPosition(-35.0F, 40.0F);
-        lockSprite->setColor(color_util::hexToColor("D4D4D4"));
+        lockSprite->setColor(color_util::rgbToColor(0xD4D4D4));
         addChild(lockSprite);
     }
 
@@ -113,8 +113,8 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
         playerSprite->setScale(0.2F * 0.9F);
         auto index = i + (i > 1 && iconCount < 5);
         playerSprite->setPosition(index * 8.0F + 43.0F, (index % 3) * -22.0F + 60.0F);
-        playerSprite->setColor(i < info.followeeCount ? color_util::hexToColor("FFE930")    // Followee color
-                                                      : color_util::hexToColor("BDA57F"));  // Normal color
+        playerSprite->setColor(i < info.followeeCount ? color_util::rgbToColor(0xFFE930)    // Followee color
+                                                      : color_util::rgbToColor(0xBDA57F));  // Normal color
         addChild(playerSprite);
     }
 

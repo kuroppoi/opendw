@@ -42,7 +42,7 @@ bool CavernRenderer::initWithZone(WorldZone* zone)
     // Create far cavern sprite
     _cavernFar = ParallaxSprite::createWithTexture(cavernFarTexture);
     _cavernFar->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
-    _cavernFar->setColor(color_util::hexToColor("5C5C5C"));
+    _cavernFar->setColor(color_util::rgbToColor(0x5C5C5C));
     _cavernFar->setFlippedX(true);
     addChild(_cavernFar, 40);
 

@@ -94,8 +94,8 @@ void ItemContainer::updateLayout()
         _categoryTabs = TabsBar::create();
         _categoryTabs->setCascadeOpacityEnabled(true);
         _categoryTabs->setMaxColumns((ssize_t)ceil(_categories.size() / 2.0F));  // Max 2 rows
-        _categoryTabs->setSelectedBackgroundColor(color_util::hexToColor("D68901"));
-        _categoryTabs->setImageColor(color_util::hexToColor("2B2121"));
+        _categoryTabs->setSelectedBackgroundColor(color_util::rgbToColor(0xD68901));
+        _categoryTabs->setImageColor(color_util::rgbToColor(0x2B2121));
         _categoryTabs->setBackground("inventory/tabs/square/regular-faded");
         _categoryTabs->setSelectedBackground("inventory/tabs/square/regular");
         _categoryTabs->setDelegate(this);
