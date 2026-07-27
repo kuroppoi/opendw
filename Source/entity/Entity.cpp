@@ -7,6 +7,7 @@
 #include "entity/EntityConfig.h"
 #include "entity/EntityFramed.h"
 #include "entity/MutableEntityConfig.h"
+#include "graphics/Debris.h"
 #include "graphics/WorldRenderer.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/Physical.h"
@@ -432,7 +433,25 @@ void Entity::runEmitters()
 
 void Entity::animateViolentDeath()
 {
-    // TODO: play the actual animation
+    // 0x1000BF11C: Spawn death emitter
+    if (auto emitter = _config->getDeathEmitter())
+    {
+        auto size = _contentSize.width * _contentSize.height / (BLOCK_SIZE * BLOCK_SIZE);
+
+        if (auto particle = WorldRenderer::getMain()->emitParticle(emitter, _position))
+        {
+            auto count = (int)round(random(2, 6) * size);
+            particle->setClones(count);
+        }
+    }
+
+    // 0x1000BF21E: Create death explosion
+    if (_config->shouldExplodeOnDeath())
+    {
+        auto quantity = 2 + (BLOCK_SIZE * 1.5F < _contentSize.width);
+        WorldRenderer::getMain()->generateEffect("bomb", quantity, _position);
+    }
+
     // 0x1000BF2C7: Play random death sound
     auto& deathSounds = _config->getDeathSounds();
 

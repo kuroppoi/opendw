@@ -1000,7 +1000,7 @@ void WorldRenderer::generateEffect(const std::string& name, ssize_t quantity, co
         }
         else
         {
-            bomb = {"ExplosionIncendiary", "boom", "explosion cloud small", 7, 1.0F, 1.0F};
+            bomb = {"", "boom", "explosion cloud small", 7, 1.0F, 1.0F};
         }
 
         if (visible)

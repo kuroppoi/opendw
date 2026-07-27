@@ -6,6 +6,8 @@
 namespace opendw
 {
 
+class Emitter;
+
 /*
  * CLASS: EntityConfig : NSObject @ 0x10031B018
  */
@@ -67,6 +69,9 @@ public:
     /* FUNC: EntityConfig::collides @ 0x1000EFE75 */
     bool hasCollision() const { return _collides; }
 
+    /* FUNC: EntityConfig::deathExplosion @ 0x100120D9C */
+    bool shouldExplodeOnDeath() const { return _deathExplosion; }
+
     /* FUNC: EntityConfig::shape @ 0x100120B77 */
     Shape getShape() const { return _shape; }
 
@@ -89,6 +94,12 @@ public:
 
     /* FUNC: EntityConfig::emitters @ 0x100120CE1 */
     const ax::ValueMap& getEmitters() const { return _emitters; }
+
+    /* FUNC: EntityConfig::damageEmitter @ 0x100120D7A */
+    Emitter* getDamageEmitter() const { return _damageEmitter; }
+
+    /* FUNC: EntityConfig::deathEmitter @ 0x100120D8B */
+    Emitter* getDeathEmitter() const { return _deathEmitter; }
 
     /* FUNC: EntityConfig::slots @ 0x100120E6E */
     const std::vector<std::string>& getSlots() const { return _slots; }
@@ -121,6 +132,7 @@ protected:
     bool _ghostly;                                     // EntityConfig::ghostly @ 0x100313DE0
     bool _block;                                       // EntityConfig::block @ 0x100313C60
     bool _collides;                                    // EntityConfig::collides @ 0x100313C98
+    bool _deathExplosion;                              // EntityConfig::deathExplosion @ 0x100313DC0
     Shape _shape;                                      // EntityConfig::shape @ 0x100313CA8
     std::string _spine;                                // EntityConfig::spine @ 0x100313DE8
     std::string _spineSkin;                            // EntityConfig::spineSkin @ 0x100313DF0
@@ -129,6 +141,8 @@ protected:
     std::vector<Animation> _animations;                // EntityConfig::animations @ 0x100313CF0
     std::map<std::string, int32_t> _animationsByName;  // EntityConfig::animationsByName @ 0x100313CF8
     ax::ValueMap _emitters;                            // EntityConfig::emitters @ 0x100313D48
+    Emitter* _damageEmitter;                           // EntityConfig::damageEmitter @ 0x100313DB0
+    Emitter* _deathEmitter;                            // EntityConfig::deathEmitter @ 0x100313DB8
     std::vector<std::string> _slots;                   // EntityConfig::slots @ 0x100313E00
     std::vector<std::string> _attachments;             // EntityConfig::attachments @ 0x100313E08
     std::vector<std::string> _sounds;                  // EntityConfig::sound @ 0x100313D50

@@ -26,6 +26,9 @@ public:
     /* FUNC: Debris::initWithWorldZone: @ 0x1000544A5 */
     bool initWithZone(WorldZone* zone);
 
+    /* FUNC: Debris::step @ 0x100055435 */
+    void spawnNextClone(float /* deltaTime */);
+
     /* FUNC: Debris::onExit @ 0x10005554C */
     void onExit() override;
 
@@ -43,6 +46,9 @@ public:
     /* FUNC: Debris::renderForEmitter: @ 0x100055007 */
     void renderForEmitter(Emitter* emitter);
 
+    /* FUNC: Debris::setClones: @ 0x1000553E3 */
+    void setClones(ssize_t clones);
+
     Physical* getPhysical() const { return _physical; }
 
     void setPoolIndex(ssize_t index) { _poolIndex = index; }
@@ -54,6 +60,7 @@ private:
     WorldZone* _zone;   // Debris::zone @ 0x1003115E0
     ssize_t _spawns;    // Debris::spawns @ 0x1003115F0
     Emitter* _emitter;  // Debris::emitter @ 0x1003115F8
+    ssize_t _clones;    // Debris::clones @ 0x100311608
     Physical* _physical;
     ssize_t _poolIndex;
     bool _active;

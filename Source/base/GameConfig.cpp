@@ -21,6 +21,7 @@ bool GameConfig::initWithData(const ValueMap& data)
 {
     AXASSERT(_data.empty(), "Reinitialization is not allowed");
     auto start = utils::gettime();
+    sMain      = this;
     _data      = data;
 
     // 0x10004E6E8: Configure emitters
@@ -256,7 +257,6 @@ bool GameConfig::initWithData(const ValueMap& data)
     }
 
     AXLOGI("[GameConfig] Configuration took {:.2f}s", utils::gettime() - start);
-    sMain = this;
     return true;
 }
 

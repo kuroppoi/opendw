@@ -38,6 +38,19 @@ bool Debris::initWithZone(WorldZone* zone)
     return true;
 }
 
+void Debris::spawnNextClone(float /* deltaTime */)
+{
+    if (_emitter && _clones > 0)
+    {
+        _zone->getWorldRenderer()->emitParticle(_emitter, _position);
+        _clones--;
+    }
+    else
+    {
+        unschedule(AX_SCHEDULE_SELECTOR(Debris::spawnNextClone));
+    }
+}
+
 void Debris::onExit()
 {
     if (_active)
@@ -200,6 +213,22 @@ void Debris::renderForEmitter(Emitter* emitter)
     setOpacity(color.a);
     setOpacityModifyRGB(true);
     setVisible(true);
+}
+
+void Debris::setClones(ssize_t clones)
+{
+    if (_clones != clones)
+    {
+        auto selector = AX_SCHEDULE_SELECTOR(Debris::spawnNextClone);
+        unschedule(selector);
+
+        if (clones > 0)
+        {
+            schedule(selector);
+        }
+
+        _clones = clones;
+    }
 }
 
 }  // namespace opendw

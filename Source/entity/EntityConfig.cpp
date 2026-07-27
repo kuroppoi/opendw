@@ -1,5 +1,6 @@
 #include "EntityConfig.h"
 
+#include "base/GameConfig.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
 
@@ -34,22 +35,30 @@ static void populateStringVector(const Value& src, std::vector<std::string>& dst
 
 bool EntityConfig::initWithData(const ValueMap& data)
 {
-    _code        = map_util::getInt32(data, "code", -1);
-    _group       = map_util::getString(data, "group");
-    _classSuffix = map_util::getString(data, "class");
-    _flips       = map_util::getBool(data, "flips", true);
-    _ghostly     = map_util::getBool(data, "ghostly");
-    _block       = map_util::getBool(data, "block");
-    _collides    = map_util::getBool(data, "collides", true);
-    _shape       = map_util::getString(data, "shape") == "circle" ? Shape::CIRCLE : Shape::BOX;
-    _spine       = map_util::getString(data, "spine");
-    _spineSkin   = map_util::getString(data, "spine_skin");
-    _sprites     = map_util::getArray(data, "sprites");
-    _obstruction = map_util::getFloat(data, "obstacle");
-    _scaleBase =
-        map_util::getFloat(data, "spine_scale_base", map_util::getFloat(data, "scale_base", 1.0F));  // Orig. scale base
-    _scaleRange = map_util::getFloat(data, "scale_range");  // Orig. scale range
-    _emitters   = map_util::getMap(data, "emitters");
+    _code           = map_util::getInt32(data, "code", -1);
+    _group          = map_util::getString(data, "group");
+    _classSuffix    = map_util::getString(data, "class");
+    _flips          = map_util::getBool(data, "flips", true);
+    _ghostly        = map_util::getBool(data, "ghostly");
+    _block          = map_util::getBool(data, "block");
+    _collides       = map_util::getBool(data, "collides", true);
+    _deathExplosion = map_util::getBool(data, "death_explosion");
+    _shape          = map_util::getString(data, "shape") == "circle" ? Shape::CIRCLE : Shape::BOX;
+    _spine          = map_util::getString(data, "spine");
+    _spineSkin      = map_util::getString(data, "spine_skin");
+    _sprites        = map_util::getArray(data, "sprites");
+    _obstruction    = map_util::getFloat(data, "obstacle");
+    _scaleBase      = map_util::getFloat(data, "spine_scale_base", map_util::getFloat(data, "scale base", 1.0F));
+    _scaleRange     = map_util::getFloat(data, "scale range");
+    _emitters       = map_util::getMap(data, "emitters");
+    auto config     = GameConfig::getMain();
+    _damageEmitter  = config->getEmitterForName(map_util::getString(data, "damage emitter"));
+    _deathEmitter   = config->getEmitterForName(map_util::getString(data, "death emitter"));
+
+    if (!_deathEmitter)
+    {
+        _deathEmitter = _damageEmitter;
+    }
 
     // 0x10011F944: Configure size
     auto& size = map_util::getArray(data, "size");
