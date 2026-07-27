@@ -28,7 +28,7 @@ bool ChipmunkSpace::initWithSpace(cpSpace* space)
     _staticBody->setType(CP_BODY_TYPE_STATIC);
 
     // HACK: cpSpaceSetStaticBody is not accessible for some reason, so we just inline it.
-    space->staticBody             = _staticBody->getBody();
+    space->staticBody = _staticBody->getBody();
     _staticBody->getBody()->space = space;
     return true;
 }
@@ -166,6 +166,7 @@ void ChipmunkSpace::add(ChipmunkObject* object)
         }
 
         _children.pushBack(object);
+        object->onAddedToSpace(this);
     }
 }
 
@@ -183,6 +184,7 @@ void ChipmunkSpace::remove(ChipmunkObject* object)
         }
 
         _children.eraseObject(object);
+        object->onRemovedFromSpace(this);
     }
 }
 

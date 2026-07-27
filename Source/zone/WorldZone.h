@@ -172,6 +172,9 @@ public:
     /* FUNC: WorldZone::separateAvatarCollision:space: @ 0x100049085 */
     void separateAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space);
 
+    /* FUNC: WorldZone::debrisCollision:space: @ 0x1000493CE */
+    void postSolveDebrisCollision(cpArbiter* arbiter, ChipmunkSpace* space);
+
     /* FUNC: WorldZone::documentId @ 0x100049FC3 */
     const std::string& getDocumentId() const { return _documentId; }
 

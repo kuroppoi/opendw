@@ -6,6 +6,7 @@
 #include "entity/Entity.h"
 #include "entity/EntityAnimatedAvatar.h"
 #include "event/EventNames.h"
+#include "graphics/Debris.h"
 #include "graphics/SceneRenderer.h"
 #include "graphics/WorldRenderer.h"
 #include "input/InputManager.h"
@@ -164,9 +165,12 @@ void WorldZone::configure(const ValueMap& data)
     // 0x100040D78: Add collision handlers
     // FIXME: It would be nicer if we didn't have to cast collision type
     auto playerType = static_cast<cpCollisionType>(CollisionType::PLAYER);
+    auto debrisType = static_cast<cpCollisionType>(CollisionType::DEBRIS);
     _space->addCollisionHandler(playerType, NULL, AX_CALLBACK_2(WorldZone::beginAvatarCollision, this), nullptr,
                                 AX_CALLBACK_2(WorldZone::postSolveAvatarCollision, this),
                                 AX_CALLBACK_2(WorldZone::separateAvatarCollision, this));
+    _space->addCollisionHandler(debrisType, NULL, nullptr, nullptr,
+                                AX_CALLBACK_2(WorldZone::postSolveDebrisCollision, this), nullptr);
 }
 
 void WorldZone::update(float deltaTime)
@@ -1027,6 +1031,16 @@ void WorldZone::separateAvatarCollision(cpArbiter* arbiter, ChipmunkSpace* space
             avatar->setHeadColliderCount(avatar->getHeadColliderCount() - 1);
         }
     }
+}
+
+void WorldZone::postSolveDebrisCollision(cpArbiter* arbiter, ChipmunkSpace* space)
+{
+    cpShape *cpShapeA, *cpShapeB;
+    cpArbiterGetShapes(arbiter, &cpShapeA, &cpShapeB);
+    auto source = static_cast<ChipmunkShape*>(cpShapeGetUserData(cpShapeA));
+    auto debris = static_cast<Debris*>(source->getUserData());
+    auto point  = cpArbiterGetPointB(arbiter, 0);
+    debris->onCollide({point.x, point.y});
 }
 
 Biome WorldZone::getBiomeForName(const std::string& name)

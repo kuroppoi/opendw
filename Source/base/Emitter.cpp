@@ -1,5 +1,6 @@
 #include "Emitter.h"
 
+#include "base/GameConfig.h"
 #include "util/MapUtil.h"
 #include "CommonDefs.h"
 
@@ -42,6 +43,7 @@ static Color4B arrayToColor4(const ValueVector& array)
 bool Emitter::initWithData(const ValueMap& data, const std::string& name)
 {
     // 0x1000EF5B9: Configure basic properties
+    _data                 = data;
     _name                 = name;
     _code                 = map_util::getUInt32(data, "code");
     _collides             = map_util::getBool(data, "collides");
@@ -80,6 +82,12 @@ bool Emitter::initWithData(const ValueMap& data, const std::string& name)
     }
 
     return true;
+}
+
+void Emitter::postInit()
+{
+    auto name = map_util::getString(_data, "collision emitter");
+    _collisionEmitter = GameConfig::getMain()->getEmitterForName(name);
 }
 
 }  // namespace opendw

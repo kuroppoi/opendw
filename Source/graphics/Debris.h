@@ -33,6 +33,7 @@ public:
     void onExit() override;
 
     void clear();
+    void recycle();
 
     /* FUNC: Debris::spawnForItem:inNode:atPosition:velocity: @ 0x10005456C */
     void spawnForSprite(MaskedSprite* sprite, const ax::Point& position, const ax::Vec2& velocity);
@@ -45,6 +46,9 @@ public:
 
     /* FUNC: Debris::renderForEmitter: @ 0x100055007 */
     void renderForEmitter(Emitter* emitter);
+
+    /* FUNC: Debris::onCollide: @ 0x1000554CB */
+    void onCollide(const ax::Point& point);
 
     /* FUNC: Debris::setClones: @ 0x1000553E3 */
     void setClones(ssize_t clones);

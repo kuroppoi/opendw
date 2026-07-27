@@ -15,6 +15,9 @@ class ChipmunkSpace;
 class ChipmunkObject : public ax::Object
 {
 public:
+    virtual void onAddedToSpace(ChipmunkSpace* space) {};
+    virtual void onRemovedFromSpace(ChipmunkSpace* space) {};
+
     virtual const ax::Vector<ChipmunkBaseObject*> getChipmunkObjects() = 0;
 };
 

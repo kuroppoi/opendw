@@ -19,6 +19,8 @@ public:
     /* FUNC: Emitter::initWithDictionary: @ 0x1000EF55D */
     bool initWithData(const ax::ValueMap& data, const std::string& name);
 
+    void postInit();
+
     /* FUNC: Emitter::name @ 0x1000EFC0C */
     const std::string& getName() const { return _name; }
 
@@ -79,6 +81,9 @@ public:
     /* FUNC: Emitter::spriteCodes @ 0x1000EFC4B */
     const std::vector<ax::SpriteFrame*>& getSpriteFrames() const { return _spriteFrames; }
 
+    /* FUNC: Emitter::collisionEmitter @ 0x1000EFEB7 */
+    Emitter* getCollisionEmitter() const { return _collisionEmitter; }
+
 protected:
     std::string _name;                            // Emitter::name @ 0x1003132C8
     uint16_t _code;                               // Emitter::code @ 0x1003132D0
@@ -100,6 +105,8 @@ protected:
     std::string _sound;                           // Emitter::sound @ 0x100313358
     bool _localizeSound;                          // Emitter::localizeSound @ 0x100313360
     std::vector<ax::SpriteFrame*> _spriteFrames;  // Emitter::spriteCodes @ 0x100313368
+    Emitter* _collisionEmitter;                   // Emitter::collisionEmitter @ 0x100313370
+    ax::ValueMap _data;
 };
 
 }  // namespace opendw

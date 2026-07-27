@@ -63,11 +63,16 @@ void Debris::onExit()
 
 void Debris::clear()
 {
+    stopAllActions();
     _emitter = nullptr;
-    _physical->clear();
-    _zone->getWorldRenderer()->recycleDebris(this);
+    _physical->clear(AX_CALLFUNC_SELECTOR(Debris::recycle));  // Space might be locked, so defer recycling
     _active = false;
     setVisible(false);
+}
+
+void Debris::recycle()
+{
+    _zone->getWorldRenderer()->recycleDebris(this);
 }
 
 void Debris::spawnForSprite(MaskedSprite* sprite, const Point& position, const Vec2& velocity)
@@ -109,7 +114,7 @@ void Debris::spawnForSprite(MaskedSprite* sprite, const Point& position, const V
     // Create lifecycle actions
     auto delayTime = DelayTime::create(1.2F);
     auto fadeTo    = FadeTo::create(0.5F, 0);
-    auto callFunc  = CallFunc::create([this]() { clear(); });
+    auto callFunc  = CallFuncN::create(AX_CALLBACK_0(Debris::clear, this));
     auto sequence  = Sequence::create({delayTime, fadeTo, callFunc});
     runAction(sequence);
     _spawns++;
@@ -150,7 +155,7 @@ void Debris::spawnParticle(Emitter* emitter, const Point& point)
     auto life      = clampf(_emitter->getLife(), 0.1F, 5.0F);
     auto delayTime = DelayTime::create(life);
     auto fadeTo    = FadeTo::create(0.5F, 0);
-    auto callFunc  = CallFunc::create([this]() { clear(); });
+    auto callFunc  = CallFuncN::create(AX_CALLBACK_0(Debris::clear, this));
     auto sequence  = Sequence::create({delayTime, fadeTo, callFunc});
     runAction(sequence);
     _spawns++;
@@ -213,6 +218,18 @@ void Debris::renderForEmitter(Emitter* emitter)
     setOpacity(color.a);
     setOpacityModifyRGB(true);
     setVisible(true);
+}
+
+void Debris::onCollide(const Point& point)
+{
+    if (_emitter)
+    {
+        if (auto emitter = _emitter->getCollisionEmitter())
+        {
+            clear();
+            _zone->getWorldRenderer()->emitParticle(emitter, point);
+        }
+    }
 }
 
 void Debris::setClones(ssize_t clones)

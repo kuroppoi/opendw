@@ -44,6 +44,12 @@ bool GameConfig::initWithData(const ValueMap& data)
         }
     }
 
+    // Post init emitters
+    for (auto& entry : _emittersByName)
+    {
+        entry.second->postInit();
+    }
+
     AXLOGI("[GameConfig] Configured {} emitters in {:.2f}s", _emittersByName.size(), utils::gettime() - emitterStart);
 
     // 0x10004ED08: Configure items

@@ -54,15 +54,16 @@ void Physical::addToSpace()
     sGlobalSpace->smartAdd(this);
 }
 
-void Physical::removeFromSpace()
+void Physical::removeFromSpace(SEL_CallFunc callback)
 {
     AX_ASSERT(sGlobalSpace);
+    _removedCallback = callback;
     sGlobalSpace->smartRemove(this);
 }
 
-void Physical::clear()
+void Physical::clear(SEL_CallFunc callback)
 {
-    removeFromSpace();
+    removeFromSpace(callback);
     clearShapes();
     AX_SAFE_RELEASE_NULL(_body);
 }
@@ -305,6 +306,16 @@ void Physical::updateChipmunkObjects()
     {
         _chipmunkObjects.pushBack(shape);
     }
+}
+
+void Physical::onRemovedFromSpace(ChipmunkSpace* space)
+{
+    if (_target && _removedCallback)
+    {
+        (_target->*_removedCallback)();
+    }
+
+    _removedCallback = nullptr;
 }
 
 }  // namespace opendw

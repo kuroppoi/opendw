@@ -50,10 +50,10 @@ public:
 
     /* FUNC: Physical::addToSpace @ 0x10007B949 */
     void addToSpace();
-    void removeFromSpace();
+    void removeFromSpace(ax::SEL_CallFunc callback = nullptr);
 
     /* FUNC: Physical::clear @ 0x10007BC41 */
-    void clear();
+    void clear(ax::SEL_CallFunc callback = nullptr);
 
     /* FUNC: Physical::setLayer: @ 0x10007A8AA */
     void setLayer(uint32_t layer);
@@ -113,6 +113,8 @@ public:
     /* FUNC: Physical::setRotates: @ 0x10007BE0C */
     void setRotates(bool rotates) { _rotates = rotates; }
 
+    void onRemovedFromSpace(ChipmunkSpace* space) override;
+
 private:
     inline static ChipmunkSpace* sGlobalSpace;  // 0x10032EAE8
 
@@ -121,6 +123,7 @@ private:
     ax::Vector<ChipmunkShape*> _internalShapes;        // Physical::internalShapes @ 0x100311D58
     ax::Vector<ChipmunkBaseObject*> _chipmunkObjects;  // Physical::chipmunkObjects @ 0x100311D70
     bool _rotates;                                     // Physical::rotates @ 0x100311D60
+    ax::SEL_CallFunc _removedCallback;
 };
 
 }  // namespace opendw

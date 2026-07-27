@@ -1233,20 +1233,17 @@ Debris* WorldRenderer::emitParticle(Emitter* emitter, const Point& point, float 
 
 void WorldRenderer::recycleDebris(Debris* debris)
 {
-    if (debris->isActive())
-    {
-        AX_ASSERT(_freeDebrisIndex > 0);
-        _freeDebrisIndex--;
-        auto src = debris->getPoolIndex();
+    AX_ASSERT(_freeDebrisIndex > 0);
+    _freeDebrisIndex--;
+    auto src = debris->getPoolIndex();
 
-        if (src != _freeDebrisIndex)
-        {
-            auto free = _debrisPool[_freeDebrisIndex];
-            _debrisPool[src] = free;
-            free->setPoolIndex(src);
-            _debrisPool[_freeDebrisIndex] = debris;
-            debris->setPoolIndex(_freeDebrisIndex);
-        }
+    if (src != _freeDebrisIndex)
+    {
+        auto free = _debrisPool[_freeDebrisIndex];
+        _debrisPool[src] = free;
+        free->setPoolIndex(src);
+        _debrisPool[_freeDebrisIndex] = debris;
+        debris->setPoolIndex(_freeDebrisIndex);
     }
 }
 
