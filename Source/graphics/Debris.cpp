@@ -187,11 +187,8 @@ void Debris::moveForEmitter(Emitter* emitter)
 {
     auto body = _physical->getBody();
 
-    // Set random angle
-    auto angle = MATH_DEG_TO_RAD(emitter->getAngleBase() + emitter->getAngleRange() * rand_minus1_1() * 0.5F);
-    body->setAngle(angle);
-
     // Determine velocity based on angle
+    auto angle     = MATH_DEG_TO_RAD(emitter->getAngleBase() + emitter->getAngleRange() * rand_minus1_1() * 0.5F);
     auto velocity  = emitter->getVelocityBase() + emitter->getVelocityRange() * rand_minus1_1() * 0.5F;
     auto direction = Vec2(sinf(angle), cosf(angle));
     direction.normalize();
