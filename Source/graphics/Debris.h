@@ -26,6 +26,8 @@ public:
     /* FUNC: Debris::initWithWorldZone: @ 0x1000544A5 */
     bool initWithZone(WorldZone* zone);
 
+    void update(float deltaTime) override;
+
     /* FUNC: Debris::step @ 0x100055435 */
     void spawnNextClone(float /* deltaTime */);
 
@@ -68,6 +70,8 @@ private:
     Physical* _physical;
     ssize_t _poolIndex;
     bool _active;
+    float _currentLife;
+    uint8_t _startOpacity;
 };
 
 }  // namespace opendw

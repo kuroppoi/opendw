@@ -38,6 +38,33 @@ bool Debris::initWithZone(WorldZone* zone)
     return true;
 }
 
+void Debris::update(float deltaTime)
+{
+    MaskedSprite::update(deltaTime);
+
+    if (!_active)
+    {
+        return;
+    }
+
+    if (_currentLife <= 0.0F)
+    {
+        auto fadeTime = _emitter ? MIN(0.5F, _emitter->getLife()) : 0.5F;
+        auto time     = MIN(1.0F, -_currentLife / fadeTime);
+
+        if (time >= 1.0F)
+        {
+            clear();
+        }
+        else
+        {
+            setOpacity((uint8_t)(_startOpacity - _startOpacity * time));
+        }
+    }
+
+    _currentLife -= deltaTime;
+}
+
 void Debris::spawnNextClone(float /* deltaTime */)
 {
     if (_emitter && _clones > 0)
@@ -63,7 +90,7 @@ void Debris::onExit()
 
 void Debris::clear()
 {
-    stopAllActions();
+    unscheduleUpdate();
     _emitter = nullptr;
     _physical->clear(AX_CALLFUNC_SELECTOR(Debris::recycle));  // Space might be locked, so defer recycling
     _active = false;
@@ -111,13 +138,10 @@ void Debris::spawnForSprite(MaskedSprite* sprite, const Point& position, const V
         node->addChild(this, 30);
     }
 
-    // Create lifecycle actions
-    auto delayTime = DelayTime::create(1.2F);
-    auto fadeTo    = FadeTo::create(0.5F, 0);
-    auto callFunc  = CallFuncN::create(AX_CALLBACK_0(Debris::clear, this));
-    auto sequence  = Sequence::create({delayTime, fadeTo, callFunc});
-    runAction(sequence);
+    _currentLife  = 1.2F;
+    _startOpacity = getOpacity();
     _spawns++;
+    scheduleUpdate();
     _active = true;
 }
 
@@ -128,7 +152,7 @@ void Debris::spawnParticle(Emitter* emitter, const Point& point)
 
     if (emitter->hasCollision())
     {
-        auto size = MIN(_contentSize.width, _contentSize.height);
+        auto size = MAX(_contentSize.width, _contentSize.height);
         _physical->setShapeAsCircle(size * getScale() * 0.125F, Point::ZERO);
     }
     else
@@ -152,13 +176,10 @@ void Debris::spawnParticle(Emitter* emitter, const Point& point)
     }
 
     _physical->addToSpace();
-    auto life      = clampf(_emitter->getLife(), 0.1F, 5.0F);
-    auto delayTime = DelayTime::create(life);
-    auto fadeTo    = FadeTo::create(0.5F, 0);
-    auto callFunc  = CallFuncN::create(AX_CALLBACK_0(Debris::clear, this));
-    auto sequence  = Sequence::create({delayTime, fadeTo, callFunc});
-    runAction(sequence);
+    _currentLife  = clampf(_emitter->getLife(), 0.1F, 5.0F);
+    _startOpacity = getOpacity();
     _spawns++;
+    scheduleUpdate();
     _active = true;
 }
 
