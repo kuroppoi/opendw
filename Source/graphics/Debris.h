@@ -62,6 +62,10 @@ public:
 
     bool isActive() const { return _active; }
 
+    void setCurrentLife(float life);
+
+    void setKillOnCollide(bool value) { _killOnCollide = value; }
+
 private:
     WorldZone* _zone;   // Debris::zone @ 0x1003115E0
     ssize_t _spawns;    // Debris::spawns @ 0x1003115F0
@@ -72,6 +76,7 @@ private:
     bool _active;
     float _currentLife;
     uint8_t _startOpacity;
+    bool _killOnCollide;
 };
 
 }  // namespace opendw

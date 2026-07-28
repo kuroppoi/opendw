@@ -14,6 +14,7 @@ class EntityAnimatedAvatar;
 class GameManager;
 class Item;
 class MetaBlock;
+class MutableEmitter;
 class Player;
 class SceneRenderer;
 class WorldRenderer;
@@ -253,6 +254,9 @@ public:
     /* FUNC: WorldZone::cloudCover @ 0x10004A1D1 */
     float getCloudCover() const { return _cloudCover; }
 
+    /* FUNC: WorldZone::precipitation @ 0x10004A1F5 */
+    float getPrecipitation() const { return _precipitation; }
+
     /* FUNC: WorldZone::doneWaitingForBlocksAt @ 0x100049F62 */
     double getDoneWaitingForBlocksAt() const { return _doneWaitingForBlocksAt; }
 
@@ -273,6 +277,8 @@ private:
     Player* _player;                                        // WorldZone::player @ 0x100310EB0
     SceneRenderer* _sceneRenderer;                          // WorldZone::sceneRenderer @ 0x1003110B8
     WorldRenderer* _worldRenderer;                          // WorldZone::worldRenderer @ 0x100310FC0
+    MutableEmitter* _rainEmitter;                           // WorldZone::rainEmitter @ 0x100310FD0
+    bool _rainAcidic;                                       // WorldZone::rainAcidic @ 0x100310FD8
     ax::Vector<WorldChunk*> _inactiveChunks;                // WorldZone::inactiveChunks @ 0x100310EE8
     ax::Vector<WorldChunk*> _activeChunks;                  // WorldZone::activeChunks @ 0x100310EE0
     std::map<int32_t, double> _pendingChunks;               // WorldZone::pendingChunks @ 0x100310EF0
@@ -313,9 +319,11 @@ private:
     std::string _protectedReason;                           // WorldZone::isProtectedReason @ 0x100310F70
     float _dayPercent;                                      // WorldZone::dayPercent @ 0x1003110E8
     float _dayTime;                                         // WorldZone::daytime @ 0x1003110E0
+    float _precipitation;                                   // WorldZone::precipitation @ 0x100311130
     float _acidity;                                         // WorldZone::acidity @ 0x100311138
     float _skyCoverage;                                     // WorldZone::skyCoverage @ 0x100311140
     float _cloudCover;                                      // WorldZone::cloudCover @ 0x100311160
+    double _nextRainAt;                                     // WorldZone::nextRainAt @ 0x1003111B0
     double _nextAmbientSoundAt;                             // WorldZone::nextAmbientSoundAt @ 0x1003110D0
     double _lastBlocksRequestAt;                            // WorldZone::lastBlocksRequestAt @ 0x100311100
     double _lastBlocksIgnoreAt;                             // WorldZone::lastBlocksIgnoreAt @ 0x100311108

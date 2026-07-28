@@ -5,7 +5,9 @@
 #include "graphics/SkyRubble.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
+#include "util/MathUtil.h"
 #include "zone/WorldZone.h"
+#include "AudioManager.h"
 #include "CommonDefs.h"
 
 #define MOUNTAIN_COUNT    12
@@ -194,6 +196,20 @@ void SkyRenderer::updateChildren(float deltaTime)
     updateChildrenInNode(_backBatchNode, deltaTime);
     updateChildrenInNode(_biomeBatchNode, deltaTime);
     updateChildrenInNode(_biomeBackBatchNode, deltaTime);
+
+    // 0x1000C4855: Occasionally generate thunder if it is raining
+    // BUGFIX: Framerate-independent odds
+    auto precipitation = _zone->getPrecipitation();
+
+    if (_zone->getBiomeType() != Biome::SPACE && precipitation > 0.05F)
+    {
+        auto chance = math_util::lerp(1000.0F, 200.0F, precipitation) * 0.0167F;
+
+        if (random(0.0F, chance) <= MIN(0.1F, deltaTime))
+        {
+            thunder();
+        }
+    }
 }
 
 void SkyRenderer::updateColors(float deltaTime)
@@ -210,6 +226,7 @@ void SkyRenderer::updateColors(float deltaTime)
     auto startColor = color_util::saturate(skyColor, cloudCover * 0.33F);
     startColor      = color_util::lerpColor(startColor, Color3B::BLACK, 0.2F);
     auto endColor   = color_util::lerpColor(startColor, Color3B::BLACK, 0.5F);
+    startColor      = color_util::lerpColor(startColor, Color3B::WHITE, _thunder);
     _gradient->setStartColor(startColor);
     _gradient->setEndColor(endColor);
 
@@ -249,6 +266,28 @@ void SkyRenderer::updateColors(float deltaTime)
         _batchNode->setColor(cloudColor);
         _backBatchNode->setColor(farCloudColor);
     }
+
+    _thunder = clampf(_thunder - deltaTime * 60.0F, 0.0F, 1.0F);
+}
+
+void SkyRenderer::thunder()
+{
+    auto precipitation = _zone->getPrecipitation();
+    auto skyCoverage   = _zone->getSkyCoverage();
+    auto distance      = math_util::lerp(random(0.8F, 1.0F), random(0.1F, 0.3F), precipitation);
+    auto delayTime     = DelayTime::create(distance * 5.0F);
+    auto playSfx       = CallFunc::create([=]() {
+        if (_zone->getState() == WorldZone::State::ACTIVE)
+        {
+            if (skyCoverage > 0.01F)
+            {
+                AudioManager::getInstance()->playSfx("atmosphere", "thunder", 0.3F, 0.0F,
+                                                     skyCoverage * (1.0F - distance));
+            }
+        }
+    });
+    runAction(Sequence::createWithTwoActions(delayTime, playSfx));
+    _thunder = 1.0F;
 }
 
 void SkyRenderer::addCloudInRect(const Rect& rect, bool back)

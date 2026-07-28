@@ -2,6 +2,7 @@
 
 #include "base/GameConfig.h"
 #include "base/Item.h"
+#include "base/MutableEmitter.h"
 #include "base/Player.h"
 #include "entity/Entity.h"
 #include "entity/EntityAnimatedAvatar.h"
@@ -15,6 +16,7 @@
 #include "physics/ChipmunkSpace.h"
 #include "physics/Physical.h"
 #include "util/ArrayUtil.h"
+#include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
 #include "util/StringUtil.h"
@@ -29,6 +31,7 @@
 #define WEATHER_STATUS_LENGTH  6
 #define CHUNK_REQUEST_INTERVAL 0.5
 #define BLOCKS_IGNORE_INTERVAL 0.666
+#define RAIN_EMITTER_INTERVAL  1.0 / 60.0
 #define MAX_CHUNK_PENDING_TIME 10.0
 #define MAX_BLOCK_PHYSICS_TIME 0.005
 
@@ -84,6 +87,14 @@ void WorldZone::configure(const ValueMap& data)
     // NOTE: originally done further down at 0x100040482
     config->loadBiome(_biome);
     _worldRenderer->loadBiome(_biome);
+    auto precipitation = map_util::getString(_biomeConfig, "precipitation");
+    _rainAcidic        = precipitation == "rain";
+
+    if (auto emitter = config->getEmitterForName(precipitation))
+    {
+        _rainEmitter = MutableEmitter::createWithEmitter(emitter);
+        AX_SAFE_RETAIN(_rainEmitter);
+    }
 
     // Configure dimensions
     auto& size      = map_util::getArray(data, "size");
@@ -395,11 +406,72 @@ void WorldZone::update(float deltaTime)
         _receivedInitialStatus = true;
     }
 
+    // 0x100042D1E: Spawn rain particles if it is raining
+    if (_rainEmitter && _precipitation > 0.05F && utils::gettime() >= _nextRainAt)
+    {
+        auto frequency = math_util::lerp(0.05F, _rainAcidic ? 10.0F : 5.0F, _precipitation);
+        _rainEmitter->setFrequency(frequency);
+
+        // Update rain color if it's affected by acidity
+        if (_rainAcidic)
+        {
+            auto velocity = math_util::lerp(600.0F, 1100.0F, _precipitation);
+            _rainEmitter->setVelocityBase(velocity);
+            auto green = math_util::lerp(30.0F, 120.0F, _acidity);
+            auto blue  = math_util::lerp(120.0F, 30.0F, _acidity);
+            auto color =
+                color_util::rgbaToColor(((int)green & 0xFF) * 0x10000 + 0x140000DC + ((int)blue & 0xFF) * 0x100);
+            _rainEmitter->setColorBase(color);
+
+            if (auto emitter = _rainEmitter->getCollisionEmitter())
+            {
+                emitter->setColorBase(color);
+            }
+        }
+
+        auto scalar      = 1.0F / _worldRenderer->getWorldScale();
+        auto count       = math_util::lerp(1.0F, _rainAcidic ? 4.0F : 1.0F, _precipitation) * scalar;
+        auto playerSpeed = _player->getPhysical()->getVelocity() / BLOCK_SIZE;
+
+        // Emit some rain particles near the player
+        for (auto i = 0; i < count; i++)
+        {
+            auto x = random(upperLeft.x + playerSpeed.x, lowerRight.x + playerSpeed.x);
+            auto y = random(upperLeft.y + clampf(playerSpeed.y, -15.0F, 0.0F), upperLeft.y);
+            y      = clampf(y - 1.0F, 0.0F, _blocksHeight - 1);
+
+            if (auto block = getBlockAt((uint16_t)x, (uint16_t)y))
+            {
+                if (block->getY() < getSunlightAt(block->getX()))
+                {
+                    if (auto particle = _worldRenderer->emitParticle(_rainEmitter, block))
+                    {
+                        // Magic number 960 = approximate visible height at 1.0 zoom + 80
+                        auto life = 1.0F / -particle->getPhysical()->getVelocity().y * 960.0F * scalar;
+                        particle->setCurrentLife(life);
+                        particle->setKillOnCollide(true);
+                    }
+                }
+            }
+        }
+
+        _nextRainAt = utils::gettime() + RAIN_EMITTER_INTERVAL;
+    }
+
     // 0x100043178: Update ambient noise
     // TODO: ambient noise setting
-    // TODO: rain
-    auto wind = math_util::lerp(0.0F, 1.0F, _skyCoverage * 3.0F);
+    auto wind = math_util::lerp(1.0F, 0.3F, _precipitation);
+    wind      = math_util::lerp(0.0F, wind, _skyCoverage * 3.0F);
     AudioManager::getInstance()->setAutoLoopLayer("wind", wind, 1.0F);
+    auto rain = 0.0F;
+
+    if (_precipitation > 0.05F && _rainAcidic)
+    {
+        rain = math_util::lerp(0.0F, 0.75F, _precipitation * 2.0F);
+        rain = math_util::lerp(0.0F, rain, _skyCoverage * 3.0F);
+    }
+
+    AudioManager::getInstance()->setAutoLoopLayer("rain", _precipitation, rain);
 
     if (utils::gettime() > _nextAmbientSoundAt)
     {
@@ -422,10 +494,11 @@ void WorldZone::update(float deltaTime)
 
 void WorldZone::updateTimedStatus(float deltaTime)
 {
-    auto dayTime    = _timedStatus[0].asFloat() / 10000.0F;
-    auto acidity    = _timedStatus[5].asFloat() / 10000.0F;
-    auto cloudCover = _timedStatus[3].asFloat() / 10000.0F;
-    auto smoothTime = _receivedInitialStatus ? 10.0F : 0.0F;
+    auto dayTime       = _timedStatus[0].asFloat() / 10000.0F;
+    auto precipitation = _timedStatus[4].asFloat() / 10000.0F;
+    auto acidity       = _timedStatus[5].asFloat() / 10000.0F;
+    auto cloudCover    = _timedStatus[3].asFloat() / 10000.0F;
+    auto smoothTime    = _receivedInitialStatus ? 10.0F : 0.0F;
 
     if (dayTime < _dayTime)
     {
@@ -436,6 +509,7 @@ void WorldZone::updateTimedStatus(float deltaTime)
         MathUtil::smooth(&_dayTime, dayTime, deltaTime, smoothTime);
     }
 
+    MathUtil::smooth(&_precipitation, precipitation, deltaTime, smoothTime);
     MathUtil::smooth(&_acidity, acidity, deltaTime, smoothTime);
     MathUtil::smooth(&_cloudCover, cloudCover, deltaTime, smoothTime);
 }
@@ -678,6 +752,7 @@ void WorldZone::leave()
     unscheduleAllCallbacks();
     _sceneRenderer->clear();
     _sceneRenderer->setVisible(false);
+    AX_SAFE_RELEASE_NULL(_rainEmitter);
 
     // 0x10004988A: Recycle all active chunks
     for (auto chunk : _activeChunks)

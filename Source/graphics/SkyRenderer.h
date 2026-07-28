@@ -35,6 +35,9 @@ public:
     /* FUNC: SkyRenderer::updateColors: @ 0x1000C4AF2 */
     void updateColors(float deltaTime) override;
 
+    /* FUNC: SkyRenderer::thunder: @ 0x1000C49A5 */
+    void thunder();
+
     /* FUNC: SkyRenderer::addCloudInRect:back: @ 0x1000C4602 */
     void addCloudInRect(const ax::Rect& rect, bool back);
 
@@ -75,6 +78,7 @@ private:
     ax::Texture2D* _texture;
     ax::FastRNG _rng;
     WorldZone* _zone;
+    float _thunder;
 };
 
 }  // namespace opendw

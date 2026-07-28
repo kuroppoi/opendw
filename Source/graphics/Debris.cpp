@@ -94,6 +94,7 @@ void Debris::clear()
     _emitter = nullptr;
     _physical->clear(AX_CALLFUNC_SELECTOR(Debris::recycle));  // Space might be locked, so defer recycling
     _active = false;
+    _killOnCollide = false;
     setVisible(false);
 }
 
@@ -247,6 +248,10 @@ void Debris::onCollide(const Point& point)
             clear();
             _zone->getWorldRenderer()->emitParticle(emitter, point);
         }
+        else if (_killOnCollide)
+        {
+            setCurrentLife(MIN(0.5F, _currentLife));  // Slight grace period
+        }
     }
 }
 
@@ -263,6 +268,15 @@ void Debris::setClones(ssize_t clones)
         }
 
         _clones = clones;
+    }
+}
+
+void Debris::setCurrentLife(float life)
+{
+    // Don't allow changing if already dead
+    if (_active && _currentLife > 0.0F)
+    {
+        _currentLife = MAX(0.0F, life);
     }
 }
 
