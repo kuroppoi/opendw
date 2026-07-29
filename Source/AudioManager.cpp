@@ -49,7 +49,8 @@ bool AudioManager::init()
     _fadeOutMusicAction = nullptr;
 
     // If you've got any heavy audio files you should add them here for preloading
-    const auto preloadList = {THEME_MUSIC, "jetpack", "wind_desert_01_30"};
+    const auto preloadList = {THEME_MUSIC,         "jetpack",           "wind_desert_01_30",
+                              "forest_rain_01_15", "rain_forest_02_15", "thunder_14"};
 
     for (auto& name : preloadList)
     {
