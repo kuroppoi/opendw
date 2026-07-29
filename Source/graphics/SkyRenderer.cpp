@@ -1,8 +1,10 @@
 #include "SkyRenderer.h"
 
+#include "graphics/Lightmapper.h"
 #include "graphics/SkyCloud.h"
 #include "graphics/SkyMountain.h"
 #include "graphics/SkyRubble.h"
+#include "graphics/WorldRenderer.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -10,12 +12,13 @@
 #include "AudioManager.h"
 #include "CommonDefs.h"
 
-#define MOUNTAIN_COUNT    12
-#define MOUNTAIN_OFFSET   400.0F
-#define FRONT_CLOUD_COUNT 14
-#define BACK_CLOUD_COUNT  FRONT_CLOUD_COUNT * 2
-#define FRONT_STAR_COUNT  750
-#define BACK_STAR_COUNT   500
+#define MOUNTAIN_COUNT       12
+#define MOUNTAIN_OFFSET      400.0F
+#define FRONT_CLOUD_COUNT    14
+#define BACK_CLOUD_COUNT     FRONT_CLOUD_COUNT * 2
+#define FRONT_STAR_COUNT     750
+#define BACK_STAR_COUNT      500
+#define ENABLE_THUNDER_FLASH 1  // Disable this if you don't want thunder to flash the screen
 
 USING_NS_AX;
 
@@ -288,6 +291,13 @@ void SkyRenderer::thunder()
     });
     runAction(Sequence::createWithTwoActions(delayTime, playSfx));
     _thunder = 1.0F;
+
+#if ENABLE_THUNDER_FLASH
+    if (skyCoverage > 0.15F)
+    {
+        _zone->getWorldRenderer()->getLightmapper()->flash(skyCoverage);
+    }
+#endif
 }
 
 void SkyRenderer::addCloudInRect(const Rect& rect, bool back)
