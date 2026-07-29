@@ -40,6 +40,7 @@ bool Debris::initWithZone(WorldZone* zone)
 
 void Debris::update(float deltaTime)
 {
+    deltaTime = MIN(MAX_DELTA_TIME, deltaTime);
     MaskedSprite::update(deltaTime);
 
     if (!_active)

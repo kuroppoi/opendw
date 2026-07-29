@@ -15,6 +15,7 @@
 #include "zone/WorldZone.h"
 #include "AssetManager.h"
 #include "AudioManager.h"
+#include "CommonDefs.h"
 
 #define ENABLE_UPDATE_CHECKER 1
 
@@ -195,6 +196,7 @@ bool GameManager::init()
 
 void GameManager::update(float deltaTime)
 {
+    deltaTime = MIN(MAX_DELTA_TIME, deltaTime);
     Node::update(deltaTime);
 
     // 0x100036185: Load next game asset if necessary

@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include <string>
 
-#define BLOCK_SIZE 80.0F  // 40 if low definition, but opendw only supports HD textures.
+#define BLOCK_SIZE     80.0F  // 40 if low definition, but opendw only supports HD textures.
+#define MAX_DELTA_TIME 0.2F   // NOTE: Does not apply to everything, only certain tasks.
 
 /* Macro for creating an object and calling a custom init function with params */
 #define CREATE_INIT(__TYPE__, __INITIALIZER__, ...) \
