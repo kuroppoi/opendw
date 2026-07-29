@@ -7,11 +7,11 @@ USING_NS_AX;
 namespace opendw::color_util
 {
 
-Color3B lerpColor(const Color3B& from, const Color3B& to, float alpha)
+Color3B lerpColor(const Color3B& from, const Color3B& to, float alpha, bool forceStep)
 {
-    auto r = math_util::lerp(from.r, to.r, alpha);
-    auto g = math_util::lerp(from.g, to.g, alpha);
-    auto b = math_util::lerp(from.b, to.b, alpha);
+    auto r = math_util::lerpi(from.r, to.r, alpha, forceStep);
+    auto g = math_util::lerpi(from.g, to.g, alpha, forceStep);
+    auto b = math_util::lerpi(from.b, to.b, alpha, forceStep);
     return Color3B(r, g, b);
 }
 

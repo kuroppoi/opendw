@@ -514,11 +514,11 @@ void Player::update(float deltaTime)
 
     auto opacity = (1.0 - respawnTime) * 200.0 + 55.0;
     opacity      = _avatar->isStealthy() ? MIN(32, opacity) : opacity;
-    opacity      = math_util::lerp(_avatar->getOpacity(), opacity, deltaTime * 3.0F);
+    opacity      = math_util::lerpi(_avatar->getOpacity(), opacity, deltaTime * 3.0F, true);
     _avatar->setOpacity(opacity);
     // NOTE: This interferes with change color property (e*)
     auto color = color_util::lerpColor(Color3B::WHITE, color_util::rgbToColor(0xFF7F00), respawnTime);
-    color      = color_util::lerpColor(_avatar->getColor(), color, deltaTime * 3.0F);
+    color      = color_util::lerpColor(_avatar->getColor(), color, deltaTime * 3.0F, true);
     _avatar->setColor(color);
 
     // Update avatar position

@@ -316,7 +316,7 @@ void Entity::update(float deltaTime)
     // 0x1000BD03D: Update change color
     if (_colorize)
     {
-        auto color = color_util::lerpColor(_realColor, _changeColor, deltaTime * 2.0F);
+        auto color = color_util::lerpColor(_realColor, _changeColor, deltaTime * 2.0F, true);
         setColor(color);
     }
 

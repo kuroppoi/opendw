@@ -35,6 +35,15 @@ float getDistance(float x, float y, float x2, float y2);
 /* Linear interpolation function that automatically clamps alpha between 0 and 1. */
 float lerp(float from, float to, float alpha);
 
+/*
+ * Linear interpolation function for non-floating-point numbers.
+ *
+ * @param forceStep If enabled, the result will be rounded towards the target
+ * if the difference is less than 1 to prevent it from getting "stuck" if the alpha value is too small.
+ * You should generally enable this if you're using delta time as the alpha value.
+ */
+int lerpi(int from, int to, float alpha, bool forceStep = false);
+
 }  // namespace opendw::math_util
 
 #endif  // __MATH_UTIL_H__

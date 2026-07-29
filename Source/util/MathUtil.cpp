@@ -113,4 +113,16 @@ float lerp(float from, float to, float alpha)
     return MathUtil::lerp(from, to, clampf(alpha, 0.0F, 1.0F));
 }
 
+int lerpi(int from, int to, float alpha, bool forceStep)
+{
+    float result = lerp(from, to, alpha);
+
+    if (forceStep && abs(from - result) < 1.0F)
+    {
+        result = to > from ? ceilf(result) : floorf(result);
+    }
+
+    return (int)result;
+}
+
 }  // namespace opendw::math_util
