@@ -5,6 +5,7 @@
 #include "base/Item.h"
 #include "base/Player.h"
 #include "event/EventNames.h"
+#include "graphics/SkyRenderer.h"
 #include "graphics/WorldRenderer.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -426,12 +427,15 @@ void Lightmapper::illuminateBlocks(float deltaTime)
             }
         }
 
-        auto red   = block->getCurrentLightR();
-        auto green = block->getCurrentLightG();
-        auto blue  = block->getCurrentLightB();
-        auto alpha = clampf(getBaseLight() - block->getCurrentLightA(), 0.0F, 255.0F);
-        alpha -=
-            math_util::lerp(light * (_zone->getCloudCover() * -0.4F + 1.0F) * _zone->getDayPercent(), 255.0F, _flash);
+        auto red        = block->getCurrentLightR();
+        auto green      = block->getCurrentLightG();
+        auto blue       = block->getCurrentLightB();
+        auto alpha      = clampf(getBaseLight() - block->getCurrentLightA(), 0.0F, 255.0F);
+        auto thunder    = _zone->getWorldRenderer()->getSky()->getThunder();
+        auto cloudCover = _zone->getCloudCover() * -0.4F + 1.0F;
+        cloudCover      = math_util::lerp(cloudCover, 1.0F, thunder);
+        auto daylight   = math_util::lerp(_zone->getDayPercent(), 1.0F, thunder);
+        alpha -= math_util::lerp(light * cloudCover * daylight, 255.0F, _flash);
 
         // 0x10005866B: Apply pulsating glow effect
         // FIXME: take light position into account
@@ -494,9 +498,14 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         }
     }
 
-    _flash = clampf(_flash - deltaTime * (1.0F / 0.0167F), 0.0F, 1.0F);  // HACK: consistent flash duration
     _texture->updateWithData(_textureData, _textureSizeBytes, backend::PixelFormat::RGBA8, backend::PixelFormat::RGBA8,
                              _textureWidth, _textureHeight, false);
+    MathUtil::smooth(&_flash, 0.0F, deltaTime * 3.0F, 0.1F);
+
+    if (_flash < 0.01F)
+    {
+        _flash = 0.01F;
+    }
 
     // 0x100058BB3: Update sky coverage & visibility
     // FIXME: There's somewhat of an inaccuracy caused by the padding used by the lightmapper

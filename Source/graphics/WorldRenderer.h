@@ -167,6 +167,9 @@ public:
     /* FUNC: WorldRenderer::continuityCornerMasks @ 0x100086F2A */
     const CornerMasks& getContinuityCornerMasks() const { return _continuityCornerMasks; }
 
+    /* FUNC: WorldRenderer::sky @ 0x100086D95 */
+    SkyRenderer* getSky() const { return _sky; }
+
     /* FUNC: WorldRenderer::lightMapper @ 0x100086F8B */
     Lightmapper* getLightmapper() const { return _lightmapper; }
 

@@ -62,6 +62,8 @@ public:
 
     WorldZone* getZone() const { return _zone; }
 
+    float getThunder() const { return _thunder; }
+
 private:
     FrameMap _mountainFrameMap;      // SkyRenderer::mountainFramesets @ 0x100312A88
     FrameMap _hillFrameMap;          // SkyRenderer::hillFramesets @ 0x100312A90

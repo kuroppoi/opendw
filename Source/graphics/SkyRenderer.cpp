@@ -18,7 +18,6 @@
 #define BACK_CLOUD_COUNT     FRONT_CLOUD_COUNT * 2
 #define FRONT_STAR_COUNT     750
 #define BACK_STAR_COUNT      500
-#define ENABLE_THUNDER_FLASH 1  // Disable this if you don't want thunder to flash the screen
 
 USING_NS_AX;
 
@@ -200,6 +199,22 @@ void SkyRenderer::updateChildren(float deltaTime)
     updateChildrenInNode(_biomeBatchNode, deltaTime);
     updateChildrenInNode(_biomeBackBatchNode, deltaTime);
 
+    // Update thunder value
+    MathUtil::smooth(&_thunder, 0.0F, deltaTime, 0.334F);
+
+    if (_thunder >= 0.01F)
+    {
+        // Randomly fluctuate lightning
+        if (rand_0_1() <= deltaTime * 20.0F)
+        {
+            _thunder *= random(0.95F, 1.15F);
+        }
+    }
+    else
+    {
+        _thunder = 0.0F;
+    }
+
     // 0x1000C4855: Occasionally generate thunder if it is raining
     // BUGFIX: Framerate-independent odds
     auto precipitation = _zone->getPrecipitation();
@@ -269,15 +284,13 @@ void SkyRenderer::updateColors(float deltaTime)
         _batchNode->setColor(cloudColor);
         _backBatchNode->setColor(farCloudColor);
     }
-
-    _thunder = clampf(_thunder - deltaTime * 60.0F, 0.0F, 1.0F);
 }
 
 void SkyRenderer::thunder()
 {
     auto precipitation = _zone->getPrecipitation();
     auto skyCoverage   = _zone->getSkyCoverage();
-    auto distance      = math_util::lerp(random(0.8F, 1.0F), random(0.1F, 0.3F), precipitation);
+    auto distance      = math_util::lerp(random(0.7F, 0.9F), random(0.0F, 0.2F), precipitation);
     auto delayTime     = DelayTime::create(distance * 5.0F);
     auto playSfx       = CallFunc::create([=]() {
         if (_zone->getState() == WorldZone::State::ACTIVE)
@@ -290,14 +303,7 @@ void SkyRenderer::thunder()
         }
     });
     runAction(Sequence::createWithTwoActions(delayTime, playSfx));
-    _thunder = 1.0F;
-
-#if ENABLE_THUNDER_FLASH
-    if (skyCoverage > 0.15F)
-    {
-        _zone->getWorldRenderer()->getLightmapper()->flash(skyCoverage);
-    }
-#endif
+    _thunder = 1.0F - distance;
 }
 
 void SkyRenderer::addCloudInRect(const Rect& rect, bool back)
