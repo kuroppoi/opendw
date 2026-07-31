@@ -189,6 +189,8 @@ void SkyRenderer::clear()
         _biomeBackBatchNode->removeFromParent();
         _biomeBackBatchNode = nullptr;
     }
+
+    _thunder = 0.0F;
 }
 
 void SkyRenderer::updateChildren(float deltaTime)
