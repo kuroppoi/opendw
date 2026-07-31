@@ -27,7 +27,7 @@ TabsBar::~TabsBar()
 
 bool TabsBar::init()
 {
-    if (!Sprite::initWithFile("guiv2.png", Rect::ZERO))
+    if (!Node::init())
     {
         return false;
     }
@@ -57,7 +57,7 @@ void TabsBar::visit(Renderer* renderer, const Mat4& transform, uint32_t flags)
         updateLayout();
     }
 
-    Sprite::visit(renderer, transform, flags);
+    Node::visit(renderer, transform, flags);
 }
 
 void TabsBar::updateLayout()
@@ -72,38 +72,31 @@ void TabsBar::updateLayout()
 
         // Create background sprite
         auto background = Sprite::createWithSpriteFrame(_background);
+        background->setCascadeOpacityEnabled(true);
         background->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
         background->setScale(_backgroundScale);
         background->setColor(_backgroundColor);
-
-        // Create selected sprite
-        auto selected = Sprite::createWithSpriteFrame(_selectedBackground);
-        selected->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-        selected->setScale(background->getScale());
-        selected->setColor(_selectedBackgroundColor);
-        selected->setTag(SELECTED_SPRITE_TAG);
-        selected->setVisible(_selectedTab == i);
-
-        // Create tab node
-        auto size    = math_util::getScaledSize(background);
-        auto tabNode = Sprite::createWithTexture(_texture, Rect::ZERO);
-        tabNode->setCascadeOpacityEnabled(true);
-        tabNode->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
-        tabNode->setContentSize(size);
-        tabNode->addChild(background);
-        tabNode->addChild(selected, 1);
-        tabNode->setTag(i);
-        addChild(tabNode);
+        background->setTag(i);
+        addChild(background, 1);
+        auto size = math_util::getScaledSize(background);
 
         if (_maxColumns > 0)
         {
             auto row = i / _maxColumns;
-            tabNode->setPosition(size.width * (i % _maxColumns), (rows - 1) * size.height - row * size.height);
+            background->setPosition(size.width * (i % _maxColumns), (rows - 1) * size.height - row * size.height);
         }
         else
         {
-            tabNode->setPositionX(size.width * i);
+            background->setPositionX(size.width * i);
         }
+
+        // Create selected sprite
+        auto selected = Sprite::createWithSpriteFrame(_selectedBackground);
+        selected->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+        selected->setColor(_selectedBackgroundColor);
+        selected->setTag(SELECTED_SPRITE_TAG);
+        selected->setVisible(_selectedTab == i);
+        background->addChild(selected, 1);
 
         // Create image sprite
         if (!tab.image.empty())
@@ -113,7 +106,7 @@ void TabsBar::updateLayout()
             sprite->setTag(IMAGE_SPRITE_TAG);
             sprite->setColor(_selectedTab == i ? _selectedImageColor : _imageColor);
             math_util::scaleToSize(sprite, size * 0.7F, true);
-            tabNode->addChild(sprite, 2);
+            background->addChild(sprite, 2);
         }
     }
 

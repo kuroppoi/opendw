@@ -11,7 +11,7 @@ class TabsBarDelegate;
 /*
  * CLASS: TabsBar : CCSprite @ 0x10031A000
  */
-class TabsBar : public ax::Sprite
+class TabsBar : public ax::Node
 {
 public:
     struct Tab
