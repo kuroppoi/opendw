@@ -456,13 +456,13 @@ void WorldLayerRenderer::placeBlock(BaseBlock* block)
         if (code == item_codes::PLUGGED_MAW)
         {
             auto frame  = GameManager::getInstance()->getConfig()->getCurrentBiomeFrame("base/maw-plug");
-            auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 11);
+            auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 12);
             sprite->setAnchorPoint({0.5F, 0.7F});
         }
         else if (code == item_codes::PLUGGED_PIPE)
         {
             auto frame  = GameManager::getInstance()->getConfig()->getCurrentBiomeFrame("base/pipe-plug");
-            auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 11);
+            auto sprite = placeSprite(block, nullptr, frame, false, true, ModType::NONE, 0, 12);
             sprite->setAnchorPoint({0.5F, 0.65F});
         }
         else if (code != item_codes::BASE_MAW && code != item_codes::BASE_PIPE &&
