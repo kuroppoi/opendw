@@ -365,7 +365,22 @@ void Player::update(float deltaTime)
 
                 if (movement.y > -10.0F)
                 {
-                    // TODO: emitter
+                    // Randomly emit steam particles
+                    auto emitter = _flyAccessory->getEmitter();
+
+                    if (emitter && rand_0_1() < deltaTime)
+                    {
+                        Point position = _physical->getPosition();  // Copy
+                        position.x += -20.0F * _lookDirection;
+                        position.y += BLOCK_SIZE * 1.9F;
+
+                        if (auto particle = WorldRenderer::getMain()->emitParticle(emitter, position, 10.0F))
+                        {
+                            auto velocity = Vec2(random(-1.0F, 1.0F) * BLOCK_SIZE, -BLOCK_SIZE);
+                            particle->getPhysical()->setVelocity(velocity);
+                        }
+                    }
+
                     auto impulse = mass * deltaTime * -3.0F;
                     body->applyImpulseAtLocalPoint(_physical->getVelocity() * impulse);
                     setSteam(_steam - _flyAccessory->getRate() * 0.2F * deltaTime / getSteamEfficiency());
@@ -1163,6 +1178,7 @@ bool Player::useConsumable(InventoryItem* invItem, const Value& details)
         setHealth(_health + item->getPower());
         break;
     case Item::Action::REFILL:
+    {
         if (_steam >= getMaxSteam())
         {
             return false;
@@ -1170,8 +1186,18 @@ bool Player::useConsumable(InventoryItem* invItem, const Value& details)
 
         setSteam(_steam + item->getPower());
         _steamCooldownAt = utils::gettime();
-        // TODO: emit particles
+
+        // Emit some steam particles
+        auto origin = getPosition();
+
+        for (auto i = 0; i < 5; i++)
+        {
+            auto x = origin.x + (rand_0_1() - 0.5F) * BLOCK_SIZE;
+            auto y = origin.y + BLOCK_SIZE * 1.5F;
+            WorldRenderer::getMain()->emitParticle("steam", {x, y}, 999.0F);
+        }
         break;
+    }
     case Item::Action::TELEPORT:
         if (details.isNull())
         {

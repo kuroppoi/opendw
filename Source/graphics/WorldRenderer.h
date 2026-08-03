@@ -109,9 +109,13 @@ public:
 
     /* FUNC: WorldRenderer::generateBlockDebris:ineffectual:count: @ 0x1000842AA */
     void generateBlockDebris(BaseBlock* block, BlockLayer layer, bool ineffectual, ssize_t count);
+    
+    Debris* emitParticle(const std::string& name, BaseBlock* block);
+    Debris* emitParticle(const std::string& name, const ax::Point& point);
+    Debris* emitParticle(const std::string& name, const ax::Point& point, float frequency);
 
     /* FUNC: WorldRenderer::emitParticle:fromBlock: @ 0x100084876 */
-    Debris* emitParticle(Emitter* particle, BaseBlock* block);
+    Debris* emitParticle(Emitter* emitter, BaseBlock* block);
 
     /* FUNC: WorldRenderer::emitParticle:fromPoint: @ 0x10008497E */
     Debris* emitParticle(Emitter* emitter, const ax::Point& point);

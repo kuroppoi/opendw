@@ -1182,6 +1182,36 @@ void WorldRenderer::generateBlockDebris(BaseBlock* block, BlockLayer layer, bool
     }
 }
 
+Debris* WorldRenderer::emitParticle(const std::string& name, BaseBlock* block)
+{
+    if (auto emitter = GameConfig::getMain()->getEmitterForName(name))
+    {
+        return emitParticle(emitter, block);
+    }
+
+    return nullptr;
+}
+
+Debris* WorldRenderer::emitParticle(const std::string& name, const Point& point)
+{
+    if (auto emitter = GameConfig::getMain()->getEmitterForName(name))
+    {
+        return emitParticle(emitter, point);
+    }
+
+    return nullptr;
+}
+
+Debris* WorldRenderer::emitParticle(const std::string& name, const Point& point, float frequency)
+{
+    if (auto emitter = GameConfig::getMain()->getEmitterForName(name))
+    {
+        return emitParticle(emitter, point, frequency);
+    }
+
+    return nullptr;
+}
+
 Debris* WorldRenderer::emitParticle(Emitter* emitter, BaseBlock* block)
 {
     auto point = block->getWorldPosition();
