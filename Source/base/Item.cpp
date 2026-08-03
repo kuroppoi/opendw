@@ -1,5 +1,6 @@
 #include "Item.h"
 
+#include "base/DamageType.h"
 #include "base/GameConfig.h"
 #include "base/ItemCodes.h"
 #include "util/ColorUtil.h"

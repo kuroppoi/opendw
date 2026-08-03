@@ -246,6 +246,8 @@ void GameGui::onEnter()
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
     addEventListener(events::kZoneTeleportActivated, EVENT_CALLBACK(BaseBlock*, showTeleportInterface));
     addEventListener(events::kGuiWindowChangedPanel, AX_CALLBACK_0(GameGui::onGuiWindowPanelChanged, this));
+    addEventListener(events::kPlayerBreathChanged, EVENT_CALLBACK_REF(float*, _avatarPicture->setBreath));
+    addEventListener(events::kPlayerFreezeChanged, EVENT_CALLBACK_REF(float*, _avatarPicture->setFreeze));
     addEventListener(events::kPlayerAccessoriesChanged, EVENT_CALLBACK(Player*, onPlayerAccessoriesChanged));
     addEventListener(events::kPlayerSkillChanged, AX_CALLBACK_0(GameGui::onPlayerSkillChanged, this));
     addEventListener(events::kPlayerAppearanceChanged, EVENT_CALLBACK_REF(ValueMap*, onPlayerAppearanceChanged));
@@ -284,6 +286,8 @@ void GameGui::update(float deltaTime)
         showAlert(*it);
         _pendingAlerts.erase(it);
     }
+
+    _avatarPicture->updateFaceColor(deltaTime);
 
     // TODO: use events
     _nameLabel->setString(Player::getMain()->getUsername());

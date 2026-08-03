@@ -248,6 +248,12 @@ public:
     /* FUNC: Player::steamCooldownDuration @ 0x10002CCAA */
     float getSteamCooldownDuration();
 
+    /* FUNC: Player::setFreeze: @ 0x100021333 */
+    void setFreeze(float freeze);
+
+    /* FUNC: Player::setBreath: @ 0x1000213CC */
+    void setBreath(float breath);
+
     /* FUNC: Player::setSkill:level: @ 0x10002ACA4 */
     void setSkill(const std::string& name, int32_t level);
 
@@ -420,6 +426,8 @@ private:
     float _flyAccessoryPower;                              // Player::flyAccessoryPower @ 0x100310798
     float _health;                                         // Player::health @ 0x1003106A8
     float _steam;                                          // Player::steam @ 0x100310890
+    float _freeze;                                         // Player::freeze @ 0x1003108A0
+    float _breath;                                         // Player::breath @ 0x1003108A8
     double _lastUsedSteamAt;                               // Player::lastSteamedAt @ 0x100310828
     double _steamCooldownAt;                               // Player::steamCooldownAt @ 0x100310898
     ax::Map<int16_t, InventoryItem*> _inventory;           // Player::inventory @ 0x100310670

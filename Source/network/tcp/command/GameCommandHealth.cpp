@@ -1,6 +1,8 @@
 #include "GameCommandHealth.h"
 
+#include "base/DamageType.h"
 #include "base/Player.h"
+#include "entity/EntityAnimatedAvatar.h"
 #include "zone/WorldZone.h"
 
 namespace opendw
@@ -18,7 +20,7 @@ void GameCommandHealth::run()
 
         if (zone && zone->getState() == WorldZone::State::ACTIVE)
         {
-            // TODO: animate hurt
+            player->getAvatar()->animateHurt(DamageType::PIERCING);
             player->playHurtSound(currentHealth - health >= 1.0F);
         }
     }

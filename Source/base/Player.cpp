@@ -88,6 +88,8 @@ void Player::configureAvatar(const ValueMap& data)
     _avatar->autorelease();
     _avatar->retain();
     _avatar->setEntityId(_entityId);
+    _avatar->setFreeze(_freeze);
+    _avatar->setBreath(_breath);
     WorldZone::getMain()->getWorldRenderer()->getAnimatedCharactersNode()->addChild(_avatar, 999);
 
     // 0x100029566: Configure physics body
@@ -1532,6 +1534,36 @@ float Player::getSteamCooldownDuration()
 {
     auto engineering = getAdjustedSkill(kEngineeringSkill);
     return math_util::lerp(4.0F, 1.0F, (float)engineering / 10.0F);
+}
+
+void Player::setFreeze(float freeze)
+{
+    if (_freeze != freeze)
+    {
+        _freeze = freeze;
+
+        if (_avatar)
+        {
+            _avatar->setFreeze(freeze);
+        }
+
+        _game->getEventDispatcher()->dispatchCustomEvent(events::kPlayerFreezeChanged, &freeze);
+    }
+}
+
+void Player::setBreath(float breath)
+{
+    if (_breath != breath)
+    {
+        _breath = breath;
+
+        if (_avatar)
+        {
+            _avatar->setBreath(breath);
+        }
+
+        _game->getEventDispatcher()->dispatchCustomEvent(events::kPlayerBreathChanged, &breath);
+    }
 }
 
 void Player::setSkill(const std::string& name, int32_t level)

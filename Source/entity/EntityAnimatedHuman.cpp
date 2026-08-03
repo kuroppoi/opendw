@@ -1,5 +1,6 @@
 #include "EntityAnimatedHuman.h"
 
+#include "base/DamageType.h"
 #include "base/GameConfig.h"
 #include "base/Item.h"
 #include "base/Player.h"
@@ -21,6 +22,7 @@ namespace opendw
 void EntityAnimatedHuman::onEnter()
 {
     EntityAnimated::onEnter();
+    _breath        = 1.0F;
     _toolGlowSlot  = getSlot("tool-glow");
     _toolBone      = _mainSkeleton->findBone("tool");
     _toolArmBone   = _mainSkeleton->findBone("arm-upper-f");
@@ -96,7 +98,11 @@ void EntityAnimatedHuman::update(float deltaTime)
         }
     }
 
-    // TODO: update face color
+    // 0x1001788EF: Update face color
+    if (isAvatar())
+    {
+        updateFaceColor(deltaTime);
+    }
     
     // 0x100178B9C: Stop gun animation if necessary
     if (_toolItem && _toolItem->isGun() && utils::gettime() >= _lastAnimatedToolAt + 0.2)
@@ -211,6 +217,7 @@ void EntityAnimatedHuman::updateAppearance(const ValueMap& data)
     if (!skinColor.isNull())
     {
         _skinColor = color_util::hexToColor(skinColor.asString());
+        _headColor = _skinColor;
         setSlotColor("character-head", _skinColor);
         setSlotColor("character-eye", _skinColor);
 
@@ -568,6 +575,15 @@ void EntityAnimatedHuman::updateArms(float deltaTime)
     _toolBone->updateWorldTransform();
 }
 
+void EntityAnimatedHuman::updateFaceColor(float deltaTime)
+{
+    auto alpha = MAX(1.0F - _breath, (_freeze - 0.5F) * 2.0F);
+    auto color = color_util::lerpColor(_skinColor, color_util::rgbToColor(0x1496FF), alpha);
+    _headColor = color_util::lerpColor(_headColor, color, deltaTime * 2.0F, true);
+    setSlotColor("character-head", _headColor);
+    setSlotColor("character-eye", _headColor);
+}
+
 void EntityAnimatedHuman::animateTool(const Point& point)
 {
     _lastAnimatedToolAt = utils::gettime();
@@ -618,6 +634,42 @@ void EntityAnimatedHuman::animateTool(const Point& point)
     }
 }
 
+void EntityAnimatedHuman::animateHurt(DamageType type)
+{
+    auto expression = (~random() & 1) ? "pained" : "surprised";
+    animateEye(expression, 0.5F);
+
+    if (isAvatar())
+    {
+        auto color = 0xA02814;  // Face color
+
+        switch (type)
+        {
+        case DamageType::ACID:
+            color = 0x28AA14;
+            break;
+        case DamageType::FIRE:
+            color = 0xC80A0A;
+            break;
+        case DamageType::COLD:
+            break;
+        case DamageType::DESSICATION:
+            color = 0xAA3296;
+            break;
+        default:
+            if (MAX(1.0F - _breath, (_freeze - 0.5F) * 2.0F) > 0.5F)
+            {
+                color = 0x1450FF;
+            }
+            break;
+        }
+
+        _headColor = color_util::rgbToColor(color);
+        setSlotColor("character-head", _headColor);
+        setSlotColor("character-eye", _headColor);
+    }
+}
+
 void EntityAnimatedHuman::animateEye(const std::string& suffix, float duration)
 {
     if (suffix.empty())
@@ -631,6 +683,12 @@ void EntityAnimatedHuman::animateEye(const std::string& suffix, float duration)
         auto inner     = showInner ? std::format("avatar/inner-eye-{}", suffix) : SLOT_EMPTY;
         setSlot("character-eye", std::format("avatar/eye-male-{}", suffix));
         setSlot("character-eye-inner", inner);
+
+        // HACK: Prevent blinking after being hurt
+        if (suffix == "pained")
+        {
+            _lastEyeWasBlink = true;
+        }
     }
 
     _nextEyeChangeAt = utils::gettime() + duration;

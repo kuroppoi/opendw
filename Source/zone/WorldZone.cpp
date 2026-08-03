@@ -1,5 +1,6 @@
 #include "WorldZone.h"
 
+#include "base/DamageType.h"
 #include "base/GameConfig.h"
 #include "base/Item.h"
 #include "base/MutableEmitter.h"

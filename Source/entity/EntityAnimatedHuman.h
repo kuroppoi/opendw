@@ -7,6 +7,7 @@ namespace opendw
 {
 
 class Item;
+enum class DamageType;
 
 /*
  * CLASS: EntityAnimatedHuman : EntityAnimated @ 0x10031E308
@@ -62,11 +63,23 @@ public:
     /* FUNC: EntityAnimatedHuman::updateArms: @ 0x100178150 */
     void updateArms(float deltaTime);
 
+    /* FUNC: EntityAnimatedHuman::stepFaceColor: @ 0x100178D2E */
+    void updateFaceColor(float deltaTime);
+
     /* FUNC: EntityAnimatedHuman::animateToolTowardsPoint: @ 0x1001783E4 */
     void animateTool(const ax::Point& point = ax::Point::ZERO);
 
+    /* FUNC: EntityAnimatedHuman::animateHurt: @ 0x100178FE2 */
+    void animateHurt(DamageType type);
+
     /* FUNC: EntityAnimatedHuman::animateEye:duration: @ 0x100179154 */
     void animateEye(const std::string& suffix, float duration);
+
+    /* FUNC: EntityAnimatedHuman::setBreath: @ 0x10017705C */
+    void setBreath(float breath) { _breath = breath; }
+
+    /* FUNC: EntityAnimatedHuman::setFreeze: @ 0x100176FC0 */
+    void setFreeze(float freeze) { _freeze = freeze; }
 
     /* FUNC: EntityAnimatedHuman::animateToolBeganAt @ 0x100179437 */
     double getLastSwungToolAt() const { return _lastSwungToolAt; }
@@ -85,7 +98,10 @@ protected:
     Item* _targetItem;                  // EntityAnimatedHuman::interactionItem @ 0x100315120
     ax::Point _toolUsePoint;            // EntityAnimatedHuman::toolUsePoint @ 0x100315100
     float _toolRotation;                // EntityAnimatedHuman::toolRotation @ 0x100315108
+    float _breath;                      // EntityAnimatedHuman::breath @ 0x100315020
+    float _freeze;                      // EntityAnimatedHuman::freeze @ 0x1003150D0
     ax::Color3B _skinColor;             // EntityAnimatedHuman::skinColor @ 0x1003150A0
+    ax::Color3B _headColor;             // EntityAnimatedHuman::headColor @ 0x1003150A8
     ax::Color3B _hairColor;             // EntityAnimatedHuman::hairColor @ 0x100315098
     ax::Color3B _facialGearGlowColor;   // EntityAnimatedHuman::facialGearGlowColor @ 0x100315080
     ax::Color3B _topsOverlayGlowColor;  // EntityAnimatedHuman::topsOverlayColor @ 0x100315078

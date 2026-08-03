@@ -9,6 +9,7 @@ namespace opendw
 class Emitter;
 class GameConfig;
 enum class BlockLayer : uint8_t;
+enum class DamageType;
 enum class ModType : uint8_t
 {
     NONE,
@@ -32,25 +33,6 @@ enum class SpecialPlacement : uint8_t
     CLOCK,
     MACHINE,
     UNIQUE
-};
-
-// TODO: Move to standalone file
-enum class DamageType : uint8_t
-{
-    NONE,
-    BLUDGEONING,
-    SLASHING,
-    PIERCING,
-    CRUSHING,
-    ACID,
-    FIRE,
-    STEAM,
-    COLD,
-    ENERGY,
-    SONIC,
-    INK,
-    DESSICATION,
-    STINK
 };
 
 enum class UseType : uint8_t
