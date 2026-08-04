@@ -7,8 +7,10 @@ namespace opendw
 {
 
 /*
- * Hacky solution for injecting icons into labels using text codes.
- * Example: :heart: is turned into a heart icon.
+ * The MultiLabel is an extended label object that is responsible for mainly two things:
+ * - Converting text codes (e.g. :heart:) into icons
+ * - Automatically scaling down HD fonts by 50%
+ * If your label needs icons or uses an HD font, it is recommended that you use this class.
  */
 class MultiLabel : public ax::Label
 {
@@ -16,6 +18,8 @@ public:
     virtual ~MultiLabel() override;
 
     static MultiLabel* createWithBMFont(std::string_view path, std::string_view text);
+
+    bool initWithBMFont(std::string_view path, std::string_view test);
 
     virtual void initIcons();
 
@@ -28,7 +32,13 @@ public:
     virtual void updateIconColors();
     virtual void updateIconQuads();
 
+    void setIconsEnabled(bool enabled);
+
+    float getFontScaleAdjustment() const { return _fontScaleAdjustment; }
+
 private:
+    virtual void updateFontScale() override;
+
     std::string _rawText;
     ax::SpriteBatchNode* _iconBatchNode;
     ax::QuadCommand _iconQuadCommand;
@@ -36,7 +46,9 @@ private:
     ax::Map<int, ax::SpriteFrame*> _textIcons;
     ax::Map<std::string, ax::SpriteFrame*> _iconFrames;
     ax::Sprite* _reusedIconSprite;
+    bool _iconsEnabled;
     bool _iconsDirty;
+    float _fontScaleAdjustment;
 };
 
 }  // namespace opendw

@@ -4,6 +4,7 @@
 
 #include "entity/SpineManager.h"
 #include "graphics/CavernRenderer.h"
+#include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
 #include "gui/widget/SpriteButton.h"
 #include "gui/widget/TabsBar.h"
@@ -53,7 +54,7 @@ bool MainMenu::init()
 
     // 0x100087F0A: Create build label
     auto buildInfo = std::format("{} v{} ({})", APP_NAME, APP_VERSION, GAME_VERSION);
-    _buildLabel    = Label::createWithBMFont("console-shadow.fnt", buildInfo);
+    _buildLabel    = MultiLabel::createWithBMFont("console-shadow+hd.fnt", buildInfo);
     _buildLabel->setAlignment(TextHAlignment::RIGHT);
     _buildLabel->setLineSpacing(5.0F);
     _buildLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_RIGHT);
@@ -321,7 +322,7 @@ void MainMenu::showAlert(const std::string& message)
     }
 
     // Create alert label
-    auto label = Label::createWithBMFont("console.fnt", message);
+    auto label = MultiLabel::createWithBMFont("console+hd.fnt", message);
     label->setMaxLineWidth(_currentMenu->getContentSize().width - x);
     label->setColor(color_util::rgbToColor(0xFFC800));
     label->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
@@ -442,7 +443,7 @@ void MainMenu::showPlayMenu()
     auto color = color_util::rgbToColor(0x281401);
 
     // Create help button
-    auto helpButton = MenuItemLabel::create(Label::createWithBMFont("console.fnt", "Help"));
+    auto helpButton = MenuItemLabel::create(MultiLabel::createWithBMFont("console+hd.fnt", "Help"));
     helpButton->setColor(color);
     helpButton->setCallback([this](Object*) {
         AudioManager::getInstance()->playButtonSfx();
@@ -450,7 +451,7 @@ void MainMenu::showPlayMenu()
     });
 
     // Create server button
-    auto serverButton = MenuItemLabel::create(Label::createWithBMFont("console.fnt", "Change server"));
+    auto serverButton = MenuItemLabel::create(MultiLabel::createWithBMFont("console+hd.fnt", "Change server"));
     serverButton->setColor(color);
     serverButton->setCallback([this](Object*) {
         AudioManager::getInstance()->playButtonSfx();
@@ -458,7 +459,7 @@ void MainMenu::showPlayMenu()
     });
 
     // Create password reset button
-    auto passwordButton = MenuItemLabel::create(Label::createWithBMFont("console.fnt", "Forgot password?"));
+    auto passwordButton = MenuItemLabel::create(MultiLabel::createWithBMFont("console+hd.fnt", "Forgot password?"));
     passwordButton->setColor(color);
     passwordButton->setCallback([this](Object*) {
         AudioManager::getInstance()->playButtonSfx();
@@ -475,7 +476,7 @@ void MainMenu::showPlayMenu()
     if (GameManager::getInstance()->isUpdateAvailable())
     {
         auto color  = color_util::rgbToColor(0xFFDC0A);
-        auto button = MenuItemLabel::create(Label::createWithBMFont("console.fnt", "New update available!"));
+        auto button = MenuItemLabel::create(MultiLabel::createWithBMFont("console+hd.fnt", "New update available!"));
         button->setColor(color);
         button->setCallback([=](Object*) {
             AudioManager::getInstance()->playButtonSfx();
@@ -668,13 +669,13 @@ void MainMenu::showNews(const std::vector<News>& news)
         float currentY = 0.0F;
 
         // Create title label
-        auto titleLabel = Label::createWithBMFont("console.fnt", entry.title);
+        auto titleLabel = MultiLabel::createWithBMFont("console+hd.fnt", entry.title);
         titleLabel->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
         node->addChild(titleLabel);
         currentY -= math_util::getScaledHeight(titleLabel) + 4.0F;
 
         // Create date label
-        auto dateLabel = Label::createWithBMFont("console.fnt", entry.date);
+        auto dateLabel = MultiLabel::createWithBMFont("console+hd.fnt", entry.date);
         dateLabel->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
         dateLabel->setPositionY(currentY);
         dateLabel->setScale(0.75F);
@@ -684,7 +685,8 @@ void MainMenu::showNews(const std::vector<News>& news)
 
         // Create content label
         auto maxWidth     = math_util::getScaledWidth(_news) - 25.0F;
-        auto contentLabel = Label::createWithBMFont("console.fnt", entry.content, TextHAlignment::LEFT, maxWidth);
+        auto contentLabel = MultiLabel::createWithBMFont("console+hd.fnt", entry.content);
+        contentLabel->setMaxLineWidth(maxWidth);
         contentLabel->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
         contentLabel->setPositionY(currentY);
         contentLabel->setScale(0.8F);
@@ -707,7 +709,7 @@ TextField* MainMenu::createMenuTextField(const std::string& title, const std::st
 {
     auto& contentSize = _currentMenu->getContentSize();
     auto offsetY      = previous ? previous->getPositionY() - 10.0F : contentSize.height - 15.0F;
-    auto textField    = TextField::createWithFont("console.fnt");
+    auto textField    = TextField::createWithFont("console+hd.fnt");
     textField->setTitle(title);
     textField->setTextColor(color_util::rgbToColor(0xFFDC0A));
     textField->setHint(hint);
@@ -731,7 +733,7 @@ void MainMenu::setAssetLoadStatus(const std::string& message, float progress)
 
     if (!label)
     {
-        label = Label::createWithBMFont("console.fnt", " ");
+        label = MultiLabel::createWithBMFont("console+hd.fnt", " ");
         label->setPosition(_spinner->getPositionX(),
                            _spinner->getPositionY() - math_util::getScaledHeight(_spinner) + 25.0F);
         label->setColor(color_util::rgbToColor(0xFFDC0A));

@@ -2,6 +2,8 @@
 
 #include <regex>
 
+#include "CommonDefs.h"
+
 #define ICON_ATLAS "guiv2.png"
 #define ICON_CHAR  '\0'  // Character that represents custom icons
 #define TAB_CHAR   0x9
@@ -20,18 +22,21 @@ MultiLabel::~MultiLabel()
 
 MultiLabel* MultiLabel::createWithBMFont(std::string_view path, std::string_view text)
 {
-    auto label = new MultiLabel();
+    CREATE_INIT(MultiLabel, initWithBMFont, path, text);
+}
 
-    if (label->setBMFontFilePath(path))
+bool MultiLabel::initWithBMFont(std::string_view path, std::string_view text)
+{
+    if (!setBMFontFilePath(path))
     {
-        label->autorelease();
-        label->initIcons();
-        label->setString(text);
-        return label;
+        return false;
     }
 
-    AX_SAFE_DELETE(label);
-    return nullptr;
+    initIcons();
+    _iconsEnabled = true;
+    setString(text);
+    _fontScaleAdjustment = path.find("+hd") != std::string::npos ? 0.5F : 1.0F;
+    return true;
 }
 
 void MultiLabel::initIcons()
@@ -112,6 +117,13 @@ void MultiLabel::setString(std::string_view text)
 
     _textIcons.clear();
     _rawText = text;
+
+    if (!_iconsEnabled)
+    {
+        Label::setString(text);
+        return;
+    }
+    
     std::regex regex(":.*?:");
     std::smatch match;
     std::string search(text);
@@ -223,11 +235,28 @@ void MultiLabel::updateIconQuads()
         letterInfo.atlasIndex = index;
         auto frame            = icon.second;
         auto& size            = frame->getRect().size;
-        auto adjustedScale    = _lineHeight / size.height;
+        auto adjustedScale    = _lineHeight * _fontScaleAdjustment / size.height;
         _reusedIconSprite->setTextureRect(frame->getRect(), frame->isRotated(), frame->getOriginalSize());
-        _reusedIconSprite->setScale(_fontScale * MIN(1.0F, adjustedScale));
+        _reusedIconSprite->setScale(_fontScale / _fontScaleAdjustment * MIN(1.0F, adjustedScale));
         _reusedIconSprite->setPosition(x, y - size.height * 0.4F * adjustedScale);
         _iconBatchNode->insertQuadFromSprite(_reusedIconSprite, index);
+    }
+}
+
+void MultiLabel::updateFontScale()
+{
+    Label::updateFontScale();
+    _fontScale *= _fontScaleAdjustment;
+}
+
+void MultiLabel::setIconsEnabled(bool enabled)
+{
+    if (_iconsEnabled != enabled)
+    {
+        _iconsEnabled         = enabled;
+        std::string_view text = _rawText;
+        _rawText              = "";
+        setString(text);
     }
 }
 

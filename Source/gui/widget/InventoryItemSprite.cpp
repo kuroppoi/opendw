@@ -2,6 +2,7 @@
 
 #include "base/InventoryItem.h"
 #include "base/Item.h"
+#include "gui/widget/MultiLabel.h"
 #include "gui/GameGui.h"
 #include "util/ColorUtil.h"
 #include "util/MathUtil.h"
@@ -58,7 +59,7 @@ void InventoryItemSprite::getTooltipComponents(std::vector<Node*>& output)
     {
         std::string text = inventoryType;
         text[0]          = std::toupper(text[0]);
-        auto label       = Label::createWithBMFont("console.fnt", text);
+        auto label       = MultiLabel::createWithBMFont("console+hd.fnt", text);
         label->setScale(0.7F);
         label->setColor(color_util::rgbToColor(0x850000));
         output.push_back(label);
@@ -70,7 +71,7 @@ void InventoryItemSprite::getTooltipComponents(std::vector<Node*>& output)
     {
         std::string text = tooltip;
         std::replace(text.begin(), text.end(), '|', '\n');
-        auto label = Label::createWithBMFont("console.fnt", text);
+        auto label = MultiLabel::createWithBMFont("console+hd.fnt", text);
         label->setScale(0.6F);
         label->setColor(color_util::rgbToColor(0x323232));
         output.push_back(label);

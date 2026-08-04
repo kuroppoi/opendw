@@ -1,5 +1,6 @@
 #include "SpriteButton.h"
 
+#include "gui/widget/MultiLabel.h"
 #include "util/AxUtil.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
@@ -34,7 +35,7 @@ bool SpriteButton::initWithSpriteFrame(const std::string& frame)
     }
 
     _callback   = nullptr;
-    _titleLabel = Label::createWithBMFont("console.fnt", "");  // Create even if it isn't used
+    _titleLabel = MultiLabel::createWithBMFont("console+hd.fnt", "");  // Create even if it isn't used
     _titleLabel->setPosition(_contentSize * 0.5F);
     _titleLabel->setColor(Color3B::BLACK);
     addChild(_titleLabel, 2);

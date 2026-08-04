@@ -1,5 +1,6 @@
 #include "TextField.h"
 
+#include "gui/widget/MultiLabel.h"
 #include "gui/widget/Panel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"
@@ -53,20 +54,21 @@ bool TextField::initWithFont(const std::string& fontFile)
     addChild(_editBox);
 
     // Create title label
-    _titleLabel = Label::createWithBMFont(fontFile, "");
+    _titleLabel = MultiLabel::createWithBMFont(fontFile, "");
     _titleLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     _titleLabel->setScale(0.85F);
     _titleLabel->setVisible(false);
     addChild(_titleLabel);
 
     // Create value label
-    _valueLabel = Label::createWithBMFont(fontFile, "");
+    _valueLabel = MultiLabel::createWithBMFont(fontFile, "");
     _valueLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     _valueLabel->setOpacity(INACTIVE_OPACITY);
+    _valueLabel->setIconsEnabled(false);
     _clippingNode->addChild(_valueLabel);
 
     // Create hint label
-    _hintLabel = Label::createWithBMFont(fontFile, "");
+    _hintLabel = MultiLabel::createWithBMFont(fontFile, "");
     _hintLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     _hintLabel->setScale(0.75F);
     _hintLabel->setVisible(false);
@@ -114,7 +116,7 @@ void TextField::updateLayout()
     // Update background panel
     auto height = _valueLabel->getLineHeight() + _padding * 2.0F;
     _backgroundPanel->setPositionY(currentY);
-    _backgroundPanel->setContentSize({_width, height});
+    _backgroundPanel->setSize(_width, height);
     currentY += paddingY;
 
     // Update value clipping rect

@@ -7,6 +7,7 @@
 namespace opendw
 {
 
+class MultiLabel;
 class Panel;
 
 /*
@@ -81,7 +82,7 @@ public:
 
 private:
     ax::Label* _titleLabel;   // TextField::titleLabel @ 0x1003123C0
-    ax::Label* _valueLabel;   // TextField::valueLabel @ 0x100312398
+    MultiLabel* _valueLabel;  // TextField::valueLabel @ 0x100312398
     ax::Label* _hintLabel;    // TextField::hintLabel @ 0x1003123C8
     Panel* _backgroundPanel;  // TextField::valueBackground 0x1003123E8
     float _width;             // TextField::width @ 0x1003123A0

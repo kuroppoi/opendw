@@ -9,6 +9,7 @@
 #include "entity/MutableEntityConfig.h"
 #include "graphics/Debris.h"
 #include "graphics/WorldRenderer.h"
+#include "gui/widget/MultiLabel.h"
 #include "physics/ChipmunkBody.h"
 #include "physics/Physical.h"
 #include "util/AxUtil.h"
@@ -420,7 +421,7 @@ void Entity::createNameLabel()
         _nameLabel->release();
     }
 
-    _nameLabel = Label::createWithBMFont("console-shadow.fnt", _name);
+    _nameLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", _name);
     AX_SAFE_RETAIN(_nameLabel);
     _nameLabel->setScale(BLOCK_SIZE / 100.0F);
     _nameLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);

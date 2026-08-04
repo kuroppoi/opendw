@@ -85,17 +85,17 @@ bool GameGui::initWithZone(WorldZone* zone)
     addChild(_hudNode, 1);
 
     // Create hud labels
-    _nameLabel = Label::createWithBMFont("console-shadow.fnt", "Player Name");
+    _nameLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", "Player Name");
     _nameLabel->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
     _nameLabel->setScale(GUI_SCALE);
     _nameLabel->setOpacity(212);
     _hudNode->addChild(_nameLabel);
-    _zoneLabel = Label::createWithBMFont("console-shadow.fnt", "Mystery Zone");
+    _zoneLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", "Mystery Zone");
     _zoneLabel->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
     _zoneLabel->setScale(GUI_SCALE * 0.75F);
     _zoneLabel->setOpacity(212);
     _hudNode->addChild(_zoneLabel);
-    _positionLabel = MultiLabel::createWithBMFont("console-shadow.fnt", "0 central :up: 0");
+    _positionLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", "0 central :up: 0");
     _positionLabel->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
     _positionLabel->setScale(_zoneLabel->getScale() * 0.85F);
     _positionLabel->setOpacity(_zoneLabel->getOpacity() * 0.8F);
@@ -110,13 +110,13 @@ bool GameGui::initWithZone(WorldZone* zone)
     _hudNode->addChild(_healthBar);
 
     // 0x100059BCC: Create steam label
-    _steamLabel = MultiLabel::createWithBMFont("console-shadow.fnt", ":gauge:");
+    _steamLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", ":gauge:");
     _steamLabel->setAnchorPoint(Point::ANCHOR_TOP_LEFT);
     _steamLabel->setCascadeColorEnabled(true);  // setColorEmoji
     _hudNode->addChild(_steamLabel);
 
     // 0x10005A079: Create death label
-    _deathLabel = Label::createWithBMFont("console.fnt", "You have died.");
+    _deathLabel = MultiLabel::createWithBMFont("console+hd.fnt", "You have died.");
     _deathLabel->setPosition(_director->getWinSize() * 0.5F);
     _deathLabel->setOpacity(212);
     _deathLabel->setVisible(false);
@@ -158,10 +158,10 @@ bool GameGui::initWithZone(WorldZone* zone)
     _shopButton = createTopHudButton("shop", true, 30.0F, Color3B::WHITE);
     _shopButton->setCallback(defaultCallback);
     _hudButtonsNode->addChild(_shopButton);
-    _crownsLabel = Label::createWithBMFont("console-shadow.fnt", "0");
+    _crownsLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", "0");
     _crownsLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
     _crownsLabel->setColor(color_util::rgbToColor(0xFFFFA0));
-    _crownsLabel->setPosition(_shopButton->getForegroundSprite()->getPosition() - Vec2::UNIT_Y * 48.0F);
+    _crownsLabel->setPosition(_shopButton->getForegroundSprite()->getPosition() - Vec2::UNIT_Y * 46.0F);
     _crownsLabel->setScale(1.25F);
     _shopButton->addChild(_crownsLabel);
 
@@ -175,9 +175,9 @@ bool GameGui::initWithZone(WorldZone* zone)
     _socialButton = createTopHudButton("social", true, 30.0F, color_util::rgbToColor(0xC1B09D));
     _socialButton->setCallback(defaultCallback);
     _hudButtonsNode->addChild(_socialButton);
-    _socialLabel = Label::createWithBMFont("console-shadow.fnt", "1", TextHAlignment::CENTER);
+    _socialLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", "1");
     _socialLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
-    _socialLabel->setPosition(_socialButton->getForegroundSprite()->getPosition() - Vec2::UNIT_Y * 48.0F);
+    _socialLabel->setPosition(_socialButton->getForegroundSprite()->getPosition() - Vec2::UNIT_Y * 46.0F);
     _socialLabel->setScale(1.25F);
     _socialButton->addChild(_socialLabel);
 
@@ -294,7 +294,7 @@ void GameGui::update(float deltaTime)
     _zoneLabel->setString(_zone->getZoneName());
     _positionLabel->setString(getPositionDescription());
     _healthBar->setPosition(_nameLabel->getPositionX() + math_util::getScaledWidth(_nameLabel) + 10.0F, _nameLabel->getPositionY());
-    _steamLabel->setPosition(_healthBar->getPosition() + Vec2(math_util::getScaledWidth(_healthBar) + 15.0F, -2.0F));
+    _steamLabel->setPosition(_healthBar->getPosition() + Vec2(math_util::getScaledWidth(_healthBar) + 15.0F, 0.0F));
 }
 
 void GameGui::ready()
@@ -522,7 +522,7 @@ void GameGui::showInventoryTooltip(ItemSprite* sprite)
     }
 
     // Create tooltip components
-    auto titleLabel = Label::createWithBMFont("console.fnt", sprite->getItem()->getTitle());
+    auto titleLabel = MultiLabel::createWithBMFont("console+hd.fnt", sprite->getItem()->getTitle());
     titleLabel->setScale(0.75F);
     titleLabel->setColor(Color3B::BLACK);
     std::vector<Node*> components;
@@ -680,8 +680,8 @@ void GameGui::showAlert(const std::string& text)
     }
 
     // Create and display alert label
-    auto label = MultiLabel::createWithBMFont("console-shadow.fnt", text);
-    label->setMaxLineWidth(label->getBMFontSize() * 50.0F);  // 30 for small screen
+    auto label = MultiLabel::createWithBMFont("console-shadow+hd.fnt", text);
+    label->setMaxLineWidth(label->getBMFontSize() * label->getFontScaleAdjustment() * 50.0F);  // 30 for small screen
     auto& winSize = _director->getWinSize();
     label->setPosition(math_util::positionInViewport(0.5F, 0.4F));
     label->setOpacity(0);
@@ -737,7 +737,7 @@ void GameGui::showBigAlert(const std::string& title, const std::string& subtitle
     // 0x1000618FC: Create subtitle label
     if (!subtitle.empty())
     {
-        auto subtitleLabel = Label::createWithBMFont("console-shadow.fnt", subtitle);
+        auto subtitleLabel = MultiLabel::createWithBMFont("console-shadow+hd.fnt", subtitle);
         subtitleLabel->setPosition(titleLabel->getPositionX(),
                                    titleLabel->getPositionY() - math_util::getScaledHeight(titleLabel) - 10.0F);
         subtitleLabel->setScale(0.75F);

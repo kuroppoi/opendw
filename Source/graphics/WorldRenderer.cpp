@@ -897,7 +897,7 @@ Entity* WorldRenderer::addEntity(int32_t code, const std::string& name, const Va
 
 Label* WorldRenderer::emote(const std::string& text, const Point& position, const Color3B& color, bool quick)
 {
-    auto label = MultiLabel::createWithBMFont("console.fnt", text);
+    auto label = MultiLabel::createWithBMFont("console+hd.fnt", text);
     label->setScale(0.8F);
     label->setColor(color);
     label->setOpacity(222);

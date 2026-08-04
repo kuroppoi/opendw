@@ -8,6 +8,7 @@
 #include "base/Recipe.h"
 #include "gui/widget/CraftingContainer.h"
 #include "gui/widget/CraftingItemSprite.h"
+#include "gui/widget/MultiLabel.h"
 #include "gui/GameGui.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
@@ -70,7 +71,7 @@ void CraftingPanel::onEnter()
     addChild(background);
 
     // 0x10018141A: Create crafting label
-    auto craftingLabel = Label::createWithBMFont("console.fnt", "Crafting:");
+    auto craftingLabel = MultiLabel::createWithBMFont("console+hd.fnt", "Crafting:");
     craftingLabel->setScale(0.8F);
     craftingLabel->setColor(color_util::rgbToColor(0xFFDC0A));
     craftingLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
@@ -78,7 +79,7 @@ void CraftingPanel::onEnter()
     addChild(craftingLabel);
 
     // 0x100181567: Create category label
-    _categoryLabel = Label::createWithBMFont("console.fnt", "Construction");
+    _categoryLabel = MultiLabel::createWithBMFont("console+hd.fnt", "Construction");
     _categoryLabel->setScale(craftingLabel->getScale());
     _categoryLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     _categoryLabel->setPosition(craftingLabel->getBoundingBox().getMaxX() + 10.0F, craftingLabel->getPositionY());

@@ -1,6 +1,7 @@
 #include "TeleportPanel.h"
 
 #include "base/GameConfig.h"
+#include "gui/widget/MultiLabel.h"
 #include "gui/widget/SpriteButton.h"
 #include "gui/widget/TeleportIcon.h"
 #include "gui/GameGui.h"
@@ -325,7 +326,7 @@ void TeleportPanel::showZones(const std::string& type, const std::vector<ZoneSea
     // 0x1000FF9AF: Show "no worlds found" label if no worlds were found
     if (data.empty())
     {
-        _noneFoundLabel = Label::createWithBMFont("console.fnt", "No worlds found.");
+        _noneFoundLabel = MultiLabel::createWithBMFont("console+hd.fnt", "No worlds found.");
         _noneFoundLabel->setColor(Color3B::BLACK);
         _noneFoundLabel->setOpacity(0);
         _noneFoundLabel->setPosition(center);

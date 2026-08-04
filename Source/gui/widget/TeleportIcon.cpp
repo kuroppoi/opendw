@@ -2,6 +2,7 @@
 
 #include "base/GameConfig.h"
 #include "base/Player.h"
+#include "gui/widget/MultiLabel.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
 #include "util/MathUtil.h"
@@ -66,7 +67,7 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
     addChild(marker);
 
     // 0x100100DF5: Create name label
-    auto nameLabel = Label::createWithBMFont("console.fnt", info.name);
+    auto nameLabel = MultiLabel::createWithBMFont("console+hd.fnt", info.name);
     nameLabel->setScale(0.75F);
     nameLabel->setPositionY(-13.0F);
     nameLabel->setColor(
@@ -77,7 +78,7 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
     // TODO: track player's premium status
     auto status =
         std::format("{}% explored{}", info.explored, info.status.empty() ? "" : std::format(", {}", info.status));
-    auto statusLabel = Label::createWithBMFont("console.fnt", _inaccessible ? "UNLOCK" : status);
+    auto statusLabel = MultiLabel::createWithBMFont("console+hd.fnt", _inaccessible ? "UNLOCK" : status);
     statusLabel->setScale(0.6F);
     statusLabel->setPositionY(-29.0F);
     statusLabel->setColor(
@@ -87,7 +88,7 @@ bool TeleportIcon::initWithInfo(const ZoneSearchInfo& info)
     // 0x100101069: Create scenario label if necessary
     if (showScenario)
     {
-        auto scenarioLabel = Label::createWithBMFont("console.fnt", scenario);
+        auto scenarioLabel = MultiLabel::createWithBMFont("console+hd.fnt", scenario);
         scenarioLabel->setScale(0.67F);
         scenarioLabel->setPositionY(statusLabel->getPositionY() - math_util::getScaledHeight(statusLabel) - 3.0F);
         scenarioLabel->setColor(color_util::lerpColor(statusLabel->getColor(), Color3B::RED, 0.234F));

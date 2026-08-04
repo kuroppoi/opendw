@@ -3,6 +3,7 @@
 #include "base/Item.h"
 #include "base/Player.h"
 #include "base/Recipe.h"
+#include "gui/widget/MultiLabel.h"
 #include "util/ColorUtil.h"
 #include "util/MathUtil.h"
 #include "AudioManager.h"
@@ -94,14 +95,14 @@ static std::vector<Node*> getItemComponents(const std::vector<Recipe::Ingredient
         sprite->setPositionY(math_util::getScaledHeight(sprite) * 0.5F);
 
         // Create quantity label
-        auto quantityLabel = Label::createWithBMFont("console.fnt", std::format("x{}", ingredient.quantity));
+        auto quantityLabel = MultiLabel::createWithBMFont("console+hd.fnt", std::format("x{}", ingredient.quantity));
         quantityLabel->setColor(Color3B::BLACK);
         quantityLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_LEFT);
         quantityLabel->setPosition(sprite->getBoundingBox().getMaxX() + 10.0F, sprite->getPositionY());
         quantityLabel->setScale(0.8F);
 
         // Create title label
-        auto titleLabel = Label::createWithBMFont("console.fnt", item->getTitle());
+        auto titleLabel = MultiLabel::createWithBMFont("console+hd.fnt", item->getTitle());
         titleLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_LEFT);
         titleLabel->setColor(color_util::rgbToColor(0x5C5C5C));
         titleLabel->setPosition(quantityLabel->getBoundingBox().getMaxX() + 10.0F, quantityLabel->getPositionY());
@@ -140,7 +141,8 @@ void CraftingItemSprite::getTooltipComponents(std::vector<Node*>& output)
 
     if (quantity > 1)
     {
-        auto quantityLabel = Label::createWithBMFont("console.fnt", std::format("Makes {}", _recipe->getQuantity()));
+        auto quantityLabel =
+            MultiLabel::createWithBMFont("console+hd.fnt", std::format("Makes {}", _recipe->getQuantity()));
         quantityLabel->setColor(color_util::rgbToColor(0x645014));
         quantityLabel->setScale(0.7F);
         output.push_back(quantityLabel);
@@ -162,7 +164,7 @@ void CraftingItemSprite::getTooltipComponents(std::vector<Node*>& output)
         output.push_back(divider);
 
         // 0x1000F3FF3: Create label
-        auto label = Label::createWithBMFont("console.fnt", "Workshop Requirements");
+        auto label = MultiLabel::createWithBMFont("console+hd.fnt", "Workshop Requirements");
         label->setColor(color_util::rgbToColor(0x645014));
         label->setScale(0.7F);
         output.push_back(label);
@@ -183,7 +185,7 @@ void CraftingItemSprite::getTooltipComponents(std::vector<Node*>& output)
         std::string skill = item->getCraftingSkill();  // Mutable copy
         skill[0]          = std::toupper(skill[0]);
         auto text         = std::format("Level {} {}", item->getCraftingSkillLevel(), skill);
-        auto label        = Label::createWithBMFont("console.fnt", text);
+        auto label        = MultiLabel::createWithBMFont("console+hd.fnt", text);
         label->setScale(0.6F);
         label->setColor(color_util::rgbToColor(0xFF3232));
         output.push_back(label);

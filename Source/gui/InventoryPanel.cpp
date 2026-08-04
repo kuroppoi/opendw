@@ -6,6 +6,7 @@
 #include "base/GameConfig.h"
 #include "base/Player.h"
 #include "gui/widget/ItemContainer.h"
+#include "gui/widget/MultiLabel.h"
 #include "gui/GameGui.h"
 #include "util/ColorUtil.h"
 #include "util/MapUtil.h"
@@ -74,7 +75,7 @@ void InventoryPanel::onEnter()
     addChild(background);
 
     // 0x100180ECB: Create inventory label
-    auto inventoryLabel = Label::createWithBMFont("console.fnt", "Inventory:");
+    auto inventoryLabel = MultiLabel::createWithBMFont("console+hd.fnt", "Inventory:");
     inventoryLabel->setScale(0.8F);
     inventoryLabel->setColor(color_util::rgbToColor(0xFFDC0A));
     inventoryLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
@@ -82,7 +83,7 @@ void InventoryPanel::onEnter()
     addChild(inventoryLabel);
 
     // 0x100180F99: Create category label
-    _categoryLabel = Label::createWithBMFont("console.fnt", "Resources");
+    _categoryLabel = MultiLabel::createWithBMFont("console+hd.fnt", "Resources");
     _categoryLabel->setScale(inventoryLabel->getScale());
     _categoryLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);
     _categoryLabel->setPosition(inventoryLabel->getBoundingBox().getMaxX() + 10.0F, inventoryLabel->getPositionY());
@@ -98,7 +99,7 @@ void InventoryPanel::onEnter()
     gui->setItemContainerForType(ContainerType::ACCESSORY, accessoryContainer);
 
     // 0x1001807F1: Create accessories label
-    auto accessoryLabel = Label::createWithBMFont("console.fnt", "Accessories");
+    auto accessoryLabel = MultiLabel::createWithBMFont("console+hd.fnt", "Accessories");
     accessoryLabel->setScale(0.8F);
     accessoryLabel->setColor(color_util::rgbToColor(0xFFDC0A));
     accessoryLabel->setAnchorPoint(Point::ANCHOR_BOTTOM_LEFT);

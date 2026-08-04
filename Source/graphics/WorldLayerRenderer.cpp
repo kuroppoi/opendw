@@ -852,12 +852,11 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
             auto& metadata     = metaBlock->getMetadata();
             auto& color        = item->getColor();
             auto code          = item->getCode();
-            auto fontScale     = 0.5F;  // FIXME: Why is the font size too big!?
             auto letterSpacing = code == item_codes::MECHANICAL_SIGN ? 10.0F : 0.0F;
-            auto maxLabelScale = (code == item_codes::MECHANICAL_SIGN ? 1.2F : 1.0F) * fontScale;
+            auto maxLabelScale = code == item_codes::MECHANICAL_SIGN ? 1.2F : 1.0F;
             auto landmark      = code == item_codes::RUBY_PLAQUE || code == item_codes::LANDMARK_PLAQUE;
-            auto paddingX      = (landmark ? 0.1F : 0.0F) * fontScale;
-            auto linePadding   = (landmark ? -2.0F : 2.0F) * fontScale;
+            auto paddingX      = landmark ? 0.1F : 0.0F;
+            auto linePadding   = landmark ? -1.0F : 1.0F;
             auto signSprite    = block->getTopSpriteForLayer(BlockLayer::FRONT);
             auto signWidth     = signSprite->getContentSize().width - BLOCK_SIZE * 0.5F;
             auto keys          = {"t", "t1", "t2", "t3", "t4"};  // Sign metadata text keys
@@ -874,13 +873,13 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
 
                 auto text  = map_util::getString(metadata, key);
                 auto label = MultiLabel::createWithBMFont("sign-font-small-1+hd.fnt", text);
-                label->setAdditionalKerning(letterSpacing);
+                label->setAdditionalKerning(letterSpacing * label->getFontScaleAdjustment());
                 auto textWidth = label->getContentSize().width;
                 auto scaleX    = MIN(maxLabelScale, signWidth / textWidth);
                 label->setScale((scaleX - paddingX) * 0.925F);
                 label->setColor(color.g != 0xFF ? color : color_util::rgbToColor(0x0A0A0A));  // Wow! This sucks.
                 labels.push_back(label);
-                totalHeight += label->getContentSize().height * 0.5F + linePadding;
+                totalHeight += label->getContentSize().height + linePadding;
             }
 
             auto signsNode = worldRenderer->getSignsNode();
@@ -895,10 +894,10 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
 
                 // 0x1000A5ADB: Draw vote/xp count
                 auto count = map_util::getInt32(metadata, "vc");
-                auto label = Label::createWithBMFont("sign-font-small-1+hd.fnt", std::to_string(count));
+                auto label = MultiLabel::createWithBMFont("sign-font-small-1+hd.fnt", std::to_string(count));
                 label->setColor(color_util::rgbToColor(0xFFDC0A));
                 label->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
-                label->setScale(0.8F * fontScale);
+                label->setScale(0.8F);
                 auto x = point.x + (item->getWidth() * 0.5F - 0.39F) * BLOCK_SIZE;
                 label->setPosition(x, point.y);
                 label->setUserData(signsNode);
@@ -910,7 +909,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
             for (auto& label : labels)
             {
                 label->setPosition(labelX, labelY);
-                labelY -= label->getContentSize().height * 0.5F + linePadding;
+                labelY -= label->getContentSize().height + linePadding;
 
                 // 0x1000A5F2A: Draw mechanical letter borders
                 if (code == item_codes::MECHANICAL_SIGN)
