@@ -466,7 +466,7 @@ void MainMenu::showPlayMenu()
         showForgotPasswordMenu();
     });
 
-    menuItems.pushBack(MenuItemLabel::create(Label::createWithBMFont("console.fnt", " ")));
+    menuItems.pushBack(MenuItemLabel::create(MultiLabel::createWithBMFont("console+hd.fnt", " ")));
     menuItems.pushBack(helpButton);
     menuItems.pushBack(serverButton);
     menuItems.pushBack(passwordButton);
