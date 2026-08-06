@@ -244,8 +244,8 @@ void SkyRenderer::updateColors(float deltaTime)
 
     // 0x1000C4C02: Update gradient colors
     auto startColor = color_util::saturate(skyColor, cloudCover * 0.33F);
-    startColor      = color_util::lerpColor(startColor, Color3B::BLACK, 0.2F);
-    auto endColor   = color_util::lerpColor(startColor, Color3B::BLACK, 0.5F);
+    auto endColor   = color_util::lerpColor(startColor, Color3B::BLACK, 0.2F);
+    endColor        = color_util::lerpColor(endColor, Color3B::BLACK, 0.5F);
     startColor      = color_util::lerpColor(startColor, Color3B::WHITE, _thunder);
     _gradient->setStartColor(startColor);
     _gradient->setEndColor(endColor);
