@@ -14,8 +14,8 @@ Deepworld was developed by Bytebin and originally released in 2012 exclusively f
 Less than a year later, work began on porting the game to Unity so that it could be played on Windows.\
 This version of the game was eventually released on [Steam](https://store.steampowered.com/app/340810/Deepworld) in early 2015.\
 Unfortunately, it was never quite able to reach parity with its predecessor before the game was shut down in mid 2019.\
-The main purpose of this project is to reverse engineer and port the original Mac version of the game with bug fixes and\
-minor quality of life improvements so that it can be experienced on Windows in its full glory.
+The main purpose of this project is to reverse engineer and port the original Mac version of the game with bug fixes\
+and minor quality of life improvements so that it can be experienced on Windows in its full glory.
 
 > [!NOTE]
 > Deepworld was originally developed for MacOS and iOS using an older version of Cocos2d.\
