@@ -57,7 +57,7 @@ bool Player::initWithGame(GameManager* game)
     _game     = game;
     _username = "Unknown player";
     _entityId = -1;
-    _health   = 5.0F;
+    _health   = BASE_HEALTH;
     _clip     = true;
     sMain     = this;
     return true;
