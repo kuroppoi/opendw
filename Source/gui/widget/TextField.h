@@ -44,6 +44,8 @@ public:
     /* FUNC: TextField::usePanelBackground:color: @ 0x100095191 */
     void setBackgroundStyle(const std::string& style);
 
+    Panel* getBackgroundPanel() const { return _backgroundPanel; }
+
     void setFont(const std::string& fontFile);
 
     /* FUNC: TextField::setTitle:font:color: @ 0x100094BAA */

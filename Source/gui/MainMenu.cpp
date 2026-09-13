@@ -714,6 +714,7 @@ TextField* MainMenu::createMenuTextField(const std::string& title, const std::st
     textField->setTextColor(color_util::rgbToColor(0xFFDC0A));
     textField->setHint(hint);
     textField->setWidth(contentSize.width - 40.0F);
+    textField->getBackgroundPanel()->setBorderScale(1.0F / ax_util::getDisplayedScale(_currentMenu));
     textField->updateLayout();
     textField->setPosition(25.0F, offsetY - textField->getContentSize().height);
     textField->setActive(!previous);

@@ -53,4 +53,19 @@ bool isNodeVisible(Node* node)
     return true;
 }
 
+float getDisplayedScale(Node* node)
+{
+    AX_ASSERT(node);
+    float scale  = 1.0F;
+    auto current = node;
+
+    while (current)
+    {
+        scale *= current->getScale();
+        current = current->getParent();
+    }
+
+    return scale;
+}
+
 }  // namespace opendw::ax_util

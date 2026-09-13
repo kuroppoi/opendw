@@ -18,6 +18,9 @@ void fadeOutAndRemove(ax::Node* node, float duration = 0.5F);
 /* Like `Node::isVisible()`, but also checks the visibility of its ancestors. */
 bool isNodeVisible(ax::Node* node);
 
+/* @return the product of the scale of this node and all of its ancestors. */
+float getDisplayedScale(ax::Node* node);
+
 }  // namespace opendw::ax_util
 
 #endif  // __AX_UTIL_H__
