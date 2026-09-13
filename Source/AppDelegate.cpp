@@ -6,6 +6,7 @@ USING_NS_AX;
 
 static constexpr auto DESIGN_RESOLUTION = Size(1536, 864);
 static constexpr auto ENABLE_VSYNC      = true;
+static constexpr auto FRAME_CAP         = 240.0F;
 
 AppDelegate::~AppDelegate()
 {
@@ -39,7 +40,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 #if _AX_DEBUG
     director->setStatsDisplay(true);
 #endif
-    director->setAnimationInterval(0.0F);  // Unlimited
+    director->setAnimationInterval(1.0F / FRAME_CAP);
     renderView->setDesignResolutionSize(DESIGN_RESOLUTION.width, DESIGN_RESOLUTION.height, ResolutionPolicy::NO_BORDER);
     _game = opendw::GameManager::getInstance();
 
