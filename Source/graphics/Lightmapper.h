@@ -69,6 +69,7 @@ public:
 private:
     WorldZone* _zone;              // Lightmapper::zone @ 0x100311610
     ax::Sprite* _torchLight;       // Lightmapper::torchLight @ 0x100311650
+    ax::Sprite* _spotLight;        // Lightnapper::spotLight @ 0x100311658
     int8_t* _lightRings;           // Lightmapper::lightRings @ 0x100311670
     ax::RenderTexture* _lightmap;  // Lightmapper::lightmap @ 0x100311690
     float _deathOverlay;           // Lightmapper::deathOverlay @ 0x100311628

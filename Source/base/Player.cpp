@@ -461,6 +461,11 @@ void Player::update(float deltaTime)
             }
         }
 
+        if (utils::gettime() < _celebrateUntil)
+        {
+            animation = "cheer";
+        }
+
         // 0x10001D8DB: Move player towards block center if moving directly upwards
         if (movement.y > BLOCK_SIZE * 0.5F && speedX < BLOCK_SIZE * 0.345F && _avatar->getHeadColliderCount() < 1)
         {

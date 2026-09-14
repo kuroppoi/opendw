@@ -218,6 +218,12 @@ public:
     /* FUNC: Player::lookDirection @ 0x10002DCB4 */
     int8_t getLookDirection() const { return _lookDirection; }
 
+    /* FUNC: Player::setCelebrateUntil: @ 0x10002DE53 */
+    void setCelebrateUntil(double value) { _celebrateUntil = value; }
+
+    /* FUNC: Player::celebrateUntil @ 0x10002DE41 */
+    double getCelebrateUntil() const { return _celebrateUntil; }
+
     /* FUNC: Player::setHealth: @ 0x100020E0A */
     void setHealth(float health);
 
@@ -416,6 +422,7 @@ private:
     uint8_t _currentLiquidLevel;                           // Player::currentLiquidLevel @ 0x100310740
     double _changeIdleAt;                                  // Player::changeIdleAt @ 0x100310710
     std::string _idleAnimation;                            // Player::currentIdleAnimation @ 0x100310750
+    double _celebrateUntil;                                // Player::celebrateUntil @ 0x1003107B0
     double _respawnStartedAt;                              // Player::respawnStartedAt @ 0x100310830
     double _nextMoveMessageTime;                           // Player::nextMoveMessageTime @ 0x1003108C8
     double _startedRunningAt;                              // Player::startedRunningAt @ 0x100310788

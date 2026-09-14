@@ -958,7 +958,13 @@ void WorldRenderer::generateEffect(const std::string& name, ssize_t quantity, co
         return;
     }
      
-    // TODO: levelup
+    // 0x100083702: Handle level up
+    if (name.starts_with("levelup"))
+    {
+        Player::getMain()->setCelebrateUntil(utils::gettime() + 2.5);
+        AudioManager::getInstance()->playSfx("sfx-flourish-1");
+        return;
+    }
 
     // 0x1000837C3: Handle bomb effect
     if (name.starts_with("bomb") && distance < 100.0F)

@@ -37,6 +37,7 @@ Lightmapper::~Lightmapper()
     AX_SAFE_DELETE_ARRAY(_lightRings);
     AX_SAFE_DELETE_ARRAY(_textureData);
     AX_SAFE_RELEASE(_torchLight);
+    AX_SAFE_RELEASE(_spotLight);
     AX_SAFE_RELEASE(_texture);
     AX_SAFE_RELEASE(_sprite);
     AX_SAFE_RELEASE(_programState);
@@ -86,6 +87,11 @@ bool Lightmapper::initWithZone(WorldZone* zone)
     _torchLight = Sprite::create("gradient-radial-alpha.png");
     _torchLight->setBlendFunc({backend::BlendFactor::ZERO, backend::BlendFactor::ONE_MINUS_SRC_ALPHA});
     AX_SAFE_RETAIN(_torchLight);
+
+    // Create spotlight
+    _spotLight = Sprite::create("circle-alpha.png");
+    _spotLight->setBlendFunc({backend::BlendFactor::ZERO, backend::BlendFactor::ONE_MINUS_SRC_ALPHA});
+    AX_SAFE_RETAIN(_spotLight);
 
     // 0x10005597A: Compute light ring data
     ssize_t lightRingBytes = 0;
@@ -156,6 +162,33 @@ void Lightmapper::setupScreen()
     _sprite->setTextureRect(rect);
 }
 
+/* FUNC: 0x10001A897 */
+static float calculateSpotlightScale(float alpha)
+{
+    if (alpha >= 0.36363637F)
+    {
+        if (alpha >= 0.72727275F)
+        {
+            if (alpha >= 0.90909094F)
+            {
+                return (alpha - 0.95454544) * 7.5625 * (alpha - 0.95454544) + 0.984375F;
+            }
+            else
+            {
+                return (alpha - 0.81818181) * 7.5625 * (alpha - 0.81818181) + 0.9375F;
+            }
+        }
+        else
+        {
+            return (alpha - 0.54545456) * 7.5625 * (alpha - 0.54545456F) + 0.75F;
+        }
+    }
+    else
+    {
+        return alpha * 7.5625F * alpha;
+    }
+}
+
 void Lightmapper::update(float deltaTime)
 {
     auto worldRenderer = _zone->getWorldRenderer();
@@ -191,45 +224,65 @@ void Lightmapper::update(float deltaTime)
     _sprite->setPosition(winTop * LIGHTMAP_SCALE + point * scale + offset * scale);
     _sprite->setScale(scale * BLOCK_SIZE);
 
+    // Celebratory spotlight preamble
+    auto playerCenter =
+        worldRenderer->getScreenPointForNodePoint(player->getPosition() + Vec2::UNIT_Y * BLOCK_SIZE * 0.8F);
+    auto celebrateTime = 0.0F;
+    auto clearAlpha    = 0.0F;
+
+    if (utils::gettime() < player->getCelebrateUntil())
+    {
+        celebrateTime = (player->getCelebrateUntil() - utils::gettime()) / -2.5F + 1.0F;
+        clearAlpha    = celebrateTime >= 0.8F ? (1.0F - celebrateTime) / 0.2F : celebrateTime / 0.8F;
+        clearAlpha    = MIN(0.2F, clearAlpha * 8.0F * 0.2F);
+    }
+
     // Populate lightmap texture
-    _lightmap->beginWithClear(0.0F, 0.0F, 0.0F, 0.0F);
+    _lightmap->beginWithClear(0.0F, 0.0F, 0.0F, clearAlpha);
     illuminateBlocks(deltaTime);
     _sprite->visit();
 
-    // 0x100056C6F: Draw torch light
-#if !MOOD_MODE_TORCH_LIGHT
-    if (!_moodLighting)
-#endif
+    if (celebrateTime > 0.0F)
     {
-        // Determine light value from flashlight accessory or held item
-        auto light      = map_util::getFloat(GameConfig::getMain()->getData(), "lighting.player", 4.0F);
-        auto heldItem   = player->getActiveHotbarItem() ? player->getActiveHotbarItem()->getItem() : nullptr;
-        auto torchItem  = heldItem && (!_torchAccessory || heldItem->getLight() >= _torchAccessory->getLight())
-                              ? heldItem
-                              : _torchAccessory;
-        auto torchLight = torchItem ? torchItem->getLight() : 0.0F;
+        _spotLight->setPosition(playerCenter * LIGHTMAP_SCALE);
+        _spotLight->setScale(math_util::lerp(3.0F, 1.0F, calculateSpotlightScale(celebrateTime * 3.0F)));
+        _spotLight->visit();
+    }
+    else
+    {
+        // 0x100056C6F: Draw torch light
+#if !MOOD_MODE_TORCH_LIGHT
+        if (!_moodLighting)
+#endif
+        {
+            // Determine light value from flashlight accessory or held item
+            auto light      = map_util::getFloat(GameConfig::getMain()->getData(), "lighting.player", 4.0F);
+            auto heldItem   = player->getActiveHotbarItem() ? player->getActiveHotbarItem()->getItem() : nullptr;
+            auto torchItem  = heldItem && (!_torchAccessory || heldItem->getLight() >= _torchAccessory->getLight())
+                                  ? heldItem
+                                  : _torchAccessory;
+            auto torchLight = torchItem ? torchItem->getLight() : 0.0F;
 
 #if ENFORCE_MIN_PLAYER_LIGHT
-        light = MAX(light, torchLight);
+            light = MAX(light, torchLight);
 #else
-        light = torchLight <= 0.0F ? light : torchLight;
+            light = torchLight <= 0.0F ? light : torchLight;
 #endif
 
-        auto size = math_util::lerp(light, 1.5F, _overlay);
-        size      = math_util::lerp(size, -0.2F, _deathOverlay);
-        size *= 1.3F * LIGHTMAP_SCALE;
+            auto size = math_util::lerp(light, 1.5F, _overlay);
+            size      = math_util::lerp(size, -0.2F, _deathOverlay);
+            size *= 1.3F * LIGHTMAP_SCALE;
 
-        if (size > 0.01F)
-        {
-            auto position = worldRenderer->getScreenPointForNodePoint(Player::getMain()->getPosition() +
-                                                                      Vec2::UNIT_Y * BLOCK_SIZE * 0.8F);
-            auto scale    = Vec2::ONE * BLOCK_SIZE / _torchLight->getContentSize();
-            _torchLight->setColor(torchItem ? torchItem->getLightColor() : Color3B::WHITE);
-            _torchLight->setOpacity(200);
-            _torchLight->setScaleX((size + random(-0.1F, 0.1F)) * scale.width * worldScale * 2.0F);
-            _torchLight->setScaleY((size + random(-0.1F, 0.1F)) * scale.height * worldScale * 2.0F);
-            _torchLight->setPosition(position * LIGHTMAP_SCALE);
-            _torchLight->visit();
+            if (size > 0.01F)
+            {
+                auto scale = Vec2::ONE * BLOCK_SIZE / _torchLight->getContentSize();
+                _torchLight->setColor(torchItem ? torchItem->getLightColor() : Color3B::WHITE);
+                _torchLight->setOpacity(200);
+                _torchLight->setScaleX((size + random(-0.1F, 0.1F)) * scale.width * worldScale * 2.0F);
+                _torchLight->setScaleY((size + random(-0.1F, 0.1F)) * scale.height * worldScale * 2.0F);
+                _torchLight->setPosition(playerCenter * LIGHTMAP_SCALE);
+                _torchLight->visit();
+            }
         }
     }
 
