@@ -12,6 +12,7 @@
 #include "network/tcp/command/GameCommandEntityStatus.h"
 #include "network/tcp/command/GameCommandHealth.h"
 #include "network/tcp/command/GameCommandKick.h"
+#include "network/tcp/command/GameCommandLevel.h"
 #include "network/tcp/command/GameCommandLight.h"
 #include "network/tcp/command/GameCommandNotification.h"
 #include "network/tcp/command/GameCommandPlayerInventory.h"
@@ -67,6 +68,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandStat();
     case Ident::DIALOG:
         return new GameCommandDialog();
+    case Ident::LEVEL:
+        return new GameCommandLevel();
     case Ident::KICK:
         return new GameCommandKick();
     default:

@@ -32,6 +32,7 @@ public:
         SKILL            = 35,
         STAT             = 44,
         DIALOG           = 45,
+        LEVEL            = 61,
         KICK             = 255
     };
 
