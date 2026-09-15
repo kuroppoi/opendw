@@ -12,7 +12,7 @@ namespace opendw
 class GameCommandEntityStatus : public GameCommand
 {
 public:
-    /* GameCommandEntityStatus::run @ 0x1000E4773 */
+    /* FUNC: GameCommandEntityStatus::run @ 0x1000E4773 */
     void run() override;
 
     /* FUNC: GameCommandEntityStatus::collection @ 0x1000E4750 */

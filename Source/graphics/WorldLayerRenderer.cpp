@@ -802,7 +802,7 @@ void WorldLayerRenderer::placeItem(BaseBlock* block, Item* item, uint8_t mod)
                 }
             }
 
-            // 0x1000A649: Deep shadow
+            // 0x1000A649D: Deep shadow
             auto above = block->getAbove();
 
             if (above)
