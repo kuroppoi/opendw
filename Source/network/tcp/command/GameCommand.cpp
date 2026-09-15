@@ -1,6 +1,7 @@
 #include "GameCommand.h"
 
 #include "msgpack/MessagePack.h"
+#include "network/tcp/command/GameCommandAchievement.h"
 #include "network/tcp/command/GameCommandBlockChange.h"
 #include "network/tcp/command/GameCommandBlockMeta.h"
 #include "network/tcp/command/GameCommandBlocks.h"
@@ -58,6 +59,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandBlockMeta();
     case Ident::ZONE_SEARCH:
         return new GameCommandZoneSearch();
+    case Ident::ACHIEVEMENT:
+        return new GameCommandAchievement();
     case Ident::EFFECT:
         return new GameCommandEffect();
     case Ident::NOTIFICATION:

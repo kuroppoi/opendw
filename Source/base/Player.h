@@ -260,6 +260,9 @@ public:
     /* FUNC: Player::setBreath: @ 0x1000213CC */
     void setBreath(float breath);
 
+    /* FUNC: Player::addAchievement:points: @ 0x10002AA43 */
+    void addAchievement(const std::string& name, int32_t points);
+
     /* FUNC: Player::setSkill:level: @ 0x10002ACA4 */
     void setSkill(const std::string& name, int32_t level);
 
@@ -440,6 +443,7 @@ private:
     ax::Map<int16_t, InventoryItem*> _inventory;           // Player::inventory @ 0x100310670
     std::vector<Item*> _cachedAccessoryItems;              // Player::cachedAccessoryItems @ 0x1003106E0
     std::vector<Item*> _cachedHiddenItems;                 // Player::cachedHiddenItems @ 0x1003106E8
+    std::set<std::string> _achievements;                   // Player::achievements @ 0x100310680
     std::map<std::string, int32_t> _skills;                // Player::skills @ 0x100310690
     std::map<std::string, int32_t> _cachedAdjustedSkills;  // Player::cachedAdjustedSkills @ 0x1003106F0
     InventoryItem* _activeHotbarItem;                      // Player::activePrimaryInventoryItem @ 0x1003107E8

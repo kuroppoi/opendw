@@ -23,11 +23,12 @@
 #include "CommonDefs.h"
 #include "GameManager.h"
 
-#define GUI_SCALE          1.0F  // TOOD: should be a setting
-#define HUD_BUTTON_OPACITY 230   // TODO: should be a setting
-#define HUD_BUTTON_SCALE   0.5F
-#define MIN_ALERT_INTERVAL 1.5
-#define BIG_ALERT_TAG      0x3A2
+#define GUI_SCALE             1.0F  // TOOD: should be a setting
+#define HUD_BUTTON_OPACITY    230   // TODO: should be a setting
+#define HUD_BUTTON_SCALE      0.5F
+#define MIN_ALERT_INTERVAL    1.5
+#define BIG_ALERT_TAG         0x3A2
+#define ACHIEVEMENT_ALERT_TAG 0x187
 
 USING_NS_AX;
 
@@ -242,6 +243,7 @@ void GameGui::onEnter()
     addEventListener(RenderViewImpl::EVENT_WINDOW_RESIZED, AX_CALLBACK_0(GameGui::onWindowResized, this));
 #endif
     addEventListener(events::kNotifyAccomplishment, EVENT_CALLBACK_REF(Value*, showAccomplishmentAlert));
+    addEventListener(events::kNotifyAchievement, EVENT_CALLBACK_REF(Value*, showAchievementAlert));
     addEventListener(events::kNotifyAlert, EVENT_CALLBACK_REF(Value*, showAlert));
     addEventListener(events::kNotifyBigAlert, EVENT_CALLBACK_REF(Value*, showBigAlert));
     addEventListener(events::kZoneTeleportActivated, EVENT_CALLBACK(BaseBlock*, showTeleportInterface));
@@ -318,6 +320,8 @@ void GameGui::clear()
     _topSpriteLayer->removeAllChildren();
     _activeItemSprite = nullptr;
     _inventoryTooltipOwner = nullptr;
+    ax_util::removeAllChildrenByTag(this, ACHIEVEMENT_ALERT_TAG);
+    _nextAchievementDisplayAt = 0.0;
 }
 
 void GameGui::updateInventoryItem(InventoryItem* item)
@@ -791,6 +795,83 @@ void GameGui::showAccomplishmentAlert(const Value& data)
 {
     showBigAlert(data, true);
     AudioManager::getInstance()->playSfx("sfx-flourish-1", 1.0F, 1.0F, 0.3F);
+}
+
+void GameGui::showAchievementAlert(const Value& data)
+{
+    if (data.getType() == Value::Type::MAP)
+    {
+        auto& map   = data.asValueMap();
+        auto title  = map_util::getString(map, "title");
+        auto points = map_util::getInt32(map, "points");
+        showAchievementAlert(title, points);
+    }
+    else
+    {
+        // Assume string
+        showAchievementAlert(data.asString(), 1);
+    }
+}
+
+void GameGui::showAchievementAlert(const std::string& title, int32_t points)
+{
+    // Create root node
+    auto node = Node::create();
+    node->setPosition(math_util::positionInViewport(0.5F, 0.25F));
+    node->setTag(ACHIEVEMENT_ALERT_TAG);
+    addChild(node, 8);
+
+    // Create achievement panel
+    auto panel = Panel::createWithStyle("v2-opaquer/brass");
+    panel->setSize(460.0F, 160.0F);
+    panel->setAnchorPoint(Point::ANCHOR_MIDDLE);
+    panel->setCascadeOpacityEnabled(true);
+    panel->setOpacity(0);
+    node->addChild(panel);
+    auto panelCenter = panel->getContentSize() * 0.5F;
+
+    // Create header label
+    auto label = MultiLabel::createWithBMFont("console+hd.fnt", "New achievement:");
+    label->setPosition(panelCenter.x, panelCenter.y + 15.0F);
+    label->setColor(color_util::rgbToColor(0xFFDC0A));
+    panel->addChild(label, 9);
+
+    // Create achievement title label
+    auto titleLabel = Label::createWithBMFont("menu.fnt", title);
+    titleLabel->setPosition(panelCenter.x, panelCenter.y - 15.0F);
+    titleLabel->setScale(MIN(0.5F, (panel->getContentSize().width - 60.0F) / titleLabel->getContentSize().width));
+    panel->addChild(titleLabel, 9);
+
+    // Create trophy sprite
+    auto trophy = Sprite::createWithSpriteFrameName("banners/badge-trophy");
+    trophy->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
+    trophy->setPositionY(48.0F);
+    trophy->setCascadeOpacityEnabled(true);
+    trophy->setScale(0.0F);
+    node->addChild(trophy, 1);
+
+    // Create XP label
+    auto xpLabel = Label::createWithBMFont("menu.fnt", std::format("+{} xp", points));
+    xpLabel->setScale(0.6F);
+    xpLabel->setPosition(trophy->getContentSize() * 0.5F);
+    trophy->addChild(xpLabel);
+
+    // Run action sequences
+    auto delay = MAX(0.0F, _nextAchievementDisplayAt - utils::gettime());
+    panel->runAction(Sequence::create({
+        DelayTime::create(delay),
+        CallFunc::create([] { AudioManager::getInstance()->playSfx("sfx-flourish-1"); }),
+        FadeIn::create(1.0F),
+        DelayTime::create(4.0F),
+        FadeOut::create(1.0F),
+        CallFuncN::create(&Node::removeFromParent)}));
+    trophy->runAction(Sequence::create({
+        DelayTime::create(delay + 0.5F),
+        EaseBounceOut::create(ScaleTo::create(1.0F, 1.0F)),
+        DelayTime::create(3.5),
+        FadeOut::create(1.0F),
+        CallFuncN::create(&Node::removeFromParent)}));
+    _nextAchievementDisplayAt = utils::gettime() + delay + 6.0F;
 }
 
 bool GameGui::isPointInGui(const Point& point) const

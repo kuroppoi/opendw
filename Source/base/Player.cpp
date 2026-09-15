@@ -157,6 +157,7 @@ void Player::reset()
     _physical = nullptr;  // Managed by avatar, no need to release
     AX_SAFE_RELEASE_NULL(_avatar);
     _inventory.clear();
+    _achievements.clear();  // TODO: normally done on logout
     _cachedAccessoryItems.clear();
     _cachedHiddenItems.clear();
     _skills.clear();
@@ -1594,6 +1595,21 @@ void Player::setBreath(float breath)
         }
 
         _game->getEventDispatcher()->dispatchCustomEvent(events::kPlayerBreathChanged, &breath);
+    }
+}
+
+void Player::addAchievement(const std::string& name, int32_t points)
+{
+    if (!_achievements.insert(name).second)
+    {
+        return;  // Already exists
+    }
+
+    if (WorldZone::getMain()->getState() == WorldZone::State::ACTIVE)
+    {
+        auto alert = Value(map_util::mapOf("title", name, "points", points));
+        _game->getEventDispatcher()->dispatchCustomEvent(events::kNotifyAchievement, &alert);
+        _avatar->animateEye("happy", 1.0F);
     }
 }
 

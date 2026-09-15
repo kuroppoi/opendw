@@ -5,6 +5,16 @@ USING_NS_AX;
 namespace opendw::ax_util
 {
 
+void removeAllChildrenByTag(Node* node, int tag)
+{
+    AX_ASSERT(node);
+
+    while (auto child = node->getChildByTag(tag))
+    {
+        child->removeFromParent();
+    }
+}
+
 void scheduleOnce(const std::function<void(float)>& callback, void* target, float delay, std::string_view key)
 {
     Director::getInstance()->getScheduler()->schedule(callback, target, 0.0F, 0, delay, false, key);

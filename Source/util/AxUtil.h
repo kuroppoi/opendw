@@ -6,6 +6,8 @@
 namespace opendw::ax_util
 {
 
+void removeAllChildrenByTag(ax::Node* node, int tag);
+
 /* Easy access to `scheduleOnce` without needing to be a Node object. */
 void scheduleOnce(const std::function<void(float)>& callback, void* target, float delay, std::string_view key);
 

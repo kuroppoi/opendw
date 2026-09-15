@@ -113,6 +113,10 @@ public:
     /* FUNC: GameGui::accomplishmentAlert: @ 0x1000640D7 */
     void showAccomplishmentAlert(const ax::Value& data);
 
+    /* FUNC: GameGui::playerDidAchieve: @ 0x10005E3FF */
+    void showAchievementAlert(const ax::Value& data);
+    void showAchievementAlert(const std::string& title, int32_t points);
+
     /* FUNC: GameGui::pointerInGui: @ 0x10006714C */
     bool isPointInGui(const ax::Point& point) const;
 
@@ -248,6 +252,7 @@ private:
     ItemSprite* _inventoryTooltipOwner;                    // GameGui::inventoryTooltipNode @ 0x1003119D0
     TeleportPanel* _teleportPanel;                         // GameGui::teleportPanel @ 0x100311A58
     double _lastAlertShownAt;                              // GameGui::lastAlertShownAt @ 0x100311978
+    double _nextAchievementDisplayAt;                      // GameGui::nextAchievementDisplayAt @ 0x1003119A8
     std::string _lastAlertShown;                           // GameGui::lastAlertShown @ 0x100311A10
     std::vector<std::string> _pendingAlerts;               // GameGui::pendingAlerts @ 0x1003117A8
     bool _protectorRangeVisible;                           // GameGui::protectorRangefinderActive @ 0x100311A40
