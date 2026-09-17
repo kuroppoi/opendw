@@ -1028,6 +1028,7 @@ void WorldRenderer::generateEffect(const std::string& name, ssize_t quantity, co
                             {
                                 auto physical = particle->getPhysical();
                                 physical->setPosition(position.lerp(physical->getPosition(), spread));
+                                particle->setPosition(physical->getPosition());  // Sync position immediately
                                 particle->setScale(particle->getScale() * math_util::lerp(0.5F, 1.0F, spread));
                             }
                         }
