@@ -13,7 +13,8 @@ uniform sampler2D u_texture;
 void main()
 {
     vec4 color = vec4(0.0);
-    vec2 blurSize = vec2(1.0 / 40.0);
+    ivec2 size = textureSize(u_texture, 0);
+    vec2 blurSize = vec2(0.9) / vec2(size.x, size.y);
     color += texture(u_texture, v_texCoord + vec2(-1.0, 0.0) * blurSize) * 0.20;
     color += texture(u_texture, v_texCoord + vec2(0.0, -1.0) * blurSize) * 0.20;
     color += texture(u_texture, v_texCoord + vec2(1.0, 0.0) * blurSize) * 0.20;
