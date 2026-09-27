@@ -2,6 +2,7 @@
 
 #include "base/Item.h"
 #include "base/Player.h"
+#include "graphics/WorldRenderer.h"
 #include "gui/GameGui.h"
 #include "util/MapUtil.h"
 #include "zone/MetaBlock.h"
@@ -30,10 +31,11 @@ void VectorLayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flags
     // TODO: draw lines between energy particles
 
     // 0x1000FC648: Draw field radii
-    auto time    = GameManager::getInstance()->getElapsedTime();
-    auto solid   = GameGui::getMain()->isProtectorRangeVisible();
-    auto zone    = WorldZone::getMain();
-    auto& blocks = zone->getFieldDisplayMetaBlocks();
+    auto time         = GameManager::getInstance()->getElapsedTime();
+    auto solid        = GameGui::getMain()->isProtectorRangeVisible();
+    auto zone         = WorldZone::getMain();
+    auto& blocks      = zone->getFieldDisplayMetaBlocks();
+    auto& visibleRect = zone->getWorldRenderer()->getVisibleRect();
 
     for (auto&& entry : blocks)
     {
@@ -52,7 +54,7 @@ void VectorLayer::draw(Renderer* renderer, const Mat4& transform, uint32_t flags
             {
                 auto radius = solid ? (field - 0.01F) : fmodf(time * FIELD_SPEED, field * 5.0F);
 
-                if (radius > 0.0F && radius < field)
+                if (radius > 0.0F && radius < field && visibleRect.intersectsCircle(point, radius * BLOCK_SIZE))
                 {
                     auto friendly = block->isOwnedByPlayerOrFollower();
                     auto color = suppress ? kSuppressorFieldColor : friendly ? kFriendlyFieldColor : kNeutralFieldColor;
