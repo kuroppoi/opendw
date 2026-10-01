@@ -308,6 +308,7 @@ void GameGui::update(float deltaTime)
 void GameGui::ready()
 {
     _gameMap->ready();
+    onPlayerCountChanged();
 }
 
 void GameGui::clear()
