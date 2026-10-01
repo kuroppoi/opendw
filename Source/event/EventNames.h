@@ -5,6 +5,7 @@ namespace opendw::events
 {
 
 inline static const auto kActiveHotbarItemChanged  = "activeItemDidChange";
+inline static const auto kChunkExplored            = "playerDidExploreChunk";
 inline static const auto kCursorEntered            = "cursorEnteredWindow";
 inline static const auto kDeathMessageChanged      = "deathMessageDidChange";
 inline static const auto kGuiWindowChangedPanel    = "guiWindowChangedPanel";
@@ -18,6 +19,7 @@ inline static const auto kPlayerExited             = "playerDidExit";
 inline static const auto kPlayerFreezeChanged      = "freezeDidChange";
 inline static const auto kPlayerHealthChanged      = "healthDidChange";
 inline static const auto kPlayerSkillChanged       = "playerSkillDidChange";
+inline static const auto kMetaBlockChanged         = "metaBlockDidChange";
 inline static const auto kNotifyAccomplishment     = "accomplishmentAlert";
 inline static const auto kNotifyAchievement        = "playerDidAchieve";
 inline static const auto kNotifyAlert              = "alert";
@@ -25,6 +27,7 @@ inline static const auto kNotifyBigAlert           = "bigAlert";
 inline static const auto kSteamChanged             = "steamDidChange";
 inline static const auto kSteamCooldownBegan       = "steamCooldownDidBegin";
 inline static const auto kSteamCooldownEnded       = "steamCooldownDidEnd";
+inline static const auto kZoneStatusChanged        = "zoneStatusDidChange";
 inline static const auto kZoneTeleportActivated    = "playerDidActivateZoneTeleport";
 inline static const auto kZoneTeleportDeactivated  = "playerDidDeactivateZoneTeleport";
 

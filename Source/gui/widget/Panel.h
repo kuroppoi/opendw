@@ -80,6 +80,8 @@ public:
     void setContentSize(const ax::Size& contentSize) override;
     void setSize(float width, float height, bool force = false);
 
+    ax::Vec2 calculateChopOffset(float scale) const;
+
     /* FUNC: Panel::ccMouseDown: @ 0x1000E7751 */
     bool onTouchBegan(ax::Touch* touch, ax::Event* event);
 

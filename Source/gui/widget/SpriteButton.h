@@ -43,6 +43,9 @@ public:
     /* FUNC: BatchSpriteButton::hideSpinner @ 0x1000798A5 */
     void hideSpinner();
 
+    /* FUNC: BatchSpriteButton::scaleToSize:fillForeground: @ 0x100079953 */
+    void scaleToSize(const ax::Size& size, bool fillForeground = false);
+
     /* FUNC: BatchSpriteButton::foregroundSprite @ 0x100079F19 */
     ax::Sprite* getForegroundSprite() const { return _foregroundSprite; }
 

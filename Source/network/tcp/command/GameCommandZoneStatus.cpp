@@ -1,5 +1,6 @@
 #include "GameCommandZoneStatus.h"
 
+#include "event/EventNames.h"
 #include "zone/WorldZone.h"
 #include "GameManager.h"
 
@@ -18,6 +19,7 @@ void GameCommandZoneStatus::run()
 
     auto& status = _data[0].asValueMap();
     zone->updateStatus(status);
+    zone->getEventDispatcher()->dispatchCustomEvent(events::kZoneStatusChanged);
 }
 
 }  // namespace opendw

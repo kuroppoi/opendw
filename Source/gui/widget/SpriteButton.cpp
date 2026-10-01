@@ -2,6 +2,7 @@
 
 #include "gui/widget/MultiLabel.h"
 #include "util/AxUtil.h"
+#include "util/MathUtil.h"
 #include "AudioManager.h"
 #include "CommonDefs.h"
 
@@ -108,6 +109,28 @@ void SpriteButton::hideSpinner()
         _spinner->removeFromParent();
         _spinner = nullptr;
         _titleLabel->setVisible(true);
+    }
+}
+
+void SpriteButton::scaleToSize(const Size& size, bool fillForeground)
+{
+    math_util::scaleToSize(this, size);
+
+    if (_foregroundSprite)
+    {
+        auto scaleX = _foregroundSprite->getScaleX();
+        auto scaleY = _foregroundSprite->getScaleY();
+
+        if (scaleX == scaleY)
+        {
+            if (fillForeground)
+            {
+                scaleX = _contentSize.height / (_foregroundSprite->getContentSize().width - 4.0F);
+                _foregroundSprite->setScaleX(scaleX);
+            }
+
+            _foregroundSprite->setScaleY(scaleX / (_scaleY / _scaleX));
+        }
     }
 }
 

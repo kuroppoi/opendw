@@ -20,6 +20,7 @@
 #include "network/tcp/command/GameCommandPlayerPosition.h"
 #include "network/tcp/command/GameCommandSkill.h"
 #include "network/tcp/command/GameCommandStat.h"
+#include "network/tcp/command/GameCommandZoneExplored.h"
 #include "network/tcp/command/GameCommandZoneSearch.h"
 #include "network/tcp/command/GameCommandZoneStatus.h"
 #include "util/Validation.h"
@@ -71,6 +72,8 @@ GameCommand* GameCommand::createFromIdent(Ident ident)
         return new GameCommandStat();
     case Ident::DIALOG:
         return new GameCommandDialog();
+    case Ident::ZONE_EXPLORED:
+        return new GameCommandZoneExplored();
     case Ident::LEVEL:
         return new GameCommandLevel();
     case Ident::KICK:

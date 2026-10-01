@@ -13,6 +13,7 @@
 #include "gui/widget/Panel.h"
 #include "gui/widget/SpriteButton.h"
 #include "gui/GameGuiWindow.h"
+#include "gui/GameMap.h"
 #include "gui/TeleportPanel.h"
 #include "util/AxUtil.h"
 #include "util/ColorUtil.h"
@@ -75,6 +76,10 @@ bool GameGui::initWithZone(WorldZone* zone)
     // Create announcements node
     _announcementsNode = Node::create();
     addChild(_announcementsNode, 10);
+
+    // 0x10005B986: Create game map
+    _gameMap = GameMap::createWithZone(zone);
+    addChild(_gameMap, 6);
 
     // Create teleport panel
     _teleportPanel = TeleportPanel::create();
@@ -196,7 +201,7 @@ bool GameGui::initWithZone(WorldZone* zone)
 
     // 0x10005AF75: Create map button
     _mapButton = SpriteButton::createWithSpriteFrame("hud/map");
-    _mapButton->setCallback(defaultCallback);
+    _mapButton->setCallback(AX_CALLBACK_0(GameGui::toggleMap, this));  // 0x10005C968
     _mapButton->setAnchorPoint(Point::ANCHOR_BOTTOM_RIGHT);
     _mapButton->setOpacity(HUD_BUTTON_OPACITY);
     _mapButton->setScale(GUI_SCALE);
@@ -290,6 +295,7 @@ void GameGui::update(float deltaTime)
     }
 
     _avatarPicture->updateFaceColor(deltaTime);
+    _gameMap->update(deltaTime);
 
     // TODO: use events
     _nameLabel->setString(Player::getMain()->getUsername());
@@ -301,7 +307,7 @@ void GameGui::update(float deltaTime)
 
 void GameGui::ready()
 {
-    // TODO: implement
+    _gameMap->ready();
 }
 
 void GameGui::clear()
@@ -579,6 +585,12 @@ bool GameGui::closeActiveWindow()
         return true;
     }
 
+    if (_gameMap->isActive())
+    {
+        toggleMap();  // Also updates button color
+        return true;
+    }
+
     if (isTeleportActive())
     {
         hideTeleportInterface();
@@ -630,6 +642,12 @@ void GameGui::toggleGameMenu()
     menu->alignItemsVerticallyWithPadding(10.0F);
     menu->setPosition(panel->getContentSize() * 0.5F + Vec2::UNIT_Y * 10.0F);
     panel->addChild(menu, 2);
+}
+
+void GameGui::toggleMap()
+{
+    _gameMap->toggle();
+    _mapButton->setColor(_gameMap->isActive() ? Color3B::YELLOW : Color3B::WHITE);
 }
 
 void GameGui::toggleProtectorRangeVisibility()
@@ -918,7 +936,7 @@ const char* GameGui::getRespawnMessage() const
 std::string GameGui::getPositionDescription() const
 {
     auto player    = Player::getMain();
-    auto position  = player->getBlockPosition();
+    auto position  = player->getBlockPositionPoint();
     auto x         = (int16_t)(_zone->getBlocksWidth() * -0.5F + position.x);
     auto longitude = x == 0 ? "center" : x > 0 ? "east" : "west";
     auto depth     = (int16_t)(position.y - (_zone->getBiomeType() == Biome::DEEP ? -1000.0F : 200.0F));
@@ -1172,6 +1190,7 @@ void GameGui::onWindowResized()
     _consoleButton->setPosition(left, bottom);
     _primaryHotbar->setPosition(right - _panelMargin, top - _panelMargin);
     _guiWindow->updatePosition();
+    _gameMap->updatePosition();
     updateInventoryTooltip();
 }
 

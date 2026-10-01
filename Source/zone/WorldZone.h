@@ -94,6 +94,15 @@ public:
 
     int16_t getSunlightAt(int16_t x) const;
 
+    /* FUNC: WorldZone::chunksExplored @ 0x10004A2AF */
+    const bool* getChunksExplored() const { return _chunksExplored; }
+
+    void setChunkExplored(int32_t index, bool value = true);
+    bool isChunkExplored(int32_t index) const;
+
+    /* FUNC: WorldZone::chunksExploredCount @ 0x10004A2C0 */
+    int32_t getChunksExploredCount() const { return _chunksExploredCount; }
+
     /* FUNC: WorldZone::registerEntity:ilk:name:details: @ 0x1000476FC */
     Entity* registerEntity(int32_t id, int32_t code, const std::string& name, const ax::ValueMap& details);
 
@@ -151,6 +160,10 @@ public:
 
     /* FUNC: WorldZone::metaBlockAtX:y: @ 0x10004717A */
     MetaBlock* getMetaBlockAt(int16_t x, int16_t y) const;
+    MetaBlock* getMetaBlock(int32_t index) const;
+
+    /* FUNC: WorldZone::metaBlocks @ 0x100049E94 */
+    const ax::Map<int32_t, MetaBlock*>& getMetaBlocks() const { return _metaBlocks; }
 
     /* FUNC: WorldZone::fieldMetaBlocks @ 0x100049EF0 */
     const std::map<int32_t, MetaBlock*>& getFieldMetaBlocks() const { return _fieldMetaBlocks; }
@@ -221,11 +234,22 @@ public:
     /* FUNC: WorldZone::yChunksCount @ 0x100049E2E */
     int16_t getChunkCountY() const { return _chunkCountY; }
 
+    /* FUNC: WorldZone::surface @ 0x10004A27C */
+    const int16_t* getSurface() const { return _surface; }
+
+    int16_t getSurfaceAt(int16_t x) const;
+
     /* FUNC: WorldZone::surfaceTop @ 0x10004A28D */
     int16_t getSurfaceTop() const { return _surfaceTop; }
 
     /* FUNC: WorldZone::surfaceBottom @ 0x10004A29E */
     int16_t getSurfaceBottom() const { return _surfaceBottom; }
+
+    /* FUNC: WorldZone::toggleBookmark @ 0x100045D6F */
+    void toggleBookmark();
+
+    /* FUNC: WorldZone::bookmarked @ 0x100049FF1 */
+    bool isBookmarked() const { return _bookmarked; }
 
     /* FUNC: WorldZone::isMember @ 0x10004A0F0 */
     bool isMember() const { return _member; }
@@ -309,11 +333,15 @@ private:
     int32_t _chunkCount;                                    // WorldZone::chunksCount @ 0x100311010
     int16_t _chunkCountX;                                   // WorldZone::xChunksCount @ 0x100311020
     int16_t _chunkCountY;                                   // WorldZone::yChunksCount @ 0x100311028
+    int16_t* _surface;                                      // WorldZone::surface @ 0x100311058
     int16_t _surfaceTop;                                    // WorldZone::surfaceTop @ 0x100311060
     int16_t _surfaceBottom;                                 // WorldZone::surfaceBottom @ 0x100311068
+    int32_t _chunksExploredCount;                           // WorldZone::chunksExploredCount @ 0x100311070
+    bool* _chunksExplored;                                  // WorldZone::chunksExplored @ 0x100311078
     int16_t* _sunlight;                                     // WorldZone::sunlight @ 0x100311080
     ax::ValueVector _timedStatus;                           // WorldZone::status @ 0x100311110
     bool _receivedInitialStatus;                            // WorldZone::receivedInitialStatus @ 0x100310F58
+    bool _bookmarked;                                       // WorldZone::bookmarked @ 0x100311168
     bool _member;                                           // WorldZone::isMember @ 0x100310F60
     bool _protected;                                        // WorldZone::isProtected @ 0x100310F68
     std::string _protectedReason;                           // WorldZone::isProtectedReason @ 0x100310F70

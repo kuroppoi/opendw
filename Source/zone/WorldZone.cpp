@@ -57,8 +57,7 @@ bool WorldZone::initWithGame(GameManager* game)
     _player = Player::getMain();
     _state  = State::INACTIVE;
     _inactiveChunks.reserve(CHUNK_PREALLOC_COUNT);
-    _sunlight = nullptr;
-    sMain     = this;
+    sMain = this;
     return true;
 }
 
@@ -81,6 +80,7 @@ void WorldZone::configure(const ValueMap& data)
     _biomeType       = getBiomeForName(_biome);
     _biomeConfig     = config->getBiomeConfig(_biome);
     _member          = map_util::getBool(data, "member");
+    _bookmarked      = map_util::getBool(data, "bookmarked");
     _protected       = map_util::getBool(data, "protected");
     _protectedReason = map_util::getString(data, "protected_reason");
     _seed            = map_util::getUInt64(data, "seed", getDefaultSeed());
@@ -117,18 +117,33 @@ void WorldZone::configure(const ValueMap& data)
     // Configure surface
     auto& surface = map_util::getArray(data, "surface");
     AX_ASSERT(surface.size() == _blocksWidth);
+    AX_SAFE_DELETE_ARRAY(_surface);
+    _surface       = new int16_t[_blocksWidth];
     _surfaceTop    = _blocksHeight;
     _surfaceBottom = 0;
 
-    for (auto& element : surface)
+    for (int16_t i = 0; i < _blocksWidth; i++)
     {
-        auto y         = static_cast<int16_t>(element.asInt());
+        auto y         = static_cast<int16_t>(surface[i].asInt());
+        _surface[i]    = y;
         _surfaceTop    = MIN(_surfaceTop, y);
         _surfaceBottom = MAX(_surfaceBottom, y);
     }
 
     AX_SAFE_DELETE_ARRAY(_sunlight);
     _sunlight = new int16_t[_blocksWidth];
+
+    // Configure chunks explored
+    auto& chunksExplored = map_util::getArray(data, "chunks_explored");
+    _chunksExploredCount = map_util::getInt32(data, "chunks_explored_count");
+    AX_ASSERT(chunksExplored.size() == _chunkCount);
+    AX_SAFE_DELETE_ARRAY(_chunksExplored);
+    _chunksExplored = new bool[_chunkCount];
+
+    for (int16_t i = 0; i < _chunkCount; i++)
+    {
+        _chunksExplored[i] = chunksExplored[i].asBool();
+    }
 
     // Preallocate a bunch of chunks if none are allocated at the moment
     if (WorldChunk::getChunksAllocated() == 0)
@@ -645,6 +660,37 @@ int16_t WorldZone::getSunlightAt(int16_t x) const
     return _sunlight && x >= 0 && x < _blocksWidth ? _sunlight[x] : -1;
 }
 
+int16_t WorldZone::getSurfaceAt(int16_t x) const
+{
+    return _surface && x >= 0 && x < _blocksWidth ? _surface[x] : -1;
+}
+
+void WorldZone::setChunkExplored(int32_t index, bool value)
+{
+    if (index >= 0 && index < _chunkCount && _chunksExplored[index] != value)
+    {
+        _chunksExplored[index] = value;
+        _chunksExploredCount += value ? 1 : -1;
+
+        if (value)
+        {
+            // TODO: use struct to pass data & support both states
+            _game->getEventDispatcher()->dispatchCustomEvent(events::kChunkExplored, &index);
+        }
+    }
+}
+
+bool WorldZone::isChunkExplored(int32_t index) const
+{
+    return index >= 0 && index < _chunkCount ? _chunksExplored[index] : false;
+}
+
+void WorldZone::toggleBookmark()
+{
+    _bookmarked = !_bookmarked;
+    _game->sendMessage(MessageIdent::BOOKMARK, "zone", _documentId, _bookmarked);
+}
+
 Entity* WorldZone::registerEntity(int32_t id, int32_t code, const std::string& name, const ValueMap& details)
 {
     // 0x10004775A: Update entity if it already exists
@@ -769,6 +815,8 @@ void WorldZone::leave()
     _metaBlocks.clear();
     _fieldMetaBlocks.clear();
     _fieldDisplayMetaBlocks.clear();
+    AX_SAFE_DELETE_ARRAY(_surface);
+    AX_SAFE_DELETE_ARRAY(_chunksExplored);
     AX_SAFE_DELETE_ARRAY(_sunlight);
     _entities.clear();
     _peers.clear();
@@ -961,6 +1009,9 @@ void WorldZone::setMetaBlock(int16_t x, int16_t y, Item* item, const ValueMap& m
     {
         block->updateEnvironment();
     }
+
+    // TODO: use struct so we can pass the instance as well
+    _game->getEventDispatcher()->dispatchCustomEvent(events::kMetaBlockChanged, &index);
 }
 
 MetaBlock* WorldZone::getMetaBlockAt(int16_t x, int16_t y) const
@@ -971,7 +1022,12 @@ MetaBlock* WorldZone::getMetaBlockAt(int16_t x, int16_t y) const
     }
 
     auto index = y * _blocksWidth + x;
-    auto it    = _metaBlocks.find(index);
+    return getMetaBlock(index);
+}
+
+MetaBlock* WorldZone::getMetaBlock(int32_t index) const
+{
+    auto it = _metaBlocks.find(index);
     return it == _metaBlocks.end() ? nullptr : (*it).second;
 }
 

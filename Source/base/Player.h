@@ -171,6 +171,12 @@ public:
     /* FUNC: Player::skilledToProtectorRangefind @ 0x10002B363 */
     bool canSeeProtectorRanges();
 
+    /* FUNC: Player::canSeeExploredAreas @ 0x10002CD25 */
+    bool canSeeExploredAreas();
+
+    /* FUNC: Player::canSeeTeleporters @ 0x10002CD49 */
+    bool canSeeTeleporters();
+
     /* FUNC: Player::playerId @ 0x10002D9A3 */
     const std::string& getPlayerId() const { return _playerId; }
 
@@ -191,6 +197,9 @@ public:
 
     /* FUNC: Player::blockPosition @ 0x100028B15 */
     ax::Point getBlockPosition() const;
+
+    /* FUNC: Player::blockPositionPoint @ 0x100028BAF */
+    ax::Point getBlockPositionPoint() const;
 
     /* FUNC: Player::physicalCenter @ 0x100028C24 */
     ax::Point getPhysicalCenter() const;

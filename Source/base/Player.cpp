@@ -578,6 +578,8 @@ void Player::update(float deltaTime)
         setSteam(_steam + deltaTime);
     }
 
+    // TODO: mark chunk we're in as explored (we're currently just letting the server handle it)
+
     _mining = false;
     updateInventory();  // Failsafe
 }
@@ -1423,6 +1425,17 @@ bool Player::canSeeProtectorRanges()
     return getAdjustedSkill(kPerceptionSkill) > 2;
 }
 
+bool Player::canSeeExploredAreas()
+{
+    // Will always be true during normal gameplay, but perhaps the level req was higher in the past?
+    return getAdjustedSkill(kPerceptionSkill) > 0;
+}
+
+bool Player::canSeeTeleporters()
+{
+    return getAdjustedSkill(kPerceptionSkill) > 1;
+}
+
 void Player::setPosition(const Point& position)
 {
     _physical->setPosition(position);
@@ -1438,6 +1451,12 @@ Point Player::getBlockPosition() const
 {
     auto position = _physical->getPosition();
     return _game->getZone()->getBlockPointAtNodePoint({position.x, position.y + BLOCK_SIZE * 0.2F});
+}
+
+Point Player::getBlockPositionPoint() const
+{
+    auto position = _physical->getPosition();
+    return Point(position.x / BLOCK_SIZE, -position.y / BLOCK_SIZE);
 }
 
 Point Player::getPhysicalCenter() const

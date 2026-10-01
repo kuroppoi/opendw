@@ -33,6 +33,7 @@ public:
         SKILL            = 35,
         STAT             = 44,
         DIALOG           = 45,
+        ZONE_EXPLORED    = 53,
         LEVEL            = 61,
         KICK             = 255
     };

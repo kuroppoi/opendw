@@ -445,6 +445,10 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
         _gameGui->getGuiWindow()->toggle(GameGuiWindow::PanelType::CRAFTING);
         AudioManager::getInstance()->playButtonSfx();
         break;
+    case KeyCode::KEY_M:
+        _gameGui->toggleMap();
+        AudioManager::getInstance()->playButtonSfx();
+        break;
     case KeyCode::KEY_F1:
         _director->setStatsDisplay(!_director->isStatsDisplay());
         break;

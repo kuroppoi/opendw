@@ -165,6 +165,9 @@ public:
     /* FUNC: WorldRenderer::physicsDebugNode @ 0x100086F4C */
     ax::Node* getPhysicsDebugNode() const { return _physicsDebugNode; }
 
+    /* FUNC: WorldRenderer::visibleRect @ 0x10008704E */
+    const ax::Rect& getVisibleRect() const { return _visibleRect; }
+
     /* FUNC: WorldRenderer::wholenessCornerMasks @ 0x100086F19 */
     const CornerMasks& getWholenessCornerMasks() const { return _wholenessCornerMasks; }
 

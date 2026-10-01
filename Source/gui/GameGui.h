@@ -11,6 +11,7 @@ namespace opendw
 class BaseBlock;
 class EntityAnimatedAvatar;
 class GameGuiWindow;
+class GameMap;
 class IconBar;
 class InventoryItemSprite;
 class InventoryItem;
@@ -82,6 +83,9 @@ public:
 
     /* FUNC: GameGui::toggleGameMenu @ 0x100064D5D */
     void toggleGameMenu();
+
+    /* FUNC: GameGui::toggleMap @ 0x100065145 */
+    void toggleMap();
 
     /* FUNC: GameGui::toggleProtectorRangefinder @ 0x100065A66 */
     void toggleProtectorRangeVisibility();
@@ -224,6 +228,7 @@ private:
     int32_t _craftingRows;                                 // GameGui::craftingRows @ 0x1003117D0
     int32_t _craftingCols;                                 // GameGui::craftingCols @ 0x1003117C8
     ax::Node* _announcementsNode;                          // GameGui::announcementsNode @ 0x100311948
+    GameMap* _gameMap;                                     // GameGui::gameMap @ 0x100311950
     ax::Node* _gameMenu;                                   // GameGui::gameMenu @ 0x100311A30
     ax::Node* _hudNode;                                    // GameGui::hudNode @ 0x100311840
     ax::Node* _hudButtonsNode;                             // GameGui::hudButtonsNode @ 0x100311848

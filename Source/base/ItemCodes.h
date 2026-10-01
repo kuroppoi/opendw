@@ -30,18 +30,24 @@ enum : uint16_t
     MIXING_BARREL       = 811,
     MECHANICAL_PIPE     = 860,
     WINE_PRESS          = 863,
+    DISH_COMPETITION_20 = 866,
+    DISH_COMPETITION_25 = 869,
     GECK_TUB            = 880,
     GECK_COG_LARGE      = 886,
     GECK_COG_SMALL      = 887,
+    TELEPORTER          = 890,
+    ZONE_TELEPORTER     = 891,
     COMPOSTER_CHAMBER   = 894,
     COMPOSTER_TURBINE   = 899,
+    PLAQUE              = 914,
     LANDMARK_PLAQUE     = 916,
     MECHANICAL_SIGN     = 919,
     RECYCLER_CHAMBER    = 927,
     RECYCLER_GEAR       = 929,
     EXPIATOR_FACE       = 1003,
     EXPIATOR_GEAR       = 1006,
-    HELL_DISH           = 1010
+    HELL_DISH           = 1010,
+    DISH_COMPETITION_5  = 1194,
 };
 
 }  // namespace opendw::item_codes

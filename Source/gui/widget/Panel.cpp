@@ -69,9 +69,10 @@ void Panel::updateLayout()
     auto borderScale     = _borderScale * cornerSize.width * _baseBorderScale;
 
     // Update background
-    _backgroundSprite->setScaleX((_contentSize.width - borderScale * 2.0F) / backgroundSize.width);
-    _backgroundSprite->setScaleY((_contentSize.height - borderScale * 2.0F) / backgroundSize.height);
-    _backgroundSprite->setPosition(borderScale, borderScale);
+    auto chopOffset = calculateChopOffset(borderScale);
+    _backgroundSprite->setScaleX((_contentSize.width - borderScale * 2.0F + abs(chopOffset.x)) / backgroundSize.width);
+    _backgroundSprite->setScaleY((_contentSize.height - borderScale * 2.0F + abs(chopOffset.y)) / backgroundSize.height);
+    _backgroundSprite->setPosition(borderScale + MIN(0.0F, chopOffset.x), borderScale + MIN(0.0F, chopOffset.y));
 
     // Update background texture
     if (_backgroundTextureSprite)
@@ -126,7 +127,8 @@ void Panel::updateBorder(Border border, float scale)
         }
     }
 
-    auto vertical = (index | 2) == 3;
+    auto vertical   = (index | 2) == 3;
+    auto chopOffset = calculateChopOffset(scale);
 
     // Update scale, position & rotation
     if (border >= Border::TOP_RIGHT)
@@ -146,7 +148,9 @@ void Panel::updateBorder(Border border, float scale)
         }
         else
         {
-            auto scaleX = (scale * -2.0F + (vertical ? _contentSize.height : _contentSize.width)) / spriteSize.width;
+            auto padding = abs(vertical ? chopOffset.y : chopOffset.x);
+            auto scaleX =
+                (scale * -2.0F + padding + (vertical ? _contentSize.height : _contentSize.width)) / spriteSize.width;
             sprite->setScaleX(scaleX);
         }
 
@@ -156,6 +160,12 @@ void Panel::updateBorder(Border border, float scale)
     auto& offset  = kBorderOffsets[index];
     auto center   = _contentSize * 0.5F;
     auto position = center + offset * (center - Vec2::ONE * scale * 0.5F);
+
+    if (border < Border::TOP_RIGHT)
+    {
+        position += (vertical ? Vec2::UNIT_Y : Vec2::UNIT_X) * chopOffset * 0.5F;
+    }
+
     auto rotation = (index % 4) * 90.0F;
     sprite->setPosition(position);
     sprite->setRotation(rotation);
@@ -341,12 +351,44 @@ void Panel::setSize(float width, float height, bool force)
             break;
         default:
             minHeight += tipSize.width;
+            break;
+        }
+    }
+
+    if (_chop != Edge::NONE)
+    {
+        switch (_chop)
+        {
+        case Edge::BOTTOM:
+        case Edge::TOP:
+            minHeight *= 0.5F;
+            break;
+        default:
+            minWidth *= 0.5F;
+            break;
         }
     }
 
     width  = MAX(minWidth, width);
     height = MAX(minHeight, height);
     setContentSize({width, height});
+}
+
+Vec2 Panel::calculateChopOffset(float scale) const
+{
+    switch (_chop)
+    {
+    case Edge::TOP:
+        return Vec2::UNIT_Y * scale;
+    case Edge::BOTTOM:
+        return Vec2::UNIT_Y * -scale;
+    case Edge::LEFT:
+        return Vec2::UNIT_X * -scale;
+    case Edge::RIGHT:
+        return Vec2::UNIT_X * scale;
+    }
+
+    return Vec2::ZERO;
 }
 
 bool Panel::onTouchBegan(Touch* touch, Event* event)
