@@ -77,6 +77,7 @@ bool Item::initWithManager(GameConfig* config, const ValueMap& data, const std::
     _rarity              = map_util::getInt32(data, "rarity");
     _placeMod            = map_util::getUInt32(data, "place_mod");
     _use                 = map_util::getMap(data, "use");
+    _useProximity        = map_util::getFloat(data, "use_proximity");
     _spriteZ             = map_util::getInt32(data, "sprite_z");
     _steamPowered        = map_util::getBool(data, "steam");
     _emitter             = config->getEmitterForName(map_util::getString(data, "emitter"));

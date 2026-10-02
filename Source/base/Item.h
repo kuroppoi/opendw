@@ -303,6 +303,9 @@ public:
     /* FUNC: Item::isClimbable @ 0x10004D7FA */
     bool isClimbable() const;
 
+    /* FUNC: Item::useProximity @ 0x10004E402 */
+    float getUseProximity() const { return _useProximity; }
+
     /* FUNC: Item::useMask @ 0x10004E3E0 */
     uint64_t getUseMask() const { return _useMask; }
 
@@ -521,6 +524,7 @@ private:
     int32_t _rarity;                                 // Item::rarity @ 0x1003112A0
     uint8_t _placeMod;                               // Item::placeMod @ 0x100311410
     ax::ValueMap _use;                               // Item::use @ 0x100311418
+    float _useProximity;                             // Item::useProximity @ 0x100311420
     uint64_t _useMask;                               // Item::useMask @ 0x100311428
     std::vector<std::string> _sounds;                // Item::sound @ 0x100311430
     Shape _shape;                                    // Item::shape @ 0x100311218

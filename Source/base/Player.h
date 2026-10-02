@@ -128,6 +128,7 @@ public:
 
     /* FUNC: Player::canDigAt: @ 0x100027608 */
     bool canDigAt(const ax::Point& point) const;
+    bool canDigBlock(BaseBlock* target) const;
 
     /* FUNC: Player::canPlaceItem:atBlock: @ 0x100027A8C */
     bool canPlaceItem(Item* item, BaseBlock* block);
@@ -478,6 +479,7 @@ private:
     double _lastStompedAt;                                 // Player::lastStompedAt @ 0x100310860
     Item* _stompAccessory;
     double _nextPoweredSteamAt;
+    double _nextProximityUseAt;
     bool _running;
     bool _shouldUpdateAccessories;
     std::set<int64_t> _categoriesToArrange;

@@ -32,6 +32,7 @@
 #define STEAM_RESTORE_COOLDOWN 0.5
 #define CONSUMABLE_COOLDOWN    1.0
 #define POWERED_STEAM_INTERVAL 1.0 / 60.0
+#define USE_PROXIMITY_INTERVAL 1.0 / 3.0
 #define BASE_HEALTH            5.0F
 #define BASE_MAX_STEAM         20.0F
 #define MAX_SKILL_LEVEL        15
@@ -579,6 +580,28 @@ void Player::update(float deltaTime)
     }
 
     // TODO: mark chunk we're in as explored (we're currently just letting the server handle it)
+    // 
+    // 0x10001EFB2: Auto-interact with nearby blocks that have a use proximity
+    if (utils::gettime() > _nextProximityUseAt)
+    {
+        auto point = getBlockPositionPoint();
+        Rect rect(point - Vec2::ONE * 5.0F, Vec2::ONE * 10.0F);
+        auto blocks = zone->getBlocksInRect(rect);
+
+        for (auto* block : blocks)
+        {
+            auto proximity = block->getFrontItem()->getUseProximity();
+
+            if (proximity > 0.0F &&
+                math_util::getDistance(point.x, point.y, block->getX(), block->getY()) < proximity &&
+                canDigBlock(block))
+            {
+                block->useLayer(BlockLayer::FRONT);
+            }
+        }
+
+        _nextProximityUseAt = utils::gettime() + USE_PROXIMITY_INTERVAL;
+    }
 
     _mining = false;
     updateInventory();  // Failsafe
@@ -1237,9 +1260,13 @@ bool Player::useConsumable(InventoryItem* invItem, const Value& details)
 
 bool Player::canDigAt(const Point& point) const
 {
+    return canDigBlock(_game->getZone()->getBlockAtNodePoint(point));
+}
+
+bool Player::canDigBlock(BaseBlock* target) const
+{
     auto zone   = _game->getZone();
     auto origin = zone->getBlockAtNodePoint(getPhysicalCenter());
-    auto target = zone->getBlockAtNodePoint(point);
 
     if (!origin || !target)
     {
