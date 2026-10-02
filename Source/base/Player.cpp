@@ -580,7 +580,7 @@ void Player::update(float deltaTime)
     }
 
     // TODO: mark chunk we're in as explored (we're currently just letting the server handle it)
-    // 
+    
     // 0x10001EFB2: Auto-interact with nearby blocks that have a use proximity
     if (utils::gettime() > _nextProximityUseAt)
     {
