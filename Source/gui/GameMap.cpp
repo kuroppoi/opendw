@@ -63,7 +63,7 @@ bool GameMap::initWithZone(WorldZone* zone)
     _surfaceMapSprite = Sprite::createWithTexture(_surfaceMap.texture);
     _surfaceMapSprite->setBlendFunc(BlendFunc::ALPHA_NON_PREMULTIPLIED);
     _surfaceMapSprite->setAnchorPoint(Point::ZERO);
-    addChild(_surfaceMapSprite, 8);
+    addChild(_surfaceMapSprite, 1);
 
     // Init chunk map
     _chunkMap.texture = new Texture2D();
@@ -72,46 +72,46 @@ bool GameMap::initWithZone(WorldZone* zone)
     _chunkMap.size  = -1;
     _chunkMapSprite = Sprite::createWithTexture(_chunkMap.texture);
     _chunkMapSprite->setAnchorPoint(Point::ZERO);
-    addChild(_chunkMapSprite, 9);
-
-    // Create panel
-    _panel = Panel::createWithStyle("v2-transparent/brass");
-    _panel->setBackgroundTexture("map-background.png", 128);
-    _panel->setPosition(-10.0F, -10.0F);
-    addChild(_panel, 11);
+    addChild(_chunkMapSprite, 2);
 
     // Create info panel
     _infoPanel = Panel::createWithStyle("v2-opaquer/brass");
     _infoPanel->setBorderScale(0.65F);
     _infoPanel->setChop(Panel::Edge::LEFT);
     _infoPanel->setAnchorPoint(Point::ANCHOR_MIDDLE_LEFT);
-    addChild(_infoPanel, 10);
+    addChild(_infoPanel, 3);
+
+    // Create panel
+    _panel = Panel::createWithStyle("v2-transparent/brass");
+    _panel->setBackgroundTexture("map-background.png", 128);
+    _panel->setPosition(-10.0F, -10.0F);
+    addChild(_panel, 4);
+
+    // Create vector layer node
+    _vectorNode = DrawNode::create();
+    addChild(_vectorNode, 5);
+
+    // Create meta map
+    _metaMap = Node::create();
+    _metaMap->setCascadeOpacityEnabled(true);
+    addChild(_metaMap, 6);
+
+    // Create events map
+    _eventsMap = Node::create();
+    _eventsMap->setCascadeOpacityEnabled(true);
+    addChild(_eventsMap, 7);
 
     // Create title label
     _titleLabel = Label::createWithBMFont("menu.fnt", " ");
     _titleLabel->setScale(0.4F);
     _titleLabel->setAnchorPoint(Point::ANCHOR_MIDDLE_TOP);
-    addChild(_titleLabel, 13);
+    addChild(_titleLabel, 8);
 
     // Create player icon
     _playerIcon = Sprite::createWithSpriteFrameName("map/person");
     _playerIcon->setScale(0.75F);
     _playerIcon->setAnchorPoint(Point::ANCHOR_MIDDLE_BOTTOM);
-    addChild(_playerIcon, 14);
-
-    // Create meta map
-    _metaMap = Node::create();
-    _metaMap->setCascadeOpacityEnabled(true);
-    addChild(_metaMap, 12);
-
-    // Create events map
-    _eventsMap = Node::create();
-    _eventsMap->setCascadeOpacityEnabled(true);
-    addChild(_eventsMap, 13);
-
-    // Create vector layer node
-    _vectorNode = DrawNode::create();
-    addChild(_vectorNode, 12);
+    addChild(_playerIcon, 9);
 
     // Create bookmark button
     auto buttonColor = color_util::rgbToColor(kButtonColor);
