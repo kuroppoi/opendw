@@ -1240,15 +1240,19 @@ Debris* WorldRenderer::emitParticle(Emitter* emitter, const Point& point, float 
     }
 
     Debris* debris = nullptr;
-    AX_ASSERT(_freeDebrisIndex >= 0);
 
-    if (_freeDebrisIndex < DEBRIS_POOL_SIZE)
+    if (!emitter->getSpriteFrames().empty())
     {
-        debris      = _debrisPool[_freeDebrisIndex++];
-        Vec2 offset = emitter->getPositionRange();  // Copy
-        offset.x *= rand_minus1_1() * 0.5F * BLOCK_SIZE;
-        offset.y *= rand_minus1_1() * 0.5F * BLOCK_SIZE;
-        debris->spawnParticle(emitter, point + offset);
+        AX_ASSERT(_freeDebrisIndex >= 0);
+
+        if (_freeDebrisIndex < DEBRIS_POOL_SIZE)
+        {
+            debris      = _debrisPool[_freeDebrisIndex++];
+            Vec2 offset = emitter->getPositionRange();  // Copy
+            offset.x *= rand_minus1_1() * 0.5F * BLOCK_SIZE;
+            offset.y *= rand_minus1_1() * 0.5F * BLOCK_SIZE;
+            debris->spawnParticle(emitter, point + offset);
+        }
     }
 
     auto& sound = emitter->getSound();
