@@ -437,6 +437,10 @@ void DefaultInputManager::onKeyPressed(KeyCode keyCode, Event* event)
             _player->tryToUseBlockAtNodePoint(point);
         }
         break;
+    case KeyCode::KEY_F:
+        lightmapper->setTorchEnabled(!lightmapper->isTorchEnabled());
+        AudioManager::getInstance()->playButtonSfx();
+        break;
     case KeyCode::KEY_I:
         _gameGui->getGuiWindow()->toggle(GameGuiWindow::PanelType::INVENTORY);
         AudioManager::getInstance()->playButtonSfx();

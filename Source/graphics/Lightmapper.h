@@ -61,6 +61,9 @@ public:
     bool isSkyVisible() const { return _skyVisible; }
     bool isCavernVisible() const { return _cavernVisible; }
 
+    void setTorchEnabled(bool enabled) { _torchEnabled = enabled; }
+    bool isTorchEnabled() const { return _torchEnabled; }
+
     /* FUNC: Lightmapper::healthDidChange: @ 0x100058EE7 */
     void onHealthChanged(float oldHealth, float health);
 
@@ -91,6 +94,7 @@ private:
     int _textureWidth;
     int _textureHeight;
     float _previousWorldScale;
+    bool _torchEnabled;
     Item* _torchAccessory;
     ax::Rect _screenRect;
     std::vector<BaseBlock*> _screenBlocks;

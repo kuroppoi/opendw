@@ -21,7 +21,6 @@
 #define TEXTURE_PADDING            LIGHT_RING_ITERATIONS
 #define DEFAULT_BASE_LIGHT         200.0
 #define RESTRICT_FIELD_DAMAGE_AURA 0  // Whether or not field damage aura should only display in hell biomes
-#define MOOD_MODE_TORCH_LIGHT      1  // Whether or not flashlight should emit light when mood mode is enabled
 #define ENFORCE_MIN_PLAYER_LIGHT   0  // Whether or not the player's base light should be enforced as the minimum value
 
 USING_NS_AX;
@@ -57,6 +56,7 @@ bool Lightmapper::initWithZone(WorldZone* zone)
 
     _zone             = zone;
     _defaultBaseLight = DEFAULT_BASE_LIGHT;
+    _torchEnabled     = true;
 
     // Create texture
     _texture = new Texture2D();
@@ -251,9 +251,7 @@ void Lightmapper::update(float deltaTime)
     else
     {
         // 0x100056C6F: Draw torch light
-#if !MOOD_MODE_TORCH_LIGHT
-        if (!_moodLighting)
-#endif
+        if (_torchEnabled)
         {
             // Determine light value from flashlight accessory or held item
             auto light      = map_util::getFloat(GameConfig::getMain()->getData(), "lighting.player", 4.0F);
