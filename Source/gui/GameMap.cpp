@@ -18,7 +18,7 @@
 
 #define MIN_MAP_WIDTH     800.0F
 #define INFO_PANEL_WIDTH  105.0F
-#define TOGGLE_ACTION_TAG 0x1  // Tag for show/dismissal animation actions
+#define TOGGLE_ACTION_TAG -1  // Tag for show/dismissal animation actions
 
 USING_NS_AX;
 
