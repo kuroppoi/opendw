@@ -52,5 +52,19 @@ axmol build -p win32
 <details>
 <summary>Other platforms</summary>
 
+```
 Good luck! :)
+```
 </details>
+
+## Acknowledgments
+Projects like these are rarely truly a solo effort, even if one works alone.\
+Special thanks to:
+- [Bytebin](https://github.com/bytebin) for creating Deepworld and open sourcing its [master config](https://github.com/bytebin/deepworld-config)
+- The maintainers and contributors of:
+  - [Axmol](https://github.com/axmolengine/axmol) and its third-party extensions
+  - [Cocos2d-x](https://github.com/cocos2d/cocos2d-x)
+  - [Ghidra](https://github.com/NationalSecurityAgency/ghidra)
+- The Deepworld community for their support <3
+
+This project is a labor of love. No AI has been or is being used in its development.
