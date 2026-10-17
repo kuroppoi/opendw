@@ -489,8 +489,7 @@ void Lightmapper::illuminateBlocks(float deltaTime)
         alpha -= math_util::lerp(light * cloudCover * daylight, 255.0F, _flash);
 
         // 0x10005866B: Apply pulsating glow effect
-        // FIXME: take light position into account
-        if (front->getLight() > 0.0F)
+        if (block->isCurrentLightLit())
         {
             auto offset = math_util::lerp(4.0F, 7.0F, (float)x / y);
             auto glow   = sinf(offset * ((float)y + x + GameManager::getInstance()->getElapsedTime())) * 10.0F + 10.0F;
